@@ -4,6 +4,7 @@ use std::str::FromStr;
 
 use types::*;
 
+#[derive(Debug)]
 struct Header<'a> {
     svm_type: &'a str,
     kernel_type: &'a str,
@@ -15,16 +16,19 @@ struct Header<'a> {
     nr_sv: Vec<u32>,
 }
 
+#[derive(Debug)]
 struct Attribute {
     index: u32,
     value: Feature
 }
 
+#[derive(Debug)]
 struct SupportVector {
     label: Feature,
     features: Vec<Attribute>
 }
 
+#[derive(Debug)]
 struct ModelFile<'a> {
     header: Header<'a>,
     vectors: Vec<SupportVector>
@@ -62,7 +66,6 @@ named!(svm_line_vec_str <&str, (Vec<&str>)>,
 
 named!(svm_attribute <&str, (Attribute)>,
     do_parse!(
-        svm_string >>
         index: map_res!(svm_string, FromStr::from_str) >>
         tag!(":") >>
         value: map_res!(svm_string, FromStr::from_str)  >>
@@ -73,22 +76,6 @@ named!(svm_attribute <&str, (Attribute)>,
     )
 );
 
-
-named!(svm_line_sv <&str, (SupportVector)>,
-    do_parse!(
-        label: map_res!(svm_string, FromStr::from_str) >>
-        values: many0!(preceded!(tag!(" "), svm_attribute)) >>
-        line_ending >>
-        (SupportVector {
-            label: label,
-            features: values
-        })
-    )
-);
-
-
-
-/// Parses the header
 named!(svm_header <&str, Header>,
     do_parse!(
         svm_type: svm_line_string >>
@@ -114,13 +101,32 @@ named!(svm_header <&str, Header>,
     )
 );
 
+named!(svm_line_sv <&str, (SupportVector)>,
+    do_parse!(
+        label: map_res!(svm_string, FromStr::from_str) >>
+        values: many0!(preceded!(tag!(" "), svm_attribute)) >>
+        many0!(tag!(" ")) >>
+        line_ending >>
+        (SupportVector {
+            label: label,
+            features: values
+        })
+    )
+);
+
+named!(svm_svs <&str, (Vec<SupportVector>)>,
+    do_parse!(
+        vectors: many0!(svm_line_sv) >>
+        (vectors)
+    )
+);
 
 
 named!(svm_file <&str, ModelFile>,
     do_parse!(
         header: svm_header >>
         svm_string >> line_ending >>
-        support_vectors: many0!(svm_line_sv) >>
+        support_vectors: svm_svs >>
         (
             ModelFile {
                 header: header,
@@ -137,9 +143,11 @@ pub fn parse_model_csvm() -> Option<ModelCSVM> {
     let model: &str = include_str!("test.model");
     let res = svm_file(model);
 
+
     match res {
         IResult::Done(a, b) => {
-            println!("{:?} {:?}", b.header.nr_sv, 2);
+            //            println!("{:?} {:?}", b.header.total_sv, b.vectors[0]);
+                        println!("{:?} {:?}", b, 1);
         },
 
         IResult::Error(e) => {

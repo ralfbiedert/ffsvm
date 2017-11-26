@@ -3,7 +3,6 @@
 // * Use SIMD
 // * Use parallelism
 
-#[macro_use] extern crate nom;
 extern crate faster;
 
 
