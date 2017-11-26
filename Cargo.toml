@@ -3,4 +3,18 @@ name = "ffsvm"
 version = "0.1.0"
 authors = ["Ralf Biedert <rb@xr.io>"]
 
+
 [dependencies]
+faster = "^0.2"
+nom = "^3.2"
+#faster = { git = "https://github.com/AdamNiederer/faster" }
+
+
+[lib]
+name = "ffsvm"
+path = "src/lib.rs"
+
+
+[[bin]]
+name = "ffsvm"
+path = "src/bin.rs"
