@@ -2,4 +2,6 @@
 **/*.rs.bk
 Cargo.lock
 .idea
+.model
+
 
