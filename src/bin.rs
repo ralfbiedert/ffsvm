@@ -2,6 +2,9 @@ extern crate ffsvm;
 
 use ffsvm::*;
 
+use self::parser::*;
+use self::types::*;
+use self::classifier::{predict_probability_csvm};
 
 pub fn main() {
     let svm = ModelCSVM{};
