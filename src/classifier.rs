@@ -1,8 +1,7 @@
 
-use parser::{parse_model_csvm};
 use types::{Probability, Feature, ModelCSVM};
 
-pub fn predict_probability_csvm(csvm: &ModelCSVM, feature_vector: &[Feature], probabilities: &mut [Probability]) {
+pub fn predict_probability_csvm(_csvm: &ModelCSVM, _feature_vector: &[Feature], _probabilities: &mut [Probability]) {
 
     //    faster SIMD goes here ...
     //    let x = (&feature_vector[..]);

@@ -2,7 +2,7 @@ use nom::{IResult, line_ending, is_alphanumeric };
 use std::str;
 use std::str::FromStr;
 
-use types::*;
+use types::{Matrix, Feature, ModelCSVM};
 
 #[derive(Debug)]
 struct Header<'a> {
@@ -137,28 +137,33 @@ named!(svm_file <&str, ModelFile>,
 );
 
 
-/// Parses a string into a SVM model
-pub fn parse_model_csvm() -> Option<ModelCSVM> {
 
-    let model: &str = include_str!("test.model");
+
+/// Parses a string into a SVM model
+pub fn parse_model_csvm(model: &str) -> Option<ModelCSVM> {
+
+    // Parse string to struct
     let res = svm_file(model);
 
 
     match res {
-        IResult::Done(a, b) => {
-            //            println!("{:?} {:?}", b.header.total_sv, b.vectors[0]);
-                        println!("{:?} {:?}", b, 1);
+        IResult::Done(_, model) => {
+            // Get basic info
+            let vectors = model.header.total_sv as usize;
+            let attributes = model.vectors[0].features.len();
+
+            // Allocate model
+            let model = ModelCSVM {
+                support_vectors: Matrix::new(vectors, attributes)
+            };
+
+
+
+            // Return what we have
+            return Option::Some(model);
         },
 
-        IResult::Error(e) => {
-            println!("Err {:?}", e)
-        },
-
-        IResult::Incomplete(_) => {
-            println!("Inc")
-
-        }
+        IResult::Error(_) => {  return None; },
+        IResult::Incomplete(_) => {  return None; }
     }
-
-    Option::Some(ModelCSVM{})
 }
