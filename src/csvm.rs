@@ -28,19 +28,19 @@ pub struct CSVM {
 
 impl CSVM {
     
-    pub fn new(model: &RawModel) -> Result<CSVM, &'static str> {
+    pub fn new(raw_model: &RawModel) -> Result<CSVM, &'static str> {
         // Get basic info
-        let vectors = model.header.total_sv as usize;
-        let attributes = model.vectors[0].features.len();
-        let num_classes = model.header.nr_class as usize;
-        let total_support_vectors = model.header.total_sv as usize;
+        let vectors = raw_model.header.total_sv as usize;
+        let attributes = raw_model.vectors[0].features.len();
+        let num_classes = raw_model.header.nr_class as usize;
+        let total_support_vectors = raw_model.header.total_sv as usize;
 
         // Allocate model
-        let mut rval = CSVM {
+        let mut csvm_model = CSVM {
             num_classes,
             total_support_vectors,
-            gamma: model.header.gamma,
-            num_support_vectors: model.header.nr_sv.clone(),
+            gamma: raw_model.header.gamma,
+            num_support_vectors: raw_model.header.nr_sv.clone(),
             starts: vec![0; num_classes],
             support_vectors: Matrix::new(vectors, attributes, 0.0),
             sv_coef: Matrix::new(num_classes - 1, total_support_vectors, 0.0),
@@ -51,32 +51,39 @@ impl CSVM {
             }
         };
 
-        // Set values in model
-        for (i_vector, vector) in model.vectors.iter().enumerate() {
+        // Set support vector and coefficients
+        for (i_vector, vector) in raw_model.vectors.iter().enumerate() {
+            
+            // Set support vectors
             for (i_attribute, attribute) in vector.features.iter().enumerate() {
-                
+
                 // Make sure we have a "sane" file.
                 if attribute.index as usize != i_attribute {
                     return Result::Err("SVM support vector indices MUST range from [0 ... #(num_attributes - 1)].");
                 }
-                
-                rval.support_vectors.set(i_vector, attribute.index as usize, attribute.value);
+
+                csvm_model.support_vectors.set(i_vector, attribute.index as usize, attribute.value);
+            }
+
+            // Set coefficients 
+            for (i_coef, coef) in vector.coefs.iter().enumerate() {
+                csvm_model.sv_coef.set(i_coef, i_vector, *coef);
             }
         }
-        
         // for(i=1;i<nr_class;i++)
         //      start[i] = start[i-1]+model->nSV[i-1];
         
+        // Compute starts
         let mut next= 0;
-        for (i, start) in rval.starts.iter_mut().enumerate() {
+        for (i, start) in csvm_model.starts.iter_mut().enumerate() {
             *start = next;
-            next += rval.num_support_vectors[i];
+            next += csvm_model.num_support_vectors[i];
         }
         
-        println!("{:?}", rval);
+        println!("{:?}", csvm_model);
 
         // Return what we have
-        return Result::Ok(rval);            
+        return Result::Ok(csvm_model);            
     }
     
     
