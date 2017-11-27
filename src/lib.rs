@@ -6,9 +6,7 @@
 #[macro_use] extern crate nom;
 extern crate faster;
 
-
 pub mod types;
+pub mod matrix;
+pub mod csvm;
 pub mod parser;
-pub mod classifier;
-
-//

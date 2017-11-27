@@ -1,37 +1,38 @@
-use nom::{IResult, line_ending, is_alphanumeric };
+use nom::{ line_ending, is_alphanumeric };
 use std::str;
 use std::str::FromStr;
 
-use types::{Matrix, Feature, ModelCSVM};
+use types::{Feature};
+
 
 #[derive(Debug)]
-struct Header<'a> {
-    svm_type: &'a str,
-    kernel_type: &'a str,
-    gamma: f32,
-    nr_class: u32,
-    total_sv: u32,
-    rho: f32,
-    label: Vec<&'a str>,
-    nr_sv: Vec<u32>,
+pub struct FileHeader<'a> {
+    pub svm_type: &'a str,
+    pub kernel_type: &'a str,
+    pub gamma: f32,
+    pub nr_class: u32,
+    pub total_sv: u32,
+    pub rho: f32,
+    pub label: Vec<&'a str>,
+    pub nr_sv: Vec<u32>,
 }
 
 #[derive(Debug)]
-struct Attribute {
-    index: u32,
-    value: Feature
+pub struct Attribute {
+    pub index: u32,
+    pub value: Feature
 }
 
 #[derive(Debug)]
-struct SupportVector {
-    label: Feature,
-    features: Vec<Attribute>
+pub struct SupportVector {
+    pub coefs: Vec<f32>,
+    pub features: Vec<Attribute>
 }
 
 #[derive(Debug)]
-struct ModelFile<'a> {
-    header: Header<'a>,
-    vectors: Vec<SupportVector>
+pub struct RawModel<'a> {
+    pub header: FileHeader<'a>,
+    pub vectors: Vec<SupportVector>
 }
 
 
@@ -76,7 +77,7 @@ named!(svm_attribute <&str, (Attribute)>,
     )
 );
 
-named!(svm_header <&str, Header>,
+named!(svm_header <&str, FileHeader>,
     do_parse!(
         svm_type: svm_line_string >>
         kernel_type: svm_line_string >>
@@ -87,7 +88,7 @@ named!(svm_header <&str, Header>,
         label: svm_line_vec_str >>
         nr_sv: svm_line_vec_u32 >>
         (
-            Header {
+            FileHeader {
                 svm_type: svm_type,
                 kernel_type: kernel_type,
                 gamma: gamma,
@@ -101,34 +102,44 @@ named!(svm_header <&str, Header>,
     )
 );
 
-named!(svm_line_sv <&str, (SupportVector)>,
+named_args!(svm_coef(n: u32) <&str,Vec<f32>>,
     do_parse!(
-        label: map_res!(svm_string, FromStr::from_str) >>
+        opt!(tag!(" ")) >>
+        rval: count!(map_res!(svm_string, FromStr::from_str), n as usize) >>
+        (rval)
+    )
+);
+
+
+named_args!(svm_line_sv(num_coef: u32) <&str, (SupportVector)>,
+    do_parse!(
+        // label: map_res!(svm_string, FromStr::from_str) >>
+        coefs: call!(svm_coef, num_coef) >>
         values: many0!(preceded!(tag!(" "), svm_attribute)) >>
         many0!(tag!(" ")) >>
         line_ending >>
         (SupportVector {
-            label: label,
+            coefs: coefs,
             features: values
         })
     )
 );
 
-named!(svm_svs <&str, (Vec<SupportVector>)>,
+named_args!(svm_svs(num_coef: u32) <&str, (Vec<SupportVector>)>,
     do_parse!(
-        vectors: many0!(svm_line_sv) >>
+        vectors: many0!(call!(svm_line_sv, num_coef)) >>
         (vectors)
     )
 );
 
 
-named!(svm_file <&str, ModelFile>,
+named!(svm_file <&str, RawModel>,
     do_parse!(
         header: svm_header >>
         svm_string >> line_ending >>
-        support_vectors: svm_svs >>
+        support_vectors: call!(svm_svs, header.nr_class - 1) >>
         (
-            ModelFile {
+            RawModel {
                 header: header,
                 vectors: support_vectors,
             }
@@ -138,32 +149,14 @@ named!(svm_file <&str, ModelFile>,
 
 
 
-
 /// Parses a string into a SVM model
-pub fn parse_model_csvm(model: &str) -> Option<ModelCSVM> {
+pub fn parse_model(model: &str) -> Result<RawModel, &'static str> {
 
     // Parse string to struct
     let res = svm_file(model);
-
-
+    
     match res {
-        IResult::Done(_, model) => {
-            // Get basic info
-            let vectors = model.header.total_sv as usize;
-            let attributes = model.vectors[0].features.len();
-
-            // Allocate model
-            let model = ModelCSVM {
-                support_vectors: Matrix::new(vectors, attributes)
-            };
-
-
-
-            // Return what we have
-            return Option::Some(model);
-        },
-
-        IResult::Error(_) => {  return None; },
-        IResult::Incomplete(_) => {  return None; }
+        Ok(m) => { return Result::Ok(m.1); },
+        Err(_) => { return Result::Err("Error parsing file."); },
     }
 }
