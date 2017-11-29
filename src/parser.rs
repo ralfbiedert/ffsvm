@@ -13,7 +13,7 @@ pub struct FileHeader<'a> {
     pub nr_class: u32,
     pub total_sv: u32,
     pub rho: Vec<f32>,
-    pub label: Vec<&'a str>,
+    pub label: Vec<u32>,
     pub nr_sv: Vec<u32>,
 }
 
@@ -89,7 +89,7 @@ named!(svm_header <&str, FileHeader>,
         nr_class: svm_line_u32 >>
         total_sv: svm_line_u32 >>
         rho: svm_line_vec_f32 >>
-        label: svm_line_vec_str >>
+        label: svm_line_vec_u32 >>
         nr_sv: svm_line_vec_u32 >>
         (
             FileHeader {

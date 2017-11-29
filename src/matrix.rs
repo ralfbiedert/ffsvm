@@ -5,6 +5,7 @@ use std;
 pub struct Matrix<T> where
     T : std::fmt::Debug,
     T : std::marker::Copy,
+    T : std::marker::Sized,
     T : std::clone::Clone
 {
     pub vectors: usize,
@@ -15,6 +16,7 @@ pub struct Matrix<T> where
 
 impl<T> Matrix<T> where
     T : std::fmt::Debug,
+    T : std::marker::Sized,
     T : std::marker::Copy,
     T : std::clone::Clone
 {
@@ -33,6 +35,14 @@ impl<T> Matrix<T> where
         &self.data[start_index..start_index + self.attributes]
     }
 
+    #[inline]
+    pub fn set_vector(&mut self, index_vector: usize, vector: &[T]) {
+        let start_index = self.offset(index_vector, 0);
+        for i in 0 .. self.attributes {
+            self.data[start_index + i] = vector[i];    
+        }
+    }
+    
     #[inline]
     pub fn offset(&self, index_vector: usize, index_attribute: usize) -> usize {
         ((index_vector * self.attributes) + index_attribute)

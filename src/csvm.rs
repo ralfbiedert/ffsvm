@@ -13,9 +13,11 @@ struct Scratchpad {
 pub struct CSVM {
     pub num_classes: usize,
     pub gamma: f32,
+    pub rho: Vec<f32>,
     pub total_support_vectors: usize,
     pub num_support_vectors: Vec<u32>,
     pub starts: Vec<u32>,
+    pub labels: Vec<u32>,
 
     pub support_vectors: Matrix<Feature>,
     pub sv_coef: Matrix<Feature>,
@@ -40,6 +42,8 @@ impl CSVM {
             num_classes,
             total_support_vectors,
             gamma: raw_model.header.gamma,
+            rho: raw_model.header.rho.clone(),
+            labels: raw_model.header.label.clone(),
             num_support_vectors: raw_model.header.nr_sv.clone(),
             starts: vec![0; num_classes],
             support_vectors: Matrix::new(vectors, attributes, 0.0),
@@ -80,8 +84,6 @@ impl CSVM {
             next += csvm_model.num_support_vectors[i];
         }
         
-        println!("{:?}", csvm_model);
-
         // Return what we have
         return Result::Ok(csvm_model);            
     }
@@ -95,7 +97,11 @@ impl CSVM {
 
     // Re-implementation of: 
     // double svm_predict_values(const svm_model *model, const svm_node *x, double* dec_values)
-    pub fn predict_probability_csvm(&mut self, problem: &Matrix<Feature>) {
+    pub fn predict_probability_csvm(&mut self, problem: &Matrix<Feature>) -> u32 {
+        
+        // TODO: This should be parameter, but what is it?
+        let mut dec_values = vec![0.0; problem.attributes];
+        
         // int l = model->l;  -- l being total number of SV
         
         // for(i=0;i<l;i++)
@@ -120,8 +126,8 @@ impl CSVM {
         
         // for(i=0;i<nr_class;i++) 
         //     vote[i] = 0;
-        for vote in self.scratchpad.kvalue.iter_mut() {
-            *vote = 0.0;
+        for vote in self.scratchpad.vote.iter_mut() {
+            *vote = 0;
         }
         
         let mut p = 0;
@@ -131,44 +137,54 @@ impl CSVM {
             let ci = self.num_support_vectors[i];
 
             for j in (i+1) .. self.num_classes {
-                let mut sum = 0.0f32;
+                // Needs higher precision since we add lots of small values 
+                let mut sum: f64 = 0.0;
 
                 let sj = self.starts[j];
                 let cj = self.num_support_vectors[j];
+
+                let coef1 = self.sv_coef.get_vector(j-1);
+                let coef2 = self.sv_coef.get_vector(i);
                 
-             //   let coef1 = self.    
+                for k in 0 .. ci {
+                    let idx =(si+k) as usize; 
+                    sum += (coef1[idx] * self.scratchpad.kvalue[idx]) as f64;
+                }
+
+                for k in 0 .. cj {
+                    let idx =(sj+k) as usize;
+                    sum += (coef1[idx] * self.scratchpad.kvalue[idx]) as f64;
+                }
+
+
+
+                sum -= self.rho[p] as f64;
+                dec_values[p] = sum;
+
+                //println!("{:?} {:?} {:?} {:?} {:?}", i, j, sum, self.rho[p], dec_values[p]);
+
+
+                if dec_values[p] > 0.0 {
+                    self.scratchpad.vote[i] += 1;
+                } else {
+                    self.scratchpad.vote[j] += 1;
+                }
+                
+                p += 1;
             }
         }
-        //        int p=0;
-        //        for(i=0;i<nr_class;i++)
-        //        for(int j=i+1;j<nr_class;j++)
-        //        {
-        //        double sum = 0;
-        //        int si = start[i];
-        //        int sj = start[j];
-        //        int ci = model->nSV[i];
-        //        int cj = model->nSV[j];
-        //
-        //        int k;
-        //        double *coef1 = model->sv_coef[j-1];
-        //        double *coef2 = model->sv_coef[i];
-        //        for(k=0;k<ci;k++)
-        //        sum += coef1[si+k] * kvalue[si+k];
-        //        for(k=0;k<cj;k++)
-        //        sum += coef2[sj+k] * kvalue[sj+k];
-        //        sum -= model->rho[p];
-        //        dec_values[p] = sum;
-        //
-        //        if(dec_values[p] > 0)
-        //        ++vote[i];
-        //        else
-        //        ++vote[j];
-        //        p++;
-        //        }
-        let p = 0;
 
+        let mut vote_max_idx = 0;
+        for i in 1 .. self.num_classes {
+            if self.scratchpad.vote[i] > self.scratchpad.vote[vote_max_idx] {
+                vote_max_idx = i;
+            }     
+        }
 
-        // println!("{:?}", self.scratchpad);
+        println!("{:?}", vote_max_idx);
+
+        self.labels[vote_max_idx]
+
     }
 }
 
