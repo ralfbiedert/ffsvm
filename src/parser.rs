@@ -12,7 +12,7 @@ pub struct FileHeader<'a> {
     pub gamma: f32,
     pub nr_class: u32,
     pub total_sv: u32,
-    pub rho: f32,
+    pub rho: Vec<f32>,
     pub label: Vec<&'a str>,
     pub nr_sv: Vec<u32>,
 }
@@ -57,6 +57,10 @@ named!(svm_line_u32 <&str, (u32)>,
     do_parse!( svm_string >> tag!(" ") >> value: map_res!(svm_string, FromStr::from_str) >> line_ending >> (value) )
 );
 
+named!(svm_line_vec_f32 <&str, (Vec<f32>)>,
+    do_parse!( svm_string >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
+);
+
 named!(svm_line_vec_u32 <&str, (Vec<u32>)>,
     do_parse!( svm_string >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
 );
@@ -84,7 +88,7 @@ named!(svm_header <&str, FileHeader>,
         gamma: svm_line_f32 >>
         nr_class: svm_line_u32 >>
         total_sv: svm_line_u32 >>
-        rho: svm_line_f32 >>
+        rho: svm_line_vec_f32 >>
         label: svm_line_vec_str >>
         nr_sv: svm_line_vec_u32 >>
         (
