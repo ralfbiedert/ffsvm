@@ -1,5 +1,5 @@
 
-use faster::{IntoPackedRefIterator, f32s, PackedIterator };
+use faster::{IntoPackedRefIterator, f32s, f64s, PackedIterator };
 use rand::{random, ChaChaRng, Rng};
 use itertools::{zip};
 use rayon::prelude::*;
@@ -7,7 +7,7 @@ use rayon::prelude::*;
 use matrix::Matrix;
 use parser::RawModel;
 use types::{Feature};
-use util::sum_elements_f32;
+use util::sum_f32s;
 
 
 #[allow(unused_imports)] // TODO: Removing this causes 'unused import' warnings although it's being used.
@@ -145,8 +145,21 @@ impl CSVM {
         return Result::Ok(csvm_model);            
     }
 
+    
+    /// Computes our partial decision value 
+    fn simd_compute_partial_decision_value(all_coef: &[f32], all_kvalue: &[f32], a: usize, b: usize) -> f32s {
+        // TODO: WE MIGHT NEED TO REWORK THIS SINCE THIS 
+        // TODO: SUM NEEDS HIGH PRECISION (f64) FROM THE LOOKS OF IT
+        let coef = &all_coef[a..b];
+        let kvalue = &all_kvalue[a..b];
+        let mut simd_sum = f32s::splat(0.0f32);
 
+        for (x, y) in zip(coef.simd_iter(), kvalue.simd_iter()) {
+            simd_sum = simd_sum + x * y
+        }
 
+        simd_sum
+    }
 
     /// Creates a new CSVM from a raw model.
     pub fn predict_probability(&self, problems: &mut [Problem]) {
@@ -165,7 +178,7 @@ impl CSVM {
             
       
             // Compute kernel values for each support vector 
-            for (i, kvalue) in problem.kvalue.iter_mut().enumerate() {
+            for (i, kernel_value) in problem.kvalue.iter_mut().enumerate() {
 
                 // Get current vector x (always same in this loop)
                 let sv = self.support_vectors.get_vector(i);
@@ -177,10 +190,10 @@ impl CSVM {
                 }
                 
                 // TODO: There must be a better function to do this ...
-                let sum = sum_elements_f32(simd_sum, simd_width);
+                let sum = sum_f32s(simd_sum, simd_width);
 
                 // Compute k-value
-                *kvalue = (-self.gamma * sum).exp();
+                *kernel_value = (-self.gamma * sum).exp();
             }
 
             
@@ -192,32 +205,20 @@ impl CSVM {
             let mut p = 0;
             for i in 0 .. self.num_classes {
 
-                let start_index_i = self.starts[i];
-                let num_support_vectors_i = self.num_support_vectors[i];
+                let s_i = self.starts[i] as usize;
+                let nsv_i = self.num_support_vectors[i] as usize;
 
                 for j in (i+1) .. self.num_classes {
-                    // Needs higher precision since we add lots of small values 
-                    let mut sum: f64 = 0.0;
+                    
+                    let s_j = self.starts[j] as usize;
+                    let nsv_j = self.num_support_vectors[j] as usize;
 
-                    let start_index_j = self.starts[j];
-                    let num_support_vectors_j = self.num_support_vectors[j];
-
-                    let coef1 = self.sv_coef.get_vector(j-1);
-                    let coef2 = self.sv_coef.get_vector(i);
-
-                    for k in 0 .. num_support_vectors_i {
-                        let idx = (start_index_i+k) as usize;
-                        sum += (coef1[idx] * problem.kvalue[idx]) as f64;
-                    }
-
-                    for k in 0 .. num_support_vectors_j {
-                        let idx = (start_index_j+k) as usize;
-                        sum += (coef2[idx] * problem.kvalue[idx]) as f64;
-                    }
-
-
-                    sum -= self.rho[p] as f64;
-                    dec_values[p] = sum;
+                    let simd_sum1 = CSVM::simd_compute_partial_decision_value(self.sv_coef.get_vector(j-1), &problem.kvalue, s_i, s_i+nsv_i);
+                    let simd_sum2 = CSVM::simd_compute_partial_decision_value(self.sv_coef.get_vector(i), &problem.kvalue, s_j, s_j+nsv_j);
+                    
+                    let sum = sum_f32s(simd_sum1, simd_width) + sum_f32s(simd_sum2, simd_width) - self.rho[p];
+                    
+                    dec_values[p] = sum as f64;
 
                     if dec_values[p] > 0.0 {
                         problem.vote[i] += 1;
