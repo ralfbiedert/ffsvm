@@ -131,91 +131,97 @@ impl CSVM {
 
     // Re-implementation of: 
     // double svm_predict_values(const svm_model *model, const svm_node *x, double* dec_values)
-    pub fn predict_probability_csvm(&mut self, problem: &Matrix<Feature>, solution: &mut Matrix<Label>) {
+    pub fn predict_probability_one(&mut self, current_problem: &[Feature]) -> Label {
+
+        // TODO: This should be parameter, but what is it?
+        let mut dec_values = vec![0.0; current_problem.len()];
+
+        // int l = model->l;  -- l being total number of SV
+
+        // for(i=0;i<l;i++)
+        //      kvalue[i] = Kernel::k_function(x,model->SV[i],model->param);
+
+        for (i, kvalue) in self.scratchpad.kvalue.iter_mut().enumerate() {
+
+            // Get current vector x (always same in this loop)
+            let sv = self.support_vectors.get_vector(i);
+            let mut sum: Feature = 0.0;
+
+            for (ix, x) in current_problem.iter().enumerate() {
+                let y = sv[ix];
+                let d = x - y;
+                sum += d * d;
+            }
+
+            *kvalue = (-self.gamma * sum).exp();
+        }
+
+        // for(i=0;i<nr_class;i++) 
+        //     vote[i] = 0;
+        for vote in self.scratchpad.vote.iter_mut() {
+            *vote = 0;
+        }
+
+        let mut p = 0;
+        for i in 0 .. self.num_classes {
+
+            let si = self.starts[i];
+            let ci = self.num_support_vectors[i];
+
+            for j in (i+1) .. self.num_classes {
+                // Needs higher precision since we add lots of small values 
+                let mut sum: f64 = 0.0;
+
+                let sj = self.starts[j];
+                let cj = self.num_support_vectors[j];
+
+                let coef1 = self.sv_coef.get_vector(j-1);
+                let coef2 = self.sv_coef.get_vector(i);
+
+                for k in 0 .. ci {
+                    let idx =(si+k) as usize;
+                    sum += (coef1[idx] * self.scratchpad.kvalue[idx]) as f64;
+                }
+
+                for k in 0 .. cj {
+                    let idx =(sj+k) as usize;
+                    sum += (coef2[idx] * self.scratchpad.kvalue[idx]) as f64;
+                }
+
+
+                sum -= self.rho[p] as f64;
+                dec_values[p] = sum;
+
+                //println!("{:?} {:?} {:?} {:?} {:?}", i, j, sum, self.rho[p], dec_values[p]);
+
+
+                if dec_values[p] > 0.0 {
+                    self.scratchpad.vote[i] += 1;
+                } else {
+                    self.scratchpad.vote[j] += 1;
+                }
+
+                p += 1;
+            }
+        }
+
+        let mut vote_max_idx = 0;
+        for i in 1 .. self.num_classes {
+            if self.scratchpad.vote[i] > self.scratchpad.vote[vote_max_idx] {
+                vote_max_idx = i;
+            }
+        }
+
+        self.labels[vote_max_idx]
+    }
+    
+    
+    pub fn predict_probability(&mut self, problem: &Matrix<Feature>, solution: &mut Matrix<Label>) {
+        
         for problem_index in 0 .. problem.vectors {
-            
-            // TODO: This should be parameter, but what is it?
-            let mut dec_values = vec![0.0; problem.attributes];
-
-            // int l = model->l;  -- l being total number of SV
-
-            // for(i=0;i<l;i++)
-            //      kvalue[i] = Kernel::k_function(x,model->SV[i],model->param);
-
-            // TODO: We only compute for the first input vector 
             let current_problem = problem.get_vector(problem_index);
-            for (i, kvalue) in self.scratchpad.kvalue.iter_mut().enumerate() {
-
-                // Get current vector x (always same in this loop)
-                let sv = self.support_vectors.get_vector(i);
-                let mut sum: Feature = 0.0;
-
-                for (ix, x) in current_problem.iter().enumerate() {
-                    let y = sv[ix];
-                    let d = x - y;
-                    sum += d * d;
-                }
-
-                *kvalue = (-self.gamma * sum).exp();
-            }
-
-            // for(i=0;i<nr_class;i++) 
-            //     vote[i] = 0;
-            for vote in self.scratchpad.vote.iter_mut() {
-                *vote = 0;
-            }
-
-            let mut p = 0;
-            for i in 0 .. self.num_classes {
-
-                let si = self.starts[i];
-                let ci = self.num_support_vectors[i];
-
-                for j in (i+1) .. self.num_classes {
-                    // Needs higher precision since we add lots of small values 
-                    let mut sum: f64 = 0.0;
-
-                    let sj = self.starts[j];
-                    let cj = self.num_support_vectors[j];
-
-                    let coef1 = self.sv_coef.get_vector(j-1);
-                    let coef2 = self.sv_coef.get_vector(i);
-
-                    for k in 0 .. ci {
-                        let idx =(si+k) as usize;
-                        sum += (coef1[idx] * self.scratchpad.kvalue[idx]) as f64;
-                    }
-
-                    for k in 0 .. cj {
-                        let idx =(sj+k) as usize;
-                        sum += (coef2[idx] * self.scratchpad.kvalue[idx]) as f64;
-                    }
-
-
-                    sum -= self.rho[p] as f64;
-                    dec_values[p] = sum;
-
-                    //println!("{:?} {:?} {:?} {:?} {:?}", i, j, sum, self.rho[p], dec_values[p]);
-
-
-                    if dec_values[p] > 0.0 {
-                        self.scratchpad.vote[i] += 1;
-                    } else {
-                        self.scratchpad.vote[j] += 1;
-                    }
-
-                    p += 1;
-                }
-            }
-
-            let mut vote_max_idx = 0;
-            for i in 1 .. self.num_classes {
-                if self.scratchpad.vote[i] > self.scratchpad.vote[vote_max_idx] {
-                    vote_max_idx = i;
-                }
-            }
-
-            solution.set(0, problem_index,self.labels[vote_max_idx]);
+            let label = self.predict_probability_one(current_problem);
+            solution.set(0, problem_index, label);
         }
     }
 }
@@ -230,7 +236,7 @@ fn produce_testcase(classes: usize, sv_per_class: usize, attributes: usize, prob
     let mut solution= Matrix::new_random(1, problems);
     let problem = Matrix::new_random(problems, attributes);
     
-    move || { (&mut svm).predict_probability_csvm(&problem, &mut solution) } 
+    move || { (&mut svm).predict_probability(&problem, &mut solution) } 
 }
 
 #[bench]
