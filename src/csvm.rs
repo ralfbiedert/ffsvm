@@ -144,21 +144,36 @@ impl CSVM {
             let mut dec_values = scratchpad.dec_values.get_vector_mut(problem_index);
             let current_problem = problem.get_vector(problem_index);
             
-            // Compute kernel values for each support vector 
-            for (i, kvalue) in scratchpad.kvalue.iter_mut().enumerate() {
+            
 
-                // Get current vector x (always same in this loop)
+            for i in 0..scratchpad.kvalue.len() {
                 let sv = self.support_vectors.get_vector(i);
                 let mut sum: Feature = 0.0;
 
-                for (ix, x) in current_problem.iter().enumerate() {
+                for ix in 0..current_problem.len() {
                     let y = sv[ix];
-                    let d = x - y;
+                    let d = current_problem[ix] - y;
                     sum += d * d;
                 }
 
-                *kvalue = (-self.gamma * sum).exp();
+                scratchpad.kvalue[i] = (-self.gamma * sum).exp();
             }
+//            
+//            // Compute kernel values for each support vector 
+//            for (i, kvalue) in scratchpad.kvalue.iter_mut().enumerate() {
+//
+//                // Get current vector x (always same in this loop)
+//                let sv = self.support_vectors.get_vector(i);
+//                let mut sum: Feature = 0.0;
+//
+//                for (ix, x) in current_problem.iter().enumerate() {
+//                    let y = sv[ix];
+//                    let d = x - y;
+//                    sum += d * d;
+//                }
+//
+//                *kvalue = (-self.gamma * sum).exp();
+//            }
 
             for vote in scratchpad.vote.iter_mut() {
                 *vote = 0;

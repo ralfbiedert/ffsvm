@@ -5,6 +5,7 @@
 #![feature(toowned_clone_into)]
 #![feature(test)]
 #![feature(conservative_impl_trait)]    // to "return impl FnMut" 
+#![feature(repr_simd)]
 
 #[macro_use] extern crate nom;
 extern crate faster;
