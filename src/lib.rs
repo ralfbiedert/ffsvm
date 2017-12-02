@@ -12,7 +12,7 @@ extern crate faster;
 extern crate rand;
 extern crate test;
 extern crate itertools;
-
+extern crate rayon;
 
 pub mod types;
 pub mod matrix;

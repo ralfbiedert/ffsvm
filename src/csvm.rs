@@ -1,7 +1,7 @@
 
 use matrix::Matrix;
 use parser::RawModel;
-use types::{Feature, Label};
+use types::{Feature};
 use faster::{IntoPackedRefIterator, f32s, PackedIterator };
 use rand::{random, ChaChaRng, Rng};
 use itertools::{zip};
@@ -11,13 +11,14 @@ use test::{Bencher};
 
 const MAX_PROBLEM_SIZE: usize = 1024;
 
-#[derive(Debug)]
-pub struct Scratchpad {
+
+pub struct Problem {
+    pub features: Vec<Feature>,
     pub kvalue: Vec<Feature>,
     pub vote: Vec<u32>,
-    pub dec_values: Matrix<f64>,
+    pub dec_values: Vec<f64>,
+    pub label: u32
 }
-
 
 #[derive(Debug)]
 pub struct CSVM {
@@ -34,18 +35,20 @@ pub struct CSVM {
     pub sv_coef: Matrix<Feature>,
 }
 
-impl Scratchpad {
+impl Problem {
     
-    pub fn new(total_sv: usize, num_classes: usize, max_problems: usize, num_attributes: usize) -> Scratchpad {
-        Scratchpad {
+    pub fn new(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem {
+        Problem {
             kvalue: vec![0.0; total_sv],
+            features: vec![Default::default(); total_sv],
             vote: vec![0; num_classes],
-            dec_values: Matrix::new(max_problems, num_attributes, 0.0),
+            dec_values: vec![0.0; num_attributes],
+            label: 0
         }
     }
     
-    pub fn from_csvm(csvm: &CSVM) -> Scratchpad {
-        Scratchpad::new(csvm.total_support_vectors, csvm.num_classes, MAX_PROBLEM_SIZE, csvm.num_attributes)           
+    pub fn from_csvm(csvm: &CSVM) -> Problem {
+        Problem::new(csvm.total_support_vectors, csvm.num_classes, csvm.num_attributes)           
     }
 }
 
@@ -132,25 +135,25 @@ impl CSVM {
 
 
 
-    // TODO: SIMD
-    //    faster SIMD goes here ...
-    //    let x = (&feature_vector[..]);
-    //    let mut mp = x.simd_iter().map(|vector| { f32s::splat(10.0) + vector.abs() });
-    //    let c = mp.scalar_collect();
     /// Creates a new CSVM from a raw model.
-    pub fn predict_probability(&mut self, scratchpad: &mut Scratchpad, problem: &Matrix<Feature>, solution: &mut Matrix<Label>) {
+    pub fn predict_probability(&self, problems: &mut [Problem]) {
+        
+        // Get SIMD width: TODO: Surely there must be a better way to get SIMD width 
         let _temp = [0.0f32; 32];
         let simd_width = (&_temp[..]).simd_iter().width();
         
-        for problem_index in 0 .. problem.vectors {
+        //problem.par_iter_mut().for_each(||)
+            
+        // Compute all problems ...
+        for (problem_index, problem) in problems.iter_mut().enumerate() {
             
             // Get current problem and decision values array
-            let mut dec_values = scratchpad.dec_values.get_vector_mut(problem_index);
-            let current_problem = problem.get_vector(problem_index);
+            let mut dec_values = &mut problem.dec_values;
+            let current_problem = &problem.features[..];
             
       
             // Compute kernel values for each support vector 
-            for (i, kvalue) in scratchpad.kvalue.iter_mut().enumerate() {
+            for (i, kvalue) in problem.kvalue.iter_mut().enumerate() {
 
                 // Get current vector x (always same in this loop)
                 let sv = self.support_vectors.get_vector(i);
@@ -165,7 +168,7 @@ impl CSVM {
                     simd_sum = simd_sum + (x - y) * (x - y);
                 }
 
-                // Sum our SIMD sum
+                // Sum components of our SIMD sum
                 for i in 0 .. simd_width {
                     sum += simd_sum.extract(i as u32);
                 }
@@ -174,7 +177,9 @@ impl CSVM {
                 *kvalue = (-self.gamma * sum).exp();
             }
 
-            for vote in scratchpad.vote.iter_mut() {
+            
+            // Reset votes ... TODO: Is there a better way to do this?
+            for vote in problem.vote.iter_mut() {
                 *vote = 0;
             }
 
@@ -195,13 +200,13 @@ impl CSVM {
                     let coef2 = self.sv_coef.get_vector(i);
 
                     for k in 0 .. ci {
-                        let idx =(si+k) as usize;
-                        sum += (coef1[idx] * scratchpad.kvalue[idx]) as f64;
+                        let idx = (si+k) as usize;
+                        sum += (coef1[idx] * problem.kvalue[idx]) as f64;
                     }
 
                     for k in 0 .. cj {
-                        let idx =(sj+k) as usize;
-                        sum += (coef2[idx] * scratchpad.kvalue[idx]) as f64;
+                        let idx = (sj+k) as usize;
+                        sum += (coef2[idx] * problem.kvalue[idx]) as f64;
                     }
 
 
@@ -209,9 +214,9 @@ impl CSVM {
                     dec_values[p] = sum;
 
                     if dec_values[p] > 0.0 {
-                        scratchpad.vote[i] += 1;
+                        problem.vote[i] += 1;
                     } else {
-                        scratchpad.vote[j] += 1;
+                        problem.vote[j] += 1;
                     }
 
                     p += 1;
@@ -221,13 +226,12 @@ impl CSVM {
             let mut vote_max_idx = 0;
 
             for i in 1 .. self.num_classes {
-                if scratchpad.vote[i] > scratchpad.vote[vote_max_idx] {
+                if problem.vote[i] > problem.vote[vote_max_idx] {
                     vote_max_idx = i;
                 }
             }
             
-            
-            solution.set(0, problem_index, self.labels[vote_max_idx] );
+            problem.label = self.labels[vote_max_idx];
         }
     }
 }
@@ -236,14 +240,17 @@ impl CSVM {
 
 /// Produces a test case run for benchmarking
 #[allow(dead_code)]
-fn produce_testcase(classes: usize, sv_per_class: usize, attributes: usize, problems: usize) -> impl FnMut()
+fn produce_testcase(classes: usize, sv_per_class: usize, attributes: usize, num_problems: usize) -> impl FnMut()
 {
     let mut svm = CSVM::new_random(classes, sv_per_class, attributes);
-    let mut solution= Matrix::new_random(1, problems);
-    let mut scratchpad = Scratchpad::from_csvm(&svm);
-    let problem = Matrix::new_random(problems, attributes);
+    let mut problems = Vec::with_capacity(num_problems);
     
-    move || { (&mut svm).predict_probability(&mut scratchpad, &problem, &mut solution) } 
+    for _i in 0 .. num_problems {
+        let problem = Problem::from_csvm(&svm);
+        problems.push(problem);
+    }
+    
+    move || { (&mut svm).predict_probability(&mut problems) } 
 }
 
 #[bench]
