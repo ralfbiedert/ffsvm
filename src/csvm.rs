@@ -144,36 +144,37 @@ impl CSVM {
             let mut dec_values = scratchpad.dec_values.get_vector_mut(problem_index);
             let current_problem = problem.get_vector(problem_index);
             
-            
+            // Compute kernel values for each support vector 
+            for (i, kvalue) in scratchpad.kvalue.iter_mut().enumerate() {
 
-            for i in 0..scratchpad.kvalue.len() {
+                // Get current vector x (always same in this loop)
                 let sv = self.support_vectors.get_vector(i);
-                let mut sum: Feature = 0.0;
+                //let mut sum: Feature = 0.0;
+                let mut sum = [0.0; 4];
+                let mut y = [0.0; 4];
+                let mut d = [0.0; 4];
 
-                for ix in 0..current_problem.len() {
-                    let y = sv[ix];
-                    let d = current_problem[ix] - y;
-                    sum += d * d;
+                
+                for ix in 0..(current_problem.len() / 4) {
+                    y[0] = sv[ix*4+0];
+                    y[1] = sv[ix*4+1];
+                    y[2] = sv[ix*4+2];
+                    y[3] = sv[ix*4+3];
+                    d[0] = current_problem[ix*4+0] - y[0];
+                    d[1] = current_problem[ix*4+1] - y[1];
+                    d[2] = current_problem[ix*4+2] - y[2];
+                    d[3] = current_problem[ix*4+3] - y[3];
+//
+                    sum[0] += d[0] * d[0];
+                    sum[1] += d[1] * d[1];
+                    sum[2] += d[2] * d[2];
+                    sum[3] += d[3] * d[3];
                 }
 
-                scratchpad.kvalue[i] = (-self.gamma * sum).exp();
+                let ssum = sum[0] + sum[1] + sum[2] + sum[3];
+
+                *kvalue = (-self.gamma * ssum).exp();
             }
-//            
-//            // Compute kernel values for each support vector 
-//            for (i, kvalue) in scratchpad.kvalue.iter_mut().enumerate() {
-//
-//                // Get current vector x (always same in this loop)
-//                let sv = self.support_vectors.get_vector(i);
-//                let mut sum: Feature = 0.0;
-//
-//                for (ix, x) in current_problem.iter().enumerate() {
-//                    let y = sv[ix];
-//                    let d = x - y;
-//                    sum += d * d;
-//                }
-//
-//                *kvalue = (-self.gamma * sum).exp();
-//            }
 
             for vote in scratchpad.vote.iter_mut() {
                 *vote = 0;
