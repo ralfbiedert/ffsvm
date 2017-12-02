@@ -11,6 +11,7 @@
 extern crate faster;
 extern crate rand;
 extern crate test;
+extern crate itertools;
 
 
 pub mod types;

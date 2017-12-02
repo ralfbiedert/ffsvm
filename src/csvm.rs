@@ -2,7 +2,9 @@
 use matrix::Matrix;
 use parser::RawModel;
 use types::{Feature, Label};
+use faster::{IntoPackedRefIterator, f32s, PackedIterator };
 use rand::{random, ChaChaRng, Rng};
+use itertools::{zip};
 
 #[allow(unused_imports)]
 use test::{Bencher};
@@ -137,6 +139,8 @@ impl CSVM {
     //    let c = mp.scalar_collect();
     /// Creates a new CSVM from a raw model.
     pub fn predict_probability(&mut self, scratchpad: &mut Scratchpad, problem: &Matrix<Feature>, solution: &mut Matrix<Label>) {
+        let _temp = [0.0f32; 32];
+        let simd_width = (&_temp[..]).simd_iter().width();
         
         for problem_index in 0 .. problem.vectors {
             
@@ -144,36 +148,30 @@ impl CSVM {
             let mut dec_values = scratchpad.dec_values.get_vector_mut(problem_index);
             let current_problem = problem.get_vector(problem_index);
             
+      
             // Compute kernel values for each support vector 
             for (i, kvalue) in scratchpad.kvalue.iter_mut().enumerate() {
 
                 // Get current vector x (always same in this loop)
                 let sv = self.support_vectors.get_vector(i);
-                //let mut sum: Feature = 0.0;
-                let mut sum = [0.0; 4];
-                let mut y = [0.0; 4];
-                let mut d = [0.0; 4];
 
-                
-                for ix in 0..(current_problem.len() / 4) {
-                    y[0] = sv[ix*4+0];
-                    y[1] = sv[ix*4+1];
-                    y[2] = sv[ix*4+2];
-                    y[3] = sv[ix*4+3];
-                    d[0] = current_problem[ix*4+0] - y[0];
-                    d[1] = current_problem[ix*4+1] - y[1];
-                    d[2] = current_problem[ix*4+2] - y[2];
-                    d[3] = current_problem[ix*4+3] - y[3];
-//
-                    sum[0] += d[0] * d[0];
-                    sum[1] += d[1] * d[1];
-                    sum[2] += d[2] * d[2];
-                    sum[3] += d[3] * d[3];
+                let mut sum = 0.0f32;
+                let mut simd_sum = f32s::splat(0.0f32); 
+                let mut simd_problem = current_problem.simd_iter();
+                let mut simd_sv = sv.simd_iter();
+
+                // SIMD compute of values 
+                for (x, y) in zip(simd_problem, simd_sv) { 
+                    simd_sum = simd_sum + (x - y) * (x - y);
                 }
 
-                let ssum = sum[0] + sum[1] + sum[2] + sum[3];
+                // Sum our SIMD sum
+                for i in 0 .. simd_width {
+                    sum += simd_sum.extract(i as u32);
+                }
 
-                *kvalue = (-self.gamma * ssum).exp();
+                // Compute k-value
+                *kvalue = (-self.gamma * sum).exp();
             }
 
             for vote in scratchpad.vote.iter_mut() {
