@@ -6,10 +6,9 @@ authors = ["Ralf Biedert <rb@xr.io>"]
 
 [dependencies]
 faster = "^0.2"
-rand = "0.3"
+rand = "^0.3"
 nom = { git = "https://github.com/Geal/nom" }
 # nom = "^3.2"
-#faster = { git = "https://github.com/AdamNiederer/faster" }
 
 
 [lib]

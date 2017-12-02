@@ -11,6 +11,7 @@ extern crate faster;
 extern crate rand;
 extern crate test;
 
+
 pub mod types;
 pub mod matrix;
 pub mod csvm;

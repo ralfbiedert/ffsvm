@@ -75,12 +75,6 @@ impl CSVM {
 
 
 
-    // TODO: SIMD
-    //    faster SIMD goes here ...
-    //    let x = (&feature_vector[..]);
-    //    let mut mp = x.simd_iter().map(|vector| { f32s::splat(10.0) + vector.abs() });
-    //    let c = mp.scalar_collect();
-    /// Creates a new CSVM from a raw model.
     pub fn from_raw_model(raw_model: &RawModel) -> Result<CSVM, &'static str> {
         // Get basic info
         let vectors = raw_model.header.total_sv as usize;
@@ -132,15 +126,25 @@ impl CSVM {
         // Return what we have
         return Result::Ok(csvm_model);            
     }
-    
-    
+
+
+
+
+    // TODO: SIMD
+    //    faster SIMD goes here ...
+    //    let x = (&feature_vector[..]);
+    //    let mut mp = x.simd_iter().map(|vector| { f32s::splat(10.0) + vector.abs() });
+    //    let c = mp.scalar_collect();
+    /// Creates a new CSVM from a raw model.
     pub fn predict_probability(&mut self, scratchpad: &mut Scratchpad, problem: &Matrix<Feature>, solution: &mut Matrix<Label>) {
         
         for problem_index in 0 .. problem.vectors {
             
-            let current_problem = problem.get_vector(problem_index);
+            // Get current problem and decision values array
             let mut dec_values = scratchpad.dec_values.get_vector_mut(problem_index);
+            let current_problem = problem.get_vector(problem_index);
             
+            // Compute kernel values for each support vector 
             for (i, kvalue) in scratchpad.kvalue.iter_mut().enumerate() {
 
                 // Get current vector x (always same in this loop)
@@ -155,7 +159,6 @@ impl CSVM {
 
                 *kvalue = (-self.gamma * sum).exp();
             }
-
 
             for vote in scratchpad.vote.iter_mut() {
                 *vote = 0;

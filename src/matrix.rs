@@ -12,6 +12,7 @@ pub struct Matrix<T> where
 {
     pub vectors: usize,
     pub attributes: usize,
+    
     pub data: Vec<T>
 }
 
