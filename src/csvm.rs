@@ -1,6 +1,11 @@
+#[warn(unused_imports)]
+
 use matrix::Matrix;
 use parser::RawModel;
 use types::{Feature};
+use rand::{random, ChaChaRng, Rng};
+use test::{Bencher};
+
 
 #[derive(Debug)]
 struct Scratchpad {
@@ -30,7 +35,36 @@ pub struct CSVM {
 
 impl CSVM {
     
-    pub fn new(raw_model: &RawModel) -> Result<CSVM, &'static str> {
+    /// Creates a new random CSVM
+    pub fn new_random(num_classes: usize, sv_per_class: usize, num_attributes: usize) -> CSVM {
+        let mut rng = ChaChaRng::new_unseeded();
+        let mut starts = vec![0 as u32; num_classes];
+        let total_sv = num_classes * sv_per_class;
+        
+        for i in 1 .. num_classes {
+            starts[i] = starts[i-1] + sv_per_class as u32;
+        }
+        
+        CSVM {
+            num_classes,
+            total_support_vectors: total_sv,
+            gamma: random(),
+            rho: rng.gen_iter().take(num_classes).collect(),
+            labels: rng.gen_iter().take(num_classes).collect(),
+            num_support_vectors: vec![sv_per_class as u32; num_classes],
+            starts,
+            support_vectors: Matrix::new_random(total_sv, num_attributes, 0.0),
+            sv_coef: Matrix::new_random(num_classes - 1, total_sv, 0.0),
+
+            scratchpad: Scratchpad {
+                kvalue: vec![0.0; total_sv],
+                vote: vec![0; num_classes],
+            }
+        }
+    }
+    
+    /// Creates a new CSVM from a raw model.
+    pub fn from_raw_model(raw_model: &RawModel) -> Result<CSVM, &'static str> {
         // Get basic info
         let vectors = raw_model.header.total_sv as usize;
         let attributes = raw_model.vectors[0].features.len();
@@ -153,10 +187,9 @@ impl CSVM {
 
                 for k in 0 .. cj {
                     let idx =(sj+k) as usize;
-                    sum += (coef1[idx] * self.scratchpad.kvalue[idx]) as f64;
+                    sum += (coef2[idx] * self.scratchpad.kvalue[idx]) as f64;
                 }
-
-
+                
 
                 sum -= self.rho[p] as f64;
                 dec_values[p] = sum;
@@ -181,11 +214,31 @@ impl CSVM {
             }     
         }
 
-        println!("{:?}", vote_max_idx);
-
         self.labels[vote_max_idx]
 
     }
 }
 
 
+#[bench]
+fn csvm_predict_sv1024_attr16_problems1(b: &mut Bencher) {
+    let mut svm = CSVM::new_random(2, 512, 16);
+    let problem = Matrix::new_random(1, 16, 0.0f32);
+    b.iter(|| (&mut svm).predict_probability_csvm(&problem));
+}
+
+
+#[bench]
+fn csvm_predict_sv1024_attr1024_problems1(b: &mut Bencher) {
+    let mut svm = CSVM::new_random(2, 512, 1024);
+    let problem = Matrix::new_random(1, 1024, 0.0f32);
+    b.iter(|| (&mut svm).predict_probability_csvm(&problem));
+}
+
+
+
+
+#[test]
+fn test_something() {
+    assert_eq!(4, 2+2);
+}

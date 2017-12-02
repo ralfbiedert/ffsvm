@@ -29,6 +29,19 @@ impl<T> Matrix<T> where
         }
     }
 
+    /// Creates a new Matrix
+    pub fn new_random(vectors: usize, attributes: usize, default: T) -> Matrix<T> {
+        Matrix::<T> {
+            vectors,
+            attributes,
+            data: vec![default; (vectors * attributes)],
+        }
+    }
+    
+    pub fn mut_data(&mut self) -> &mut Vec<T> {
+        &mut self.data
+    }
+    
     #[inline]
     pub fn get_vector(&self, index_vector: usize) -> &[T] {
         let start_index = self.offset(index_vector, 0);

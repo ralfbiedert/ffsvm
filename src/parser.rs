@@ -65,10 +65,6 @@ named!(svm_line_vec_u32 <&str, (Vec<u32>)>,
     do_parse!( svm_string >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
 );
 
-named!(svm_line_vec_str <&str, (Vec<&str>)>,
-    do_parse!( svm_string >> values: many0!(preceded!(tag!(" "), svm_string)) >> line_ending >> (values) )
-);
-
 named!(svm_attribute <&str, (Attribute)>,
     do_parse!(
         index: map_res!(svm_string, FromStr::from_str) >>
@@ -152,15 +148,19 @@ named!(svm_file <&str, RawModel>,
 );
 
 
+impl <'a> RawModel<'a> {
 
-/// Parses a string into a SVM model
-pub fn parse_model(model: &str) -> Result<RawModel, &'static str> {
+    /// Parses a string into a SVM model
+    pub fn from_str(model: &str) -> Result<RawModel, &'static str> {
+        
+        // Parse string to struct
+        let res = svm_file(model);
 
-    // Parse string to struct
-    let res = svm_file(model);
+        match res {
+            Ok(m) => { return Result::Ok(m.1); },
+            Err(_) => { return Result::Err("Error parsing file."); },
+        }
+    } 
     
-    match res {
-        Ok(m) => { return Result::Ok(m.1); },
-        Err(_) => { return Result::Err("Error parsing file."); },
-    }
 }
+
