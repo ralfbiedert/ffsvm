@@ -52,6 +52,12 @@ impl<T> Matrix<T> where
     }
 
     #[inline]
+    pub fn get_vector_mut(&mut self, index_vector: usize) -> &mut [T] {
+        let start_index = self.offset(index_vector, 0);
+        &mut self.data[start_index..start_index + self.attributes]
+    }
+    
+    #[inline]
     pub fn set_vector(&mut self, index_vector: usize, vector: &[T]) {
         let start_index = self.offset(index_vector, 0);
         for i in 0 .. self.attributes {
