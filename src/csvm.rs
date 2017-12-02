@@ -7,10 +7,11 @@ use rand::{random, ChaChaRng, Rng};
 use itertools::{zip};
 use rayon::prelude::*;
 
-#[allow(unused_imports)]
+#[allow(unused_imports)] // TODO: Removing this causes 'unused import' warnings although it's being used.
 use test::{Bencher};
 
 
+#[derive(Debug)]
 pub struct Problem {
     pub features: Vec<Feature>,
     pub kvalue: Vec<Feature>,
@@ -34,6 +35,7 @@ pub struct CSVM {
     pub sv_coef: Matrix<Feature>,
 }
 
+
 impl Problem {
     
     pub fn new(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem {
@@ -55,7 +57,6 @@ impl Problem {
         let mut problem = Problem::from_csvm(csvm);
         
         problem.features = rng.gen_iter().take(csvm.num_attributes).collect();
-        
         problem
     }
 
@@ -151,13 +152,12 @@ impl CSVM {
         let _temp = [0.0f32; 32];
         let simd_width = (&_temp[..]).simd_iter().width();
         
-        //problem.par_iter_mut().for_each(||)
             
         // Compute all problems ...
         problems.par_iter_mut().for_each( |problem| {
             
             // Get current problem and decision values array
-            let mut dec_values = &mut problem.dec_values;
+            let dec_values = &mut problem.dec_values;
             let current_problem = &problem.features[..];
             
       
@@ -177,7 +177,7 @@ impl CSVM {
                     simd_sum = simd_sum + (x - y) * (x - y);
                 }
 
-                // Sum components of our SIMD sum
+                // Sum components of our SIMD sum. TODO: THERE MUST BE A BETTER WAY!!!!!11
                 for i in 0 .. simd_width {
                     sum += simd_sum.extract(i as u32);
                 }
