@@ -1,11 +1,14 @@
 
-use matrix::Matrix;
-use parser::RawModel;
-use types::{Feature};
 use faster::{IntoPackedRefIterator, f32s, PackedIterator };
 use rand::{random, ChaChaRng, Rng};
 use itertools::{zip};
 use rayon::prelude::*;
+
+use matrix::Matrix;
+use parser::RawModel;
+use types::{Feature};
+use util::sum_elements_f32;
+
 
 #[allow(unused_imports)] // TODO: Removing this causes 'unused import' warnings although it's being used.
 use test::{Bencher};
@@ -154,7 +157,7 @@ impl CSVM {
         
             
         // Compute all problems ...
-        problems.par_iter_mut().for_each( |problem| {
+        problems.par_iter_mut().for_each( | problem| {
             
             // Get current problem and decision values array
             let dec_values = &mut problem.dec_values;
@@ -166,21 +169,15 @@ impl CSVM {
 
                 // Get current vector x (always same in this loop)
                 let sv = self.support_vectors.get_vector(i);
-
-                let mut sum = 0.0f32;
                 let mut simd_sum = f32s::splat(0.0f32); 
-                let mut simd_problem = current_problem.simd_iter();
-                let mut simd_sv = sv.simd_iter();
 
                 // SIMD compute of values 
-                for (x, y) in zip(simd_problem, simd_sv) { 
+                for (x, y) in zip(current_problem.simd_iter(), sv.simd_iter()) { 
                     simd_sum = simd_sum + (x - y) * (x - y);
                 }
-
-                // Sum components of our SIMD sum. TODO: THERE MUST BE A BETTER WAY!!!!!11
-                for i in 0 .. simd_width {
-                    sum += simd_sum.extract(i as u32);
-                }
+                
+                // TODO: There must be a better function to do this ...
+                let sum = sum_elements_f32(simd_sum, simd_width);
 
                 // Compute k-value
                 *kvalue = (-self.gamma * sum).exp();
@@ -195,26 +192,26 @@ impl CSVM {
             let mut p = 0;
             for i in 0 .. self.num_classes {
 
-                let si = self.starts[i];
-                let ci = self.num_support_vectors[i];
+                let start_index_i = self.starts[i];
+                let num_support_vectors_i = self.num_support_vectors[i];
 
                 for j in (i+1) .. self.num_classes {
                     // Needs higher precision since we add lots of small values 
                     let mut sum: f64 = 0.0;
 
-                    let sj = self.starts[j];
-                    let cj = self.num_support_vectors[j];
+                    let start_index_j = self.starts[j];
+                    let num_support_vectors_j = self.num_support_vectors[j];
 
                     let coef1 = self.sv_coef.get_vector(j-1);
                     let coef2 = self.sv_coef.get_vector(i);
 
-                    for k in 0 .. ci {
-                        let idx = (si+k) as usize;
+                    for k in 0 .. num_support_vectors_i {
+                        let idx = (start_index_i+k) as usize;
                         sum += (coef1[idx] * problem.kvalue[idx]) as f64;
                     }
 
-                    for k in 0 .. cj {
-                        let idx = (sj+k) as usize;
+                    for k in 0 .. num_support_vectors_j {
+                        let idx = (start_index_j+k) as usize;
                         sum += (coef2[idx] * problem.kvalue[idx]) as f64;
                     }
 
