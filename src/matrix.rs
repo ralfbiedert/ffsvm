@@ -1,4 +1,5 @@
 use std;
+use rand::{ChaChaRng, Rng, Rand};
 
 /// Basic Matrix we use for fast SIMD and parallel operations
 #[derive(Debug)]
@@ -6,7 +7,8 @@ pub struct Matrix<T> where
     T : std::fmt::Debug,
     T : std::marker::Copy,
     T : std::marker::Sized,
-    T : std::clone::Clone
+    T : std::clone::Clone,
+    T: Rand,
 {
     pub vectors: usize,
     pub attributes: usize,
@@ -18,30 +20,31 @@ impl<T> Matrix<T> where
     T : std::fmt::Debug,
     T : std::marker::Sized,
     T : std::marker::Copy,
-    T : std::clone::Clone
+    T : std::clone::Clone,
+    T: Rand,
 {
     /// Creates a new Matrix
     pub fn new(vectors: usize, attributes: usize, default: T) -> Matrix<T> {
         Matrix::<T> {
             vectors,
             attributes,
-            data: vec![default; (vectors * attributes)],
+            data: vec![default; vectors * attributes],
         }
     }
 
     /// Creates a new Matrix
-    pub fn new_random(vectors: usize, attributes: usize, default: T) -> Matrix<T> {
+    pub fn new_random(vectors: usize, attributes: usize) -> Matrix<T> {
+        let size = vectors * attributes;
+        let mut rng = ChaChaRng::new_unseeded();
+        
         Matrix::<T> {
             vectors,
             attributes,
-            data: vec![default; (vectors * attributes)],
+            data: rng.gen_iter().take(size).collect(),
         }
     }
     
-    pub fn mut_data(&mut self) -> &mut Vec<T> {
-        &mut self.data
-    }
-    
+  
     #[inline]
     pub fn get_vector(&self, index_vector: usize) -> &[T] {
         let start_index = self.offset(index_vector, 0);
