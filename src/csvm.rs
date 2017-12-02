@@ -9,8 +9,6 @@ use itertools::{zip};
 #[allow(unused_imports)]
 use test::{Bencher};
 
-const MAX_PROBLEM_SIZE: usize = 1024;
-
 
 pub struct Problem {
     pub features: Vec<Feature>,
@@ -50,6 +48,16 @@ impl Problem {
     pub fn from_csvm(csvm: &CSVM) -> Problem {
         Problem::new(csvm.total_support_vectors, csvm.num_classes, csvm.num_attributes)           
     }
+
+    pub fn from_csvm_with_random(csvm: &CSVM) -> Problem {
+        let mut rng = ChaChaRng::new_unseeded();
+        let mut problem = Problem::from_csvm(csvm);
+        
+        problem.features = rng.gen_iter().take(csvm.num_attributes).collect();
+        
+        problem
+    }
+
 }
 
 impl CSVM {
@@ -145,7 +153,7 @@ impl CSVM {
         //problem.par_iter_mut().for_each(||)
             
         // Compute all problems ...
-        for (problem_index, problem) in problems.iter_mut().enumerate() {
+        for problem in problems.iter_mut() {
             
             // Get current problem and decision values array
             let mut dec_values = &mut problem.dec_values;
@@ -246,7 +254,7 @@ fn produce_testcase(classes: usize, sv_per_class: usize, attributes: usize, num_
     let mut problems = Vec::with_capacity(num_problems);
     
     for _i in 0 .. num_problems {
-        let problem = Problem::from_csvm(&svm);
+        let problem = Problem::from_csvm_with_random(&svm);
         problems.push(problem);
     }
     
