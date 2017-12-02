@@ -5,6 +5,7 @@ use types::{Feature};
 use faster::{IntoPackedRefIterator, f32s, PackedIterator };
 use rand::{random, ChaChaRng, Rng};
 use itertools::{zip};
+use rayon::prelude::*;
 
 #[allow(unused_imports)]
 use test::{Bencher};
@@ -153,7 +154,7 @@ impl CSVM {
         //problem.par_iter_mut().for_each(||)
             
         // Compute all problems ...
-        for problem in problems.iter_mut() {
+        problems.par_iter_mut().for_each( |problem| {
             
             // Get current problem and decision values array
             let mut dec_values = &mut problem.dec_values;
@@ -240,7 +241,7 @@ impl CSVM {
             }
             
             problem.label = self.labels[vote_max_idx];
-        }
+        });
     }
 }
 
