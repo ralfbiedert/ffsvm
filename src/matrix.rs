@@ -1,4 +1,5 @@
 use std;
+use std::iter::{IntoIterator};
 use rand::{ChaChaRng, Rng, Rand};
 
 /// Basic Matrix we use for fast SIMD and parallel operations
@@ -81,5 +82,64 @@ impl<T> Matrix<T> where
     pub fn get(&self, index_vector: usize, index_attribute: usize) -> T {
         let  index = self.offset(index_vector, index_attribute);
         self.data[index]
+    }
+}
+
+
+pub struct IterMatrix<'a, T: 'a> where
+    T : std::fmt::Debug,
+    T : std::marker::Sized,
+    T : std::marker::Copy,
+    T : std::clone::Clone,
+    T: Rand
+{
+    pub matrix: &'a Matrix<T>,
+    pub index: usize,    
+}
+
+
+impl <'a, T> Iterator for IterMatrix<'a, T> where
+    T : std::fmt::Debug,
+    T : std::marker::Sized,
+    T : std::marker::Copy,
+    T : std::clone::Clone,
+    T: Rand 
+{
+    type Item = &'a [T];
+    
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index >= self.matrix.vectors { 
+            None 
+        } else {
+            self.index += 1;
+            Some(self.matrix.get_vector(self.index-1))
+        }
+    }
+}
+
+
+impl <'a, T> IntoIterator for &'a Matrix<T> where
+    T : std::fmt::Debug,
+    T : std::marker::Sized,
+    T : std::marker::Copy,
+    T : std::clone::Clone,
+    T: Rand
+{
+    type Item = &'a [T];
+    type IntoIter = IterMatrix<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        IterMatrix{ matrix: self, index: 0 } 
+    }
+}
+
+
+
+
+#[test]
+fn test_iter() {
+    let matrix = Matrix::new(10, 5, 0);
+    for x in &matrix {
+        assert_eq!(x[0], 0);
     }
 }

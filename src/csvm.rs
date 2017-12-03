@@ -1,5 +1,5 @@
 
-use faster::{IntoPackedRefIterator, f32s, f64s, PackedIterator };
+use faster::{IntoPackedRefIterator, f32s, PackedIterator };
 use rand::{random, ChaChaRng, Rng};
 use itertools::{zip};
 use rayon::prelude::*;
@@ -8,7 +8,6 @@ use matrix::Matrix;
 use parser::RawModel;
 use types::{Feature};
 use util::sum_f32s;
-
 
 #[allow(unused_imports)] // TODO: Removing this causes 'unused import' warnings although it's being used.
 use test::{Bencher};
@@ -146,6 +145,93 @@ impl CSVM {
     }
 
     
+    fn predict_probabilty_one(&self, problem: &mut Problem) {
+        // TODO: Surely there must be a better way to get SIMD width 
+        let _temp = [0.0f32; 32];
+        let simd_width = (&_temp[..]).simd_iter().width();
+
+
+        // Get current problem and decision values array
+        let dec_values = &mut problem.dec_values;
+        let current_problem = &problem.features[..];
+
+
+        // Compute kernel values for each support vector 
+        for (i, kernel_value) in problem.kvalue.iter_mut().enumerate() {
+
+            // Get current vector x (always same in this loop)
+            let sv = self.support_vectors.get_vector(i);
+            let mut simd_sum = f32s::splat(0.0f32);
+
+            // SIMD computation of values 
+            for (x, y) in zip(current_problem.simd_iter(), sv.simd_iter()) {
+                simd_sum = simd_sum + (x - y) * (x - y);
+            }
+
+            // TODO: There must be a better function to do this ...
+            let sum = sum_f32s(simd_sum, simd_width);
+
+            // Compute k-value
+            *kernel_value = (-self.gamma * sum).exp();
+        }
+
+
+        // Reset votes ... TODO: Is there a better way to do this?
+        for vote in problem.vote.iter_mut() {
+            *vote = 0;
+        }
+
+        // TODO: For some strange reason this code down here seems to have little performance impact ...
+        let mut p = 0;
+        for i in 0 .. self.num_classes {
+
+            let s_i = self.starts[i] as usize;
+            let nsv_i = self.num_support_vectors[i] as usize;
+
+            for j in (i+1) .. self.num_classes {
+
+                let s_j = self.starts[j] as usize;
+                let nsv_j = self.num_support_vectors[j] as usize;
+
+                let simd_sum1 = CSVM::simd_compute_partial_decision_value(self.sv_coef.get_vector(j - 1), &problem.kvalue, s_i, s_i + nsv_i);
+                let simd_sum2 = CSVM::simd_compute_partial_decision_value(self.sv_coef.get_vector(i), &problem.kvalue, s_j, s_j + nsv_j);
+
+                let sum = sum_f32s(simd_sum1, simd_width) + sum_f32s(simd_sum2, simd_width) - self.rho[p];
+
+                dec_values[p] = sum as f64;
+
+                if dec_values[p] > 0.0 {
+                    problem.vote[i] += 1;
+                } else {
+                    problem.vote[j] += 1;
+                }
+
+                p += 1;
+            }
+        }
+
+        let mut vote_max_idx = 0;
+
+        for i in 1 .. self.num_classes {
+            if problem.vote[i] > problem.vote[vote_max_idx] {
+                vote_max_idx = i;
+            }
+        }
+        
+        problem.label = self.labels[vote_max_idx];
+
+    }
+
+    /// Creates a new CSVM from a raw model.
+    pub fn predict_probability(&self, problems: &mut [Problem]) {
+          
+        // Compute all problems ...
+        problems.par_iter_mut().for_each( | problem| {
+            self.predict_probabilty_one(problem)            
+        });
+    }
+
+
     /// Computes our partial decision value 
     fn simd_compute_partial_decision_value(all_coef: &[f32], all_kvalue: &[f32], a: usize, b: usize) -> f32s {
         // TODO: WE MIGHT NEED TO REWORK THIS SINCE THIS 
@@ -161,86 +247,6 @@ impl CSVM {
         simd_sum
     }
 
-    /// Creates a new CSVM from a raw model.
-    pub fn predict_probability(&self, problems: &mut [Problem]) {
-        
-        // Get SIMD width: TODO: Surely there must be a better way to get SIMD width 
-        let _temp = [0.0f32; 32];
-        let simd_width = (&_temp[..]).simd_iter().width();
-        
-            
-        // Compute all problems ...
-        problems.par_iter_mut().for_each( | problem| {
-            
-            // Get current problem and decision values array
-            let dec_values = &mut problem.dec_values;
-            let current_problem = &problem.features[..];
-            
-      
-            // Compute kernel values for each support vector 
-            for (i, kernel_value) in problem.kvalue.iter_mut().enumerate() {
-
-                // Get current vector x (always same in this loop)
-                let sv = self.support_vectors.get_vector(i);
-                let mut simd_sum = f32s::splat(0.0f32); 
-
-                // SIMD compute of values 
-                for (x, y) in zip(current_problem.simd_iter(), sv.simd_iter()) { 
-                    simd_sum = simd_sum + (x - y) * (x - y);
-                }
-                
-                // TODO: There must be a better function to do this ...
-                let sum = sum_f32s(simd_sum, simd_width);
-
-                // Compute k-value
-                *kernel_value = (-self.gamma * sum).exp();
-            }
-
-            
-            // Reset votes ... TODO: Is there a better way to do this?
-            for vote in problem.vote.iter_mut() {
-                *vote = 0;
-            }
-
-            let mut p = 0;
-            for i in 0 .. self.num_classes {
-
-                let s_i = self.starts[i] as usize;
-                let nsv_i = self.num_support_vectors[i] as usize;
-
-                for j in (i+1) .. self.num_classes {
-                    
-                    let s_j = self.starts[j] as usize;
-                    let nsv_j = self.num_support_vectors[j] as usize;
-
-                    let simd_sum1 = CSVM::simd_compute_partial_decision_value(self.sv_coef.get_vector(j-1), &problem.kvalue, s_i, s_i+nsv_i);
-                    let simd_sum2 = CSVM::simd_compute_partial_decision_value(self.sv_coef.get_vector(i), &problem.kvalue, s_j, s_j+nsv_j);
-                    
-                    let sum = sum_f32s(simd_sum1, simd_width) + sum_f32s(simd_sum2, simd_width) - self.rho[p];
-                    
-                    dec_values[p] = sum as f64;
-
-                    if dec_values[p] > 0.0 {
-                        problem.vote[i] += 1;
-                    } else {
-                        problem.vote[j] += 1;
-                    }
-
-                    p += 1;
-                }
-            }
-
-            let mut vote_max_idx = 0;
-
-            for i in 1 .. self.num_classes {
-                if problem.vote[i] > problem.vote[vote_max_idx] {
-                    vote_max_idx = i;
-                }
-            }
-            
-            problem.label = self.labels[vote_max_idx];
-        });
-    }
 }
 
 
@@ -284,8 +290,6 @@ fn csvm_predict_sv1024_attr16_problems128(b: &mut Bencher) {
 fn csvm_predict_sv1024_attr1024_problems1(b: &mut Bencher) {
     b.iter(produce_testcase(2, 512, 1024, 1));
 }
-
-
 
 
 
