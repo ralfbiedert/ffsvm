@@ -1,31 +1,46 @@
 use std;
+use std::fmt;
 use std::iter::{IntoIterator};
-use rand::{ChaChaRng, Rng, Rand};
 
-/// Basic Matrix we use for fast SIMD and parallel operations
-#[derive(Debug)]
+
+/// Basic "matrix' we use for fast SIMD and parallel operations.
+/// 
+/// Note: Right now we use a Matrix mostly as a vector of vectors and is mostly 
+/// intended for read operations.
 pub struct Matrix<T> where
-    T : std::fmt::Debug,
     T : std::marker::Copy,
     T : std::marker::Sized,
     T : std::clone::Clone,
-    T: Rand,
 {
+    /// Number of vectors this matrix has 
     pub vectors: usize,
+    
+    /// Number of attributes this matrix has
     pub attributes: usize,
-
+    
+    /// We store all data in one giant array for performance reasons (caching)
     pub data: Vec<T>
 }
 
 
-impl<T> Matrix<T> where
-    T : std::fmt::Debug,
+/// Basic iterator struct to go over matrix 
+pub struct IterMatrix<'a, T: 'a> where
     T : std::marker::Sized,
     T : std::marker::Copy,
     T : std::clone::Clone,
-    T: Rand,
 {
-    /// Creates a new Matrix
+    pub matrix: &'a Matrix<T>,
+    pub index: usize,
+}
+
+
+
+impl<T> Matrix<T> where
+    T : std::marker::Sized,
+    T : std::marker::Copy,
+    T : std::clone::Clone,
+{
+    /// Creates a new emptry Matrix.
     pub fn new(vectors: usize, attributes: usize, default: T) -> Matrix<T> {
         Matrix::<T> {
             vectors,
@@ -33,20 +48,16 @@ impl<T> Matrix<T> where
             data: vec![default; vectors * attributes],
         }
     }
-
-    /// Creates a new Matrix
-    pub fn new_random(vectors: usize, attributes: usize) -> Matrix<T> {
-        let size = vectors * attributes;
-        let mut rng = ChaChaRng::new_unseeded();
-        
+    
+    /// Given a flat vec and dimensions, set the matrix with the given dimensions 
+    pub fn from_flat_vec(vector: Vec<T>, vectors: usize, attributes: usize) -> Matrix<T> {
         Matrix::<T> {
             vectors,
             attributes,
-            data: rng.gen_iter().take(size).collect(),
-        }
+            data: vector
+        } 
     }
-    
-  
+
     #[inline]
     pub fn get_vector(&self, index_vector: usize) -> &[T] {
         let start_index = self.offset(index_vector, 0);
@@ -86,24 +97,37 @@ impl<T> Matrix<T> where
 }
 
 
-pub struct IterMatrix<'a, T: 'a> where
-    T : std::fmt::Debug,
+impl <T> fmt::Debug for Matrix<T> where
     T : std::marker::Sized,
     T : std::marker::Copy,
     T : std::clone::Clone,
-    T: Rand
 {
-    pub matrix: &'a Matrix<T>,
-    pub index: usize,    
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({}, {}, [data])", self.vectors, self.attributes)
+    }
 }
 
 
-impl <'a, T> Iterator for IterMatrix<'a, T> where
-    T : std::fmt::Debug,
+
+impl <'a, T> IntoIterator for &'a Matrix<T> where
     T : std::marker::Sized,
     T : std::marker::Copy,
     T : std::clone::Clone,
-    T: Rand 
+{
+    type Item = &'a [T];
+    type IntoIter = IterMatrix<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        IterMatrix{ matrix: self, index: 0 }
+    }
+}
+
+
+
+impl <'a, T> Iterator for IterMatrix<'a, T> where
+    T : std::marker::Sized,
+    T : std::marker::Copy,
+    T : std::clone::Clone,
 {
     type Item = &'a [T];
     
@@ -116,23 +140,6 @@ impl <'a, T> Iterator for IterMatrix<'a, T> where
         }
     }
 }
-
-
-impl <'a, T> IntoIterator for &'a Matrix<T> where
-    T : std::fmt::Debug,
-    T : std::marker::Sized,
-    T : std::marker::Copy,
-    T : std::clone::Clone,
-    T: Rand
-{
-    type Item = &'a [T];
-    type IntoIter = IterMatrix<'a, T>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        IterMatrix{ matrix: self, index: 0 } 
-    }
-}
-
 
 
 

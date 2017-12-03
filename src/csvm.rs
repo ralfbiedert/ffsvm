@@ -1,13 +1,13 @@
 
 use faster::{IntoPackedRefIterator, f32s, PackedIterator };
-use rand::{random, ChaChaRng, Rng};
+use rand::{random};
 use itertools::{zip};
 use rayon::prelude::*;
 
 use matrix::Matrix;
 use parser::RawModel;
 use types::{Feature};
-use util::sum_f32s;
+use util::{sum_f32s, random_vec};
 
 #[allow(unused_imports)] // TODO: Removing this causes 'unused import' warnings although it's being used.
 use test::{Bencher};
@@ -55,10 +55,8 @@ impl Problem {
     }
 
     pub fn from_csvm_with_random(csvm: &CSVM) -> Problem {
-        let mut rng = ChaChaRng::new_unseeded();
         let mut problem = Problem::from_csvm(csvm);
-        
-        problem.features = rng.gen_iter().take(csvm.num_attributes).collect();
+        problem.features = random_vec(csvm.num_attributes);
         problem
     }
 
@@ -68,25 +66,27 @@ impl CSVM {
     
     /// Creates a new random CSVM
     pub fn new_random(num_classes: usize, sv_per_class: usize, num_attributes: usize) -> CSVM {
-        let mut rng = ChaChaRng::new_unseeded();
         let mut starts = vec![0 as u32; num_classes];
-        let total_sv = num_classes * sv_per_class;
         
+        let total_sv = num_classes * sv_per_class;
+        let sv = random_vec(total_sv * num_attributes);
+        let sv_coef = random_vec(total_sv * (num_classes - 1));
+
         for i in 1 .. num_classes {
             starts[i] = starts[i-1] + sv_per_class as u32;
         }
-        
+
         CSVM {
             num_classes,
             num_attributes,
             total_support_vectors: total_sv,
             gamma: random(),
-            rho: rng.gen_iter().take(num_classes).collect(),
-            labels: rng.gen_iter().take(num_classes).collect(),
+            rho: random_vec(num_classes),
+            labels: random_vec(num_classes),
             num_support_vectors: vec![sv_per_class as u32; num_classes],
             starts,
-            support_vectors: Matrix::new_random(total_sv, num_attributes),
-            sv_coef: Matrix::new_random(num_classes - 1, total_sv),
+            support_vectors: Matrix::from_flat_vec(sv, total_sv, num_attributes ),
+            sv_coef: Matrix::from_flat_vec(sv_coef, num_classes - 1, total_sv),
         }
     }
 
@@ -145,7 +145,7 @@ impl CSVM {
     }
 
     
-    fn predict_probabilty_one(&self, problem: &mut Problem) {
+    pub fn predict_value_one(&self, problem: &mut Problem) {
         // TODO: Surely there must be a better way to get SIMD width 
         let _temp = [0.0f32; 32];
         let simd_width = (&_temp[..]).simd_iter().width();
@@ -223,11 +223,11 @@ impl CSVM {
     }
 
     /// Creates a new CSVM from a raw model.
-    pub fn predict_probability(&self, problems: &mut [Problem]) {
+    pub fn predict_values(&self, problems: &mut [Problem]) {
           
         // Compute all problems ...
         problems.par_iter_mut().for_each( | problem| {
-            self.predict_probabilty_one(problem)            
+            self.predict_value_one(problem)            
         });
     }
 
@@ -263,7 +263,7 @@ fn produce_testcase(classes: usize, sv_per_class: usize, attributes: usize, num_
         problems.push(problem);
     }
     
-    move || { (&mut svm).predict_probability(&mut problems) } 
+    move || { (&mut svm).predict_values(&mut problems) } 
 }
 
 #[bench]
