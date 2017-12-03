@@ -9,10 +9,10 @@ use types::{Feature};
 pub struct FileHeader<'a> {
     pub svm_type: &'a str,
     pub kernel_type: &'a str,
-    pub gamma: f32,
+    pub gamma: f64,
     pub nr_class: u32,
     pub total_sv: u32,
-    pub rho: Vec<f32>,
+    pub rho: Vec<f64>,
     pub label: Vec<u32>,
     pub nr_sv: Vec<u32>,
 }
@@ -25,7 +25,7 @@ pub struct Attribute {
 
 #[derive(Debug)]
 pub struct SupportVector {
-    pub coefs: Vec<f32>,
+    pub coefs: Vec<f64>,
     pub features: Vec<Attribute>
 }
 
@@ -49,7 +49,7 @@ named!(svm_line_string <&str, (&str)>,
     do_parse!( svm_string >> tag!(" ") >> value: svm_string >> line_ending >> (value) )
 );
 
-named!(svm_line_f32 <&str, (f32)>,
+named!(svm_line_f64 <&str, (f64)>,
     do_parse!( svm_string >> tag!(" ") >> value: map_res!(svm_string, FromStr::from_str) >> line_ending >> (value) )
 );
 
@@ -57,7 +57,7 @@ named!(svm_line_u32 <&str, (u32)>,
     do_parse!( svm_string >> tag!(" ") >> value: map_res!(svm_string, FromStr::from_str) >> line_ending >> (value) )
 );
 
-named!(svm_line_vec_f32 <&str, (Vec<f32>)>,
+named!(svm_line_vec_f64 <&str, (Vec<f64>)>,
     do_parse!( svm_string >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
 );
 
@@ -81,10 +81,10 @@ named!(svm_header <&str, FileHeader>,
     do_parse!(
         svm_type: svm_line_string >>
         kernel_type: svm_line_string >>
-        gamma: svm_line_f32 >>
+        gamma: svm_line_f64 >>
         nr_class: svm_line_u32 >>
         total_sv: svm_line_u32 >>
-        rho: svm_line_vec_f32 >>
+        rho: svm_line_vec_f64 >>
         label: svm_line_vec_u32 >>
         nr_sv: svm_line_vec_u32 >>
         (
@@ -102,7 +102,7 @@ named!(svm_header <&str, FileHeader>,
     )
 );
 
-named_args!(svm_coef(n: u32) <&str,Vec<f32>>,
+named_args!(svm_coef(n: u32) <&str,Vec<f64>>,
     do_parse!(
         opt!(tag!(" ")) >>
         rval: count!(map_res!(svm_string, FromStr::from_str), n as usize) >>

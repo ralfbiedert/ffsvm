@@ -1,4 +1,4 @@
-use faster::{ f32s };
+use faster::{f32s,f64s};
 use rand::{ChaChaRng, Rng, Rand};
 
 /// Sum elements of a f32s ... 
@@ -12,6 +12,19 @@ pub fn sum_f32s(v: f32s, simd_width: usize) -> f32 {
     
     sum
 }
+
+#[inline]
+pub fn sum_f64s(v: f64s, simd_width: usize) -> f64 {
+    let mut sum = 0.0;
+
+    for i in 0 .. simd_width {
+        sum += v.extract(i as u32);
+    }
+
+    sum
+}
+
+
 
 /// Creates a vector of random 
 pub fn random_vec<T>(size: usize) -> Vec<T> 

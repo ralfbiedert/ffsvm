@@ -1,5 +1,5 @@
 
-use faster::{IntoPackedRefIterator, f32s, PackedIterator };
+use faster::{IntoPackedRefIterator, f32s, f64s, PackedIterator };
 use rand::{random};
 use itertools::{zip};
 use rayon::prelude::*;
@@ -7,7 +7,7 @@ use rayon::prelude::*;
 use matrix::Matrix;
 use parser::RawModel;
 use types::{Feature};
-use util::{sum_f32s, random_vec};
+use util::{sum_f32s, sum_f64s, random_vec};
 
 #[allow(unused_imports)] // TODO: Removing this causes 'unused import' warnings although it's being used.
 use test::{Bencher};
@@ -26,8 +26,8 @@ pub struct Problem {
 pub struct CSVM {
     pub num_classes: usize,
     pub num_attributes: usize,
-    pub gamma: f32,
-    pub rho: Vec<f32>,
+    pub gamma: f64,
+    pub rho: Vec<f64>,
     pub total_support_vectors: usize,
     pub num_support_vectors: Vec<u32>,
     pub starts: Vec<u32>,
@@ -147,7 +147,7 @@ impl CSVM {
     
     pub fn predict_value_one(&self, problem: &mut Problem) {
         // TODO: Surely there must be a better way to get SIMD width 
-        let _temp = [0.0f32; 32];
+        let _temp = [0.0f64; 32];
         let simd_width = (&_temp[..]).simd_iter().width();
 
 
@@ -161,15 +161,19 @@ impl CSVM {
 
             // Get current vector x (always same in this loop)
             let sv = self.support_vectors.get_vector(i);
-            let mut simd_sum = f32s::splat(0.0f32);
+            let mut simd_sum = f64s::splat(0.0);
 
             // SIMD computation of values 
             for (x, y) in zip(current_problem.simd_iter(), sv.simd_iter()) {
                 simd_sum = simd_sum + (x - y) * (x - y);
             }
 
+
             // TODO: There must be a better function to do this ...
-            let sum = sum_f32s(simd_sum, simd_width);
+            let sum = sum_f64s(simd_sum, simd_width);
+
+//            println!("{:?} {:?}", sum, simd_sum);
+//            panic!();
 
             // Compute k-value
             *kernel_value = (-self.gamma * sum).exp();
@@ -196,7 +200,7 @@ impl CSVM {
                 let simd_sum1 = CSVM::simd_compute_partial_decision_value(self.sv_coef.get_vector(j - 1), &problem.kvalue, s_i, s_i + nsv_i);
                 let simd_sum2 = CSVM::simd_compute_partial_decision_value(self.sv_coef.get_vector(i), &problem.kvalue, s_j, s_j + nsv_j);
 
-                let sum = sum_f32s(simd_sum1, simd_width) + sum_f32s(simd_sum2, simd_width) - self.rho[p];
+                let sum = sum_f64s(simd_sum1, simd_width) + sum_f64s(simd_sum2, simd_width) - self.rho[p];
 
                 dec_values[p] = sum as f64;
 
@@ -233,12 +237,12 @@ impl CSVM {
 
 
     /// Computes our partial decision value 
-    fn simd_compute_partial_decision_value(all_coef: &[f32], all_kvalue: &[f32], a: usize, b: usize) -> f32s {
+    fn simd_compute_partial_decision_value(all_coef: &[f64], all_kvalue: &[f64], a: usize, b: usize) -> f64s {
         // TODO: WE MIGHT NEED TO REWORK THIS SINCE THIS 
         // TODO: SUM NEEDS HIGH PRECISION (f64) FROM THE LOOKS OF IT
         let coef = &all_coef[a..b];
         let kvalue = &all_kvalue[a..b];
-        let mut simd_sum = f32s::splat(0.0f32);
+        let mut simd_sum = f64s::splat(0.0);
 
         for (x, y) in zip(coef.simd_iter(), kvalue.simd_iter()) {
             simd_sum = simd_sum + x * y
