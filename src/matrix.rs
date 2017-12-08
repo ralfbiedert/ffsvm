@@ -15,7 +15,7 @@ pub struct Matrix<T> where
     /// Number of vectors this matrix has 
     pub vectors: usize,
     
-    /// Number of attributes this matrix has
+    /// Number of attributes this matrix has per subvector
     pub attributes: usize,
     
     /// We store all data in one giant array for performance reasons (caching)
@@ -32,7 +32,6 @@ pub struct IterMatrix<'a, T: 'a> where
     pub matrix: &'a Matrix<T>,
     pub index: usize,
 }
-
 
 
 impl<T> Matrix<T> where
@@ -54,7 +53,7 @@ impl<T> Matrix<T> where
         Matrix::<T> {
             vectors,
             attributes,
-            data: vector
+            data: vector,
         } 
     }
 
@@ -80,7 +79,7 @@ impl<T> Matrix<T> where
     
     #[inline]
     pub fn offset(&self, index_vector: usize, index_attribute: usize) -> usize {
-        ((index_vector * self.attributes) + index_attribute)
+        (index_vector * self.attributes + index_attribute)
     }
     
     #[inline]
@@ -130,7 +129,7 @@ impl <'a, T> Iterator for IterMatrix<'a, T> where
     T : std::clone::Clone,
 {
     type Item = &'a [T];
-    
+
     fn next(&mut self) -> Option<Self::Item> {
         if self.index >= self.matrix.vectors { 
             None 

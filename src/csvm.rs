@@ -1,4 +1,3 @@
-
 use faster::{IntoPackedRefIterator, f32s, f64s, PackedIterator };
 use rand::{random};
 use itertools::{zip};
@@ -6,8 +5,8 @@ use rayon::prelude::*;
 
 use matrix::Matrix;
 use parser::RawModel;
-use types::{Feature};
-use util::{sum_f32s, sum_f64s, random_vec};
+use util::{sum_f32s, sum_f64s, random_vec };
+
 
 #[allow(unused_imports)] // TODO: Removing this causes 'unused import' warnings although it's being used.
 use test::{Bencher};
@@ -15,45 +14,66 @@ use test::{Bencher};
 
 #[derive(Debug)]
 pub struct Problem {
-    pub features: Vec<Feature>,
-    pub kvalue: Vec<Feature>,
+    pub features: Vec<f32>,
+    pub kvalues: Matrix<f64>,
     pub vote: Vec<u32>,
     pub dec_values: Vec<f64>,
     pub label: u32
 }
 
+
+#[derive(Debug)]
+pub struct Class {
+    num_support_vectors: usize,
+    label: u32,
+    coefficients: Matrix<f64>,
+    support_vectors: Matrix<f32>,
+}
+
+
 #[derive(Debug)]
 pub struct CSVM {
-    pub num_classes: usize,
+    pub total_support_vectors: usize,
     pub num_attributes: usize,
     pub gamma: f64,
     pub rho: Vec<f64>,
-    pub total_support_vectors: usize,
-    pub num_support_vectors: Vec<u32>,
-    pub starts: Vec<u32>,
-    pub labels: Vec<u32>,
-
-    pub support_vectors: Matrix<Feature>,
-    pub sv_coef: Matrix<Feature>,
+    pub classes: Vec<Class>,
 }
 
+
+
+impl Class {
+    
+    pub fn new(classes: usize, support_vectors: usize, attributes: usize) -> Class {
+        Class {
+            num_support_vectors: support_vectors, 
+            label: 0,
+            coefficients: Matrix::new(classes - 1, support_vectors, Default::default()),
+            support_vectors: Matrix::new(support_vectors, attributes, Default::default()),
+        }
+    }
+    
+}
 
 impl Problem {
     
     pub fn new(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem {
+        let num_decision_values = num_classes * (num_classes - 1) / 2;
+        
         Problem {
-            kvalue: vec![0.0; total_sv],
-            features: vec![Default::default(); total_sv],
-            vote: vec![0; num_classes],
-            dec_values: vec![0.0; num_attributes],
+            kvalues: Matrix::new(num_classes, total_sv, Default::default()),
+            features: vec![Default::default(); num_attributes],
+            vote: vec![Default::default(); num_classes],
+            dec_values: vec![Default::default(); num_decision_values],
             label: 0
         }
     }
     
     pub fn from_csvm(csvm: &CSVM) -> Problem {
-        Problem::new(csvm.total_support_vectors, csvm.num_classes, csvm.num_attributes)           
+        Problem::new(csvm.total_support_vectors, csvm.classes.len(), csvm.num_attributes)           
     }
 
+    
     pub fn from_csvm_with_random(csvm: &CSVM) -> Problem {
         let mut problem = Problem::from_csvm(csvm);
         problem.features = random_vec(csvm.num_attributes);
@@ -66,80 +86,90 @@ impl CSVM {
     
     /// Creates a new random CSVM
     pub fn new_random(num_classes: usize, sv_per_class: usize, num_attributes: usize) -> CSVM {
-        let mut starts = vec![0 as u32; num_classes];
+        let mut starts = vec![0; num_classes];
+        let mut classes = Vec::with_capacity(num_classes);
         
         let total_sv = num_classes * sv_per_class;
-        let sv = random_vec(total_sv * num_attributes);
-        let sv_coef = random_vec(total_sv * (num_classes - 1));
 
         for i in 1 .. num_classes {
             starts[i] = starts[i-1] + sv_per_class as u32;
         }
 
+        for i in 0 .. num_classes {
+            let mut class = Class {
+                num_support_vectors: sv_per_class,
+                label: i as u32,
+                coefficients: Matrix::new(num_classes - 1, sv_per_class, Default::default()),
+                support_vectors: Matrix::new(sv_per_class, num_attributes, Default::default())
+            };    
+            
+            classes[i] = class;
+        }
+
+
         CSVM {
-            num_classes,
             num_attributes,
             total_support_vectors: total_sv,
             gamma: random(),
             rho: random_vec(num_classes),
-            labels: random_vec(num_classes),
-            num_support_vectors: vec![sv_per_class as u32; num_classes],
-            starts,
-            support_vectors: Matrix::from_flat_vec(sv, total_sv, num_attributes ),
-            sv_coef: Matrix::from_flat_vec(sv_coef, num_classes - 1, total_sv),
+            classes
         }
     }
 
-
-
+    
     pub fn from_raw_model(raw_model: &RawModel) -> Result<CSVM, &'static str> {
+        let header = &raw_model.header;
+        let vectors = &raw_model.vectors;
+        
         // Get basic info
-        let vectors = raw_model.header.total_sv as usize;
-        let num_attributes = raw_model.vectors[0].features.len();
-        let num_classes = raw_model.header.nr_class as usize;
-        let total_support_vectors = raw_model.header.total_sv as usize;
+        let num_attributes = vectors[0].features.len();
+        let num_classes = header.nr_class as usize;
+        let total_support_vectors = header.total_sv as usize;
 
         // Allocate model
         let mut csvm_model = CSVM {
-            num_classes,
             num_attributes,
             total_support_vectors,
-            gamma: raw_model.header.gamma,
-            rho: raw_model.header.rho.clone(),
-            labels: raw_model.header.label.clone(),
-            num_support_vectors: raw_model.header.nr_sv.clone(),
-            starts: vec![0; num_classes],
-            support_vectors: Matrix::new(vectors, num_attributes, 0.0),
-            sv_coef: Matrix::new(num_classes - 1, total_support_vectors, 0.0),
+            gamma: header.gamma,
+            rho: header.rho.clone(),
+            classes: Vec::with_capacity(num_classes),
         };
 
-        // Set support vector and coefficients
-        for (i_vector, vector) in raw_model.vectors.iter().enumerate() {
-            
-            // Set support vectors
-            for (i_attribute, attribute) in vector.features.iter().enumerate() {
 
-                // Make sure we have a "sane" file.
-                if attribute.index as usize != i_attribute {
-                    return Result::Err("SVM support vector indices MUST range from [0 ... #(num_attributes - 1)].");
+        for i in 0 .. num_classes {
+            csvm_model.classes[i] = Class::new(num_classes, header.nr_sv[i] as usize, num_attributes);
+            csvm_model.classes[i].label = header.label[i];
+        }
+        
+        let mut start = 0;
+        
+        for n in &header.nr_sv {
+            let stop = start + *n as usize;
+
+            // Set support vector and coefficients
+            for (i_vector, vector) in vectors[start .. stop].iter().enumerate() {
+                
+                // Set support vectors
+                for (i_attribute, attribute) in vector.features.iter().enumerate() {
+
+                    // Make sure we have a "sane" file.
+                    if attribute.index as usize != i_attribute {
+                        return Result::Err("SVM support vector indices MUST range from [0 ... #(num_attributes - 1)].");
+                    }
+
+                    csvm_model.classes[*n as usize].support_vectors.set(i_vector, attribute.index as usize, attribute.value);
                 }
 
-                csvm_model.support_vectors.set(i_vector, attribute.index as usize, attribute.value);
-            }
-
-            // Set coefficients 
-            for (i_coef, coef) in vector.coefs.iter().enumerate() {
-                csvm_model.sv_coef.set(i_coef, i_vector, *coef);
-            }
+                // Set coefficients 
+                for (i_coef, coef) in vector.coefs.iter().enumerate() {
+                    csvm_model.classes[*n as usize].coefficients.set(i_coef,i_vector, *coef as f64);
+                }
+            }      
+            
+            start = stop;
         }
-        
-        // Compute starts
-        let mut next= 0;
-        for (i, start) in csvm_model.starts.iter_mut().enumerate() {
-            *start = next;
-            next += csvm_model.num_support_vectors[i];
-        }
-        
+      
+       
         // Return what we have
         return Result::Ok(csvm_model);            
     }
@@ -147,62 +177,76 @@ impl CSVM {
     
     pub fn predict_value_one(&self, problem: &mut Problem) {
         // TODO: Surely there must be a better way to get SIMD width 
-        let _temp = [0.0f64; 32];
-        let simd_width = (&_temp[..]).simd_iter().width();
+        let _temp32 = [0.0f32; 32];
+        let _temp64 = [0.0f64; 32];
+
+        let simd_width_f32 = (&_temp32[..]).simd_iter().width();
+        let simd_width_f64 = (&_temp64[..]).simd_iter().width();
 
 
         // Get current problem and decision values array
         let dec_values = &mut problem.dec_values;
         let current_problem = &problem.features[..];
+        
+        
+        for i_class in 0 .. self.classes.len() {
+            let class = &self.classes[i_class];
+            let kvalues = problem.kvalues.get_vector_mut(i_class);
+            
+            for i_sv in 0 .. class.support_vectors.vectors {
+                let sv = class.support_vectors.get_vector(i_sv);
+
+                let mut simd_sum = f32s::splat(0.0);
 
 
-        // Compute kernel values for each support vector 
-        for (i, kernel_value) in problem.kvalue.iter_mut().enumerate() {
+                // SIMD computation of values 
+                for (x, y) in zip(current_problem.simd_iter(), sv.simd_iter()) {
+                    let d = x - y;
+                    simd_sum = simd_sum + d * d;
+                }
 
-            // Get current vector x (always same in this loop)
-            let sv = self.support_vectors.get_vector(i);
-            let mut simd_sum = f64s::splat(0.0);
+                let sum = sum_f32s(simd_sum, simd_width_f32);
+                let kvalue = (-self.gamma * sum as f64).exp();
 
-            // SIMD computation of values 
-            for (x, y) in zip(current_problem.simd_iter(), sv.simd_iter()) {
-                simd_sum = simd_sum + (x - y) * (x - y);
+                kvalues[i_sv] = kvalue;
             }
-
-
-            // TODO: There must be a better function to do this ...
-            let sum = sum_f64s(simd_sum, simd_width);
-
-//            println!("{:?} {:?}", sum, simd_sum);
-//            panic!();
-
-            // Compute k-value
-            *kernel_value = (-self.gamma * sum).exp();
         }
-
-
+     
+        
         // Reset votes ... TODO: Is there a better way to do this?
         for vote in problem.vote.iter_mut() {
             *vote = 0;
         }
+        
+        
 
         // TODO: For some strange reason this code down here seems to have little performance impact ...
         let mut p = 0;
-        for i in 0 .. self.num_classes {
+        for i in 0 .. self.classes.len() {
 
-            let s_i = self.starts[i] as usize;
-            let nsv_i = self.num_support_vectors[i] as usize;
+//            let s_i = self.starts[i] as usize;
+//            let nsv_i = self.num_support_vectors[i] as usize;
 
-            for j in (i+1) .. self.num_classes {
+            for j in (i+1) .. self.classes.len() {
 
-                let s_j = self.starts[j] as usize;
-                let nsv_j = self.num_support_vectors[j] as usize;
+//                let s_j = self.starts[j] as usize;
+//                let nsv_j = self.num_support_vectors[j] as usize;
+                
+                let mut simd_sum = f64s::splat(0.0);
+                
+                let class_1 = &self.classes[j-1];
+                let class_2 = &self.classes[i];
 
-                let simd_sum1 = CSVM::simd_compute_partial_decision_value(self.sv_coef.get_vector(j - 1), &problem.kvalue, s_i, s_i + nsv_i);
-                let simd_sum2 = CSVM::simd_compute_partial_decision_value(self.sv_coef.get_vector(i), &problem.kvalue, s_j, s_j + nsv_j);
+                let sv_coef1 = class_1.coefficients.get_vector(i);
+                let sv_coef2 = class_2.coefficients.get_vector(j);
+                
+                
+                CSVM::simd_compute_partial_decision_value(&mut simd_sum,sv_coef1, problem.kvalues.get_vector(j-1));
+                CSVM::simd_compute_partial_decision_value(&mut simd_sum, sv_coef2, problem.kvalues.get_vector(i));
+                
+                let sum = sum_f64s(simd_sum, simd_width_f64) - self.rho[p];
 
-                let sum = sum_f64s(simd_sum1, simd_width) + sum_f64s(simd_sum2, simd_width) - self.rho[p];
-
-                dec_values[p] = sum as f64;
+                dec_values[p] = sum ;
 
                 if dec_values[p] > 0.0 {
                     problem.vote[i] += 1;
@@ -216,13 +260,13 @@ impl CSVM {
 
         let mut vote_max_idx = 0;
 
-        for i in 1 .. self.num_classes {
+        for i in 1 .. self.classes.len() {
             if problem.vote[i] > problem.vote[vote_max_idx] {
                 vote_max_idx = i;
             }
         }
         
-        problem.label = self.labels[vote_max_idx];
+        problem.label = self.classes[vote_max_idx].label;
 
     }
 
@@ -236,19 +280,14 @@ impl CSVM {
     }
 
 
-    /// Computes our partial decision value 
-    fn simd_compute_partial_decision_value(all_coef: &[f64], all_kvalue: &[f64], a: usize, b: usize) -> f64s {
+    /// Computes our partial decision value
+    fn simd_compute_partial_decision_value(simd_sum: &mut f64s, coef: &[f64], kvalue: &[f64]) {
         // TODO: WE MIGHT NEED TO REWORK THIS SINCE THIS 
         // TODO: SUM NEEDS HIGH PRECISION (f64) FROM THE LOOKS OF IT
-        let coef = &all_coef[a..b];
-        let kvalue = &all_kvalue[a..b];
-        let mut simd_sum = f64s::splat(0.0);
-
+       
         for (x, y) in zip(coef.simd_iter(), kvalue.simd_iter()) {
-            simd_sum = simd_sum + x * y
+            *simd_sum = *simd_sum + x * y;
         }
-
-        simd_sum
     }
 
 }

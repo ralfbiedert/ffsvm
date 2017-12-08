@@ -2,8 +2,6 @@ use nom::{ line_ending, is_alphanumeric };
 use std::str;
 use std::str::FromStr;
 
-use types::{Feature};
-
 
 #[derive(Debug)]
 pub struct FileHeader<'a> {
@@ -20,12 +18,12 @@ pub struct FileHeader<'a> {
 #[derive(Debug)]
 pub struct Attribute {
     pub index: u32,
-    pub value: Feature
+    pub value: f32
 }
 
 #[derive(Debug)]
 pub struct SupportVector {
-    pub coefs: Vec<f64>,
+    pub coefs: Vec<f32>,
     pub features: Vec<Attribute>
 }
 
@@ -102,7 +100,7 @@ named!(svm_header <&str, FileHeader>,
     )
 );
 
-named_args!(svm_coef(n: u32) <&str,Vec<f64>>,
+named_args!(svm_coef(n: u32) <&str,Vec<f32>>,
     do_parse!(
         opt!(tag!(" ")) >>
         rval: count!(map_res!(svm_string, FromStr::from_str), n as usize) >>
@@ -162,5 +160,7 @@ impl <'a> RawModel<'a> {
         }
     } 
     
+    
+   
 }
 

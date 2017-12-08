@@ -1,7 +1,11 @@
 // TODO:
-// * One call classify multiple problems
-// * Use SIMD
-// * Use parallelism
+// Run Clippy
+// Go through Rust-idioms and adjust 
+// Consider creating chaining initialization ... new().randomX().randomY().
+// 
+// Cleanup: STEP 1)  
+
+
 #![feature(toowned_clone_into)]
 #![feature(test)]
 #![feature(conservative_impl_trait)]    // to "return impl FnMut" 

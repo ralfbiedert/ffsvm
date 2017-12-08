@@ -24,8 +24,6 @@ pub fn sum_f64s(v: f64s, simd_width: usize) -> f64 {
     sum
 }
 
-
-
 /// Creates a vector of random 
 pub fn random_vec<T>(size: usize) -> Vec<T> 
 where T: Rand
@@ -34,4 +32,15 @@ where T: Rand
     rng.gen_iter().take(size).collect()
 }
 
+
+
+/// Computes our prefered SIMD size for vectors. 
+pub fn prefered_simd_size(size: usize) -> usize {
+    const ALIGN: usize = 4;
+    if size % ALIGN == 0 { 
+        size 
+    } else  { 
+        ((size / ALIGN) + 1) * ALIGN 
+    }
+}
 
