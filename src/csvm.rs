@@ -45,6 +45,7 @@ pub struct CSVM {
 impl Class {
     
     pub fn new(classes: usize, support_vectors: usize, attributes: usize) -> Class {
+
         Class {
             num_support_vectors: support_vectors, 
             label: 0,
@@ -103,7 +104,7 @@ impl CSVM {
                 support_vectors: Matrix::new(sv_per_class, num_attributes, Default::default())
             };    
             
-            classes[i] = class;
+            classes.push(class);
         }
 
 
@@ -137,14 +138,19 @@ impl CSVM {
 
 
         for i in 0 .. num_classes {
-            csvm_model.classes[i] = Class::new(num_classes, header.nr_sv[i] as usize, num_attributes);
-            csvm_model.classes[i].label = header.label[i];
+            let mut c = Class::new(num_classes, header.nr_sv[i] as usize, num_attributes);
+            c.label = header.label[i];
+            
+            csvm_model.classes.push(c);
         }
+        
         
         let mut start = 0;
         
-        for n in &header.nr_sv {
+        for i in 0 .. header.nr_sv.len() {
+            let n = &header.nr_sv[i];
             let stop = start + *n as usize;
+
 
             // Set support vector and coefficients
             for (i_vector, vector) in vectors[start .. stop].iter().enumerate() {
@@ -157,19 +163,18 @@ impl CSVM {
                         return Result::Err("SVM support vector indices MUST range from [0 ... #(num_attributes - 1)].");
                     }
 
-                    csvm_model.classes[*n as usize].support_vectors.set(i_vector, attribute.index as usize, attribute.value);
+                    csvm_model.classes[i].support_vectors.set(i_vector, attribute.index as usize, attribute.value);
                 }
 
                 // Set coefficients 
                 for (i_coef, coef) in vector.coefs.iter().enumerate() {
-                    csvm_model.classes[*n as usize].coefficients.set(i_coef,i_vector, *coef as f64);
+                    csvm_model.classes[i].coefficients.set(i_coef,i_vector, *coef as f64);
                 }
             }      
             
             start = stop;
         }
-      
-       
+
         // Return what we have
         return Result::Ok(csvm_model);            
     }
@@ -211,14 +216,13 @@ impl CSVM {
                 kvalues[i_sv] = kvalue;
             }
         }
-     
-        
+
         // Reset votes ... TODO: Is there a better way to do this?
         for vote in problem.vote.iter_mut() {
             *vote = 0;
         }
-        
-        
+
+
 
         // TODO: For some strange reason this code down here seems to have little performance impact ...
         let mut p = 0;
@@ -231,16 +235,18 @@ impl CSVM {
 
 //                let s_j = self.starts[j] as usize;
 //                let nsv_j = self.num_support_vectors[j] as usize;
-                
+
                 let mut simd_sum = f64s::splat(0.0);
                 
                 let class_1 = &self.classes[j-1];
                 let class_2 = &self.classes[i];
 
+
                 let sv_coef1 = class_1.coefficients.get_vector(i);
-                let sv_coef2 = class_2.coefficients.get_vector(j);
-                
-                
+
+                let sv_coef2 = class_2.coefficients.get_vector(j-1);
+
+
                 CSVM::simd_compute_partial_decision_value(&mut simd_sum,sv_coef1, problem.kvalues.get_vector(j-1));
                 CSVM::simd_compute_partial_decision_value(&mut simd_sum, sv_coef2, problem.kvalues.get_vector(i));
                 
@@ -254,9 +260,11 @@ impl CSVM {
                     problem.vote[j] += 1;
                 }
 
+
                 p += 1;
             }
         }
+
 
         let mut vote_max_idx = 0;
 
@@ -265,7 +273,8 @@ impl CSVM {
                 vote_max_idx = i;
             }
         }
-        
+
+
         problem.label = self.classes[vote_max_idx].label;
 
     }

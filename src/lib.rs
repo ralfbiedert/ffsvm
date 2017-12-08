@@ -18,11 +18,9 @@ extern crate test;
 extern crate itertools;
 extern crate rayon;
 
-pub mod types;
 pub mod matrix;
 pub mod csvm;
 pub mod parser;
 mod util;
-
 
 //
