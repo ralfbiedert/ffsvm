@@ -125,6 +125,7 @@ impl RbfCSVM {
 
     // Predict the value for one problem.
     pub fn predict_value_one(&self, problem: &mut Problem) {
+        
         // TODO: Dirty hack until faster allows us to operate on zipped, non-aligned arrays.
         assert_eq!(problem.features.len() % 4, 0);
 
@@ -223,7 +224,9 @@ mod test {
             Problem::from_svm(&svm).randomize()
         }).collect::<Vec<Problem>>();
 
-        move || { (&mut svm).predict_values(&mut problems) }
+        move || { 
+            (&mut svm).predict_values(&mut problems) 
+        }
     }
 
     #[bench]
@@ -255,6 +258,7 @@ mod test {
 
     #[test]
     fn test_something() {
+        
         assert_eq!(4, 2+2);
     }
 
