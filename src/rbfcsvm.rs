@@ -15,15 +15,11 @@ pub type RbfCSVM = SVM<RbfKernel>;
 
 /// Computes our partial decision value
 fn partial_decision(simd_sum: &mut f64s, coef: &[f64], kvalue: &[f64]) {
-    println!("{:?} {:?} ", coef.len(), kvalue.len());
     
     for (x, y) in zip(coef.simd_iter(), kvalue.simd_iter()) {
-        println!("{:?} {:?} ", x, y);
         *simd_sum = *simd_sum + x * y;
     
     }
-    println!("Dne");
-
 }
 
 
