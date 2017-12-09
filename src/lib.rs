@@ -23,5 +23,6 @@ pub mod csvm;
 pub mod parser;
 pub mod data;
 mod util;
+mod randomization;
 
 //

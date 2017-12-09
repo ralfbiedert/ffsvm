@@ -26,14 +26,6 @@ pub fn sum_f64s(v: f64s, simd_width: usize) -> f64 {
 }
 
 
-/// Creates a vector of random 
-pub fn random_vec<T>(size: usize) -> Vec<T> 
-where T: Rand
-{
-    let mut rng = ChaChaRng::new_unseeded();
-    rng.gen_iter().take(size).collect()
-}
-
 
 
 /// Computes our prefered SIMD size for vectors. 

@@ -3,10 +3,10 @@ use rand::{random};
 use itertools::{zip};
 use rayon::prelude::*;
 
-use manyvectors::ManyVectors;
 use parser::RawModel;
 use data::{Class, Problem, SVM};
-use util::{sum_f32s, sum_f64s, random_vec };
+use randomization::{Randomize, random_vec};
+use util::{sum_f32s, sum_f64s};
 
 
 #[allow(unused_imports)] // TODO: Removing this causes 'unused import' warnings although it's being used.
@@ -24,27 +24,12 @@ impl RbfCSVM {
     
     /// Creates a new random CSVM
     pub fn random(num_classes: usize, sv_per_class: usize, num_attributes: usize) -> RbfCSVM {
-        let mut starts = vec![0; num_classes];
-        let mut classes = Vec::with_capacity(num_classes);
         
         let total_sv = num_classes * sv_per_class;
-
-        for i in 1 .. num_classes {
-            starts[i] = starts[i-1] + sv_per_class as u32;
-        }
-
-        for i in 0 .. num_classes {
-            let mut class = Class {
-                num_support_vectors: sv_per_class,
-                label: i as u32,
-                coefficients: ManyVectors::with_dimension(num_classes - 1, sv_per_class, Default::default()),
-                support_vectors: ManyVectors::with_dimension(sv_per_class, num_attributes, Default::default())
-            };    
-            
-            classes.push(class);
-        }
-
-
+        let classes: Vec<Class> = (0..num_classes).map(| class| {
+            Class::with_parameters(num_classes, sv_per_class, num_attributes, class as u32).randomize()
+        }).collect();
+        
         RbfCSVM {
             num_attributes,
             total_support_vectors: total_sv,
@@ -65,36 +50,36 @@ impl RbfCSVM {
         let num_attributes = vectors[0].features.len();
         let num_classes = header.nr_class as usize;
         let total_support_vectors = header.total_sv as usize;
+        
+        // Construct vector of classes
+        let classes: Vec<Class> = (0..num_classes).map(| class| {
+            let label = header.label[class]; 
+            Class::with_parameters(num_classes, header.nr_sv[class] as usize, num_attributes, label)
+        }).collect();
 
+        
         // Allocate model
-        let mut csvm_model = RbfCSVM {
+        let mut svm = RbfCSVM {
             num_attributes,
             total_support_vectors,
             extra: RbfCData {
                 gamma: header.gamma
             },
             rho: header.rho.clone(),
-            classes: Vec::with_capacity(num_classes),
+            classes,
         };
 
 
+        // Now read all vectors and decode stored information
+        let mut start_offset = 0;
+        
         for i in 0 .. num_classes {
-            let mut c = Class::with_dimensions(num_classes, header.nr_sv[i] as usize, num_attributes);
-            c.label = header.label[i];
+            let num_sv_per_class = &header.nr_sv[i];
+            let stop_offset = start_offset + *num_sv_per_class as usize;
             
-            csvm_model.classes.push(c);
-        }
-        
-        
-        let mut start = 0;
-        
-        for i in 0 .. header.nr_sv.len() {
-            let n = &header.nr_sv[i];
-            let stop = start + *n as usize;
-
-
+            
             // Set support vector and coefficients
-            for (i_vector, vector) in vectors[start .. stop].iter().enumerate() {
+            for (i_vector, vector) in vectors[start_offset .. stop_offset].iter().enumerate() {
                 
                 // Set support vectors
                 for (i_attribute, attribute) in vector.features.iter().enumerate() {
@@ -104,20 +89,20 @@ impl RbfCSVM {
                         return Result::Err("SVM support vector indices MUST range from [0 ... #(num_attributes - 1)].");
                     }
 
-                    csvm_model.classes[i].support_vectors.set(i_vector, attribute.index as usize, attribute.value);
+                    svm.classes[i].support_vectors.set(i_vector, attribute.index as usize, attribute.value);
                 }
 
                 // Set coefficients 
-                for (i_coef, coef) in vector.coefs.iter().enumerate() {
-                    csvm_model.classes[i].coefficients.set(i_coef,i_vector, *coef as f64);
+                for (i_coefficient, coefficient) in vector.coefs.iter().enumerate() {
+                    svm.classes[i].coefficients.set(i_coefficient,i_vector, *coefficient as f64);
                 }
             }      
             
-            start = stop;
+            start_offset = stop_offset;
         }
 
         // Return what we have
-        return Result::Ok(csvm_model);            
+        return Result::Ok(svm);            
     }
 
     

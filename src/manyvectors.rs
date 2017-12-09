@@ -2,7 +2,6 @@ use std::fmt;
 use std::iter::{IntoIterator};
 use std::marker::{Sized,Copy};
 
-
 /// Basic "matrix' we use for fast SIMD and parallel operations.
 /// 
 /// Note: Right now we use a Matrix mostly as a vector of vectors and is mostly 
@@ -36,7 +35,7 @@ pub struct IterManyVectors<'a, T: 'a> where  T : Copy + Sized
 
 impl<T> ManyVectors<T> where T : Copy + Sized
 {
-    /// Creates a new emptry Matrix.
+    /// Creates a new empty Matrix.
     pub fn with_dimension(vectors: usize, attributes: usize, default: T) -> ManyVectors<T> {
         ManyVectors::<T> {
             vectors,
@@ -53,6 +52,7 @@ impl<T> ManyVectors<T> where T : Copy + Sized
             data: vector,
         } 
     }
+    
 
     #[inline]
     pub fn get_vector(&self, index_vector: usize) -> &[T] {
@@ -65,6 +65,7 @@ impl<T> ManyVectors<T> where T : Copy + Sized
         let start_index = self.offset(index_vector, 0);
         &mut self.data[start_index..start_index + self.attributes]
     }
+    
     
     #[inline]
     pub fn set_vector(&mut self, index_vector: usize, vector: &[T]) {
@@ -91,6 +92,7 @@ impl<T> ManyVectors<T> where T : Copy + Sized
         self.data[index]
     }
 }
+
 
 
 impl <T> fmt::Debug for ManyVectors<T> where T : Copy + Sized

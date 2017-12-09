@@ -1,6 +1,6 @@
 use faster::{ PackedIterator };
 use manyvectors::ManyVectors;
-
+use util;
 
 /// Core support vector machine 
 #[derive(Debug)]
@@ -61,15 +61,15 @@ pub struct Problem {
 
 impl Class {
 
-    pub fn with_dimensions(classes: usize, support_vectors: usize, attributes: usize) -> Class {
+    pub fn with_parameters(classes: usize, support_vectors: usize, attributes: usize, label: u32) -> Class {
         Class {
-            label: 0,
+            label,
             num_support_vectors: support_vectors,
             coefficients: ManyVectors::with_dimension(classes - 1, support_vectors, Default::default()),
             support_vectors: ManyVectors::with_dimension(support_vectors, attributes, Default::default()),
         }
     }
-    
+  
 }
 
 
