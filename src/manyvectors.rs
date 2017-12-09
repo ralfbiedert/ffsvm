@@ -2,6 +2,9 @@ use std::fmt;
 use std::iter::{IntoIterator};
 use std::marker::{Sized,Copy};
 
+use util;
+
+
 /// Basic "matrix' we use for fast SIMD and parallel operations.
 /// 
 /// Note: Right now we use a Matrix mostly as a vector of vectors and is mostly 
@@ -13,6 +16,9 @@ pub struct ManyVectors<T> where T : Copy + Sized,
     
     /// Number of attributes this matrix has per subvector
     pub attributes: usize,
+    
+    /// Actual length of vectors 
+    pub vector_length: usize, 
     
     /// We store all data in one giant array for performance reasons (caching)
     pub data: Vec<T>
@@ -37,33 +43,28 @@ impl<T> ManyVectors<T> where T : Copy + Sized
 {
     /// Creates a new empty Matrix.
     pub fn with_dimension(vectors: usize, attributes: usize, default: T) -> ManyVectors<T> {
+        
+        let preferred_length = util::prefered_simd_size(attributes);
+        
         ManyVectors::<T> {
             vectors,
             attributes,
-            data: vec![default; vectors * attributes],
+            vector_length: preferred_length,
+            data: vec![default; vectors * preferred_length],
         }
     }
     
-    /// Given a flat vec and dimensions, set the matrix with the given dimensions 
-    pub fn from_flat(vector: Vec<T>, vectors: usize, attributes: usize) -> ManyVectors<T> {
-        ManyVectors::<T> {
-            vectors,
-            attributes,
-            data: vector,
-        } 
-    }
     
-
     #[inline]
     pub fn get_vector(&self, index_vector: usize) -> &[T] {
         let start_index = self.offset(index_vector, 0);
-        &self.data[start_index..start_index + self.attributes]
+        &self.data[start_index..start_index + self.vector_length]
     }
 
     #[inline]
     pub fn get_vector_mut(&mut self, index_vector: usize) -> &mut [T] {
         let start_index = self.offset(index_vector, 0);
-        &mut self.data[start_index..start_index + self.attributes]
+        &mut self.data[start_index..start_index + self.vector_length]
     }
     
     
@@ -77,7 +78,7 @@ impl<T> ManyVectors<T> where T : Copy + Sized
     
     #[inline]
     pub fn offset(&self, index_vector: usize, index_attribute: usize) -> usize {
-        (index_vector * self.attributes + index_attribute)
+        (index_vector * self.vector_length + index_attribute)
     }
     
     #[inline]

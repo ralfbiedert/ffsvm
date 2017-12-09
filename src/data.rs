@@ -1,6 +1,4 @@
-use faster::{ PackedIterator };
 use manyvectors::ManyVectors;
-use util;
 
 /// Core support vector machine 
 #[derive(Debug)]
@@ -13,7 +11,8 @@ pub struct SVM<T> {
     
     pub rho: Vec<f64>,
     
-    pub extra: T,
+    /// SVM specific data needed for classification
+    pub kernel: T,
     
     /// All classes
     pub classes: Vec<Class>,
@@ -37,6 +36,11 @@ pub struct Class {
     pub support_vectors: ManyVectors<f32>,
 }
 
+
+/// Base trait for kernels 
+pub trait Kernel {
+    fn compute(&self, vectors: &ManyVectors<f32>, feature: &[f32], kvalues: &mut [f64]);
+}
 
 
 /// A single problem we should classify.

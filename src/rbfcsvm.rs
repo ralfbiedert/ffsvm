@@ -1,23 +1,25 @@
-use faster::{IntoPackedRefIterator, f32s, f64s, PackedIterator };
+use faster::{IntoPackedRefIterator, f64s};
 use rand::{random};
 use itertools::{zip};
 use rayon::prelude::*;
 
 use parser::RawModel;
-use data::{Class, Problem, SVM};
+use data::{Class, Problem, SVM, Kernel};
+use rbfkernel::{RbfKernel};
 use randomization::{Randomize, random_vec};
-use util::{sum_f32s, sum_f64s};
+use util::{sum_f64s, set_all};
 
 
-#[allow(unused_imports)] // TODO: Removing this causes 'unused import' warnings although it's being used.
-use test::{Bencher};
+pub type RbfCSVM = SVM<RbfKernel>;
 
 
-pub struct RbfCData {
-    gamma: f64,
-} 
+/// Computes our partial decision value
+fn partial_decision(simd_sum: &mut f64s, coef: &[f64], kvalue: &[f64]) {
 
-pub type RbfCSVM = SVM<RbfCData>;
+    for (x, y) in zip(coef.simd_iter(), kvalue.simd_iter()) {
+        *simd_sum = *simd_sum + x * y;
+    }
+}
 
 
 impl RbfCSVM {
@@ -34,7 +36,7 @@ impl RbfCSVM {
             num_attributes,
             total_support_vectors: total_sv,
             rho: random_vec(num_classes),
-            extra: RbfCData {
+            kernel: RbfKernel {
                 gamma: random()
             },
             classes
@@ -42,6 +44,7 @@ impl RbfCSVM {
     }
 
     
+    /// Creates a SVM from the given raw model.
     pub fn from_raw_model(raw_model: &RawModel) -> Result<RbfCSVM, &'static str> {
         let header = &raw_model.header;
         let vectors = &raw_model.vectors;
@@ -62,7 +65,7 @@ impl RbfCSVM {
         let mut svm = RbfCSVM {
             num_attributes,
             total_support_vectors,
-            extra: RbfCData {
+            kernel: RbfKernel {
                 gamma: header.gamma
             },
             rho: header.rho.clone(),
@@ -70,17 +73,20 @@ impl RbfCSVM {
         };
 
 
+        // TODO: Things down here are a bit ugly as the file format is a bit ugly ...
+        
         // Now read all vectors and decode stored information
         let mut start_offset = 0;
         
+        // In the raw file, support vectors are grouped by class  
         for i in 0 .. num_classes {
+            
             let num_sv_per_class = &header.nr_sv[i];
             let stop_offset = start_offset + *num_sv_per_class as usize;
             
-            
             // Set support vector and coefficients
             for (i_vector, vector) in vectors[start_offset .. stop_offset].iter().enumerate() {
-                
+
                 // Set support vectors
                 for (i_attribute, attribute) in vector.features.iter().enumerate() {
 
@@ -97,7 +103,8 @@ impl RbfCSVM {
                     svm.classes[i].coefficients.set(i_coefficient,i_vector, *coefficient as f64);
                 }
             }      
-            
+
+            // Update last offset. 
             start_offset = stop_offset;
         }
 
@@ -106,77 +113,44 @@ impl RbfCSVM {
     }
 
     
-    pub fn predict_value_one(&self, problem: &mut Problem) {
-        // TODO: Surely there must be a better way to get SIMD width 
-        let _temp32 = [0.0f32; 32];
-        let _temp64 = [0.0f64; 32];
-
-        let simd_width_f32 = (&_temp32[..]).simd_iter().width();
-        let simd_width_f64 = (&_temp64[..]).simd_iter().width();
-
-
+    /// Computes the kernel values for this problem
+    fn compute_kernel_values(&self, problem: &mut Problem) {
         // Get current problem and decision values array
-        let dec_values = &mut problem.decision_values;
-        let current_problem = &problem.features[..];
-        
-        
-        for i_class in 0 .. self.classes.len() {
-            let class = &self.classes[i_class];
-            let kvalues = problem.kernel_values.get_vector_mut(i_class);
-            
-            for i_sv in 0 .. class.support_vectors.vectors {
-                let sv = class.support_vectors.get_vector(i_sv);
-
-                let mut simd_sum = f32s::splat(0.0);
+        let problem_features = &problem.features[..];
 
 
-                // SIMD computation of values 
-                for (x, y) in zip(current_problem.simd_iter(), sv.simd_iter()) {
-                    let d = x - y;
-                    simd_sum = simd_sum + d * d;
-                }
+        // Compute kernel values per class 
+        for (i, class) in self.classes.iter().enumerate() {
+            let kvalues = problem.kernel_values.get_vector_mut(i);
 
-                let sum = sum_f32s(simd_sum, simd_width_f32);
-                let kvalue = (-self.extra.gamma * sum as f64).exp();
-
-                kvalues[i_sv] = kvalue;
-            }
+            self.kernel.compute(&class.support_vectors, problem_features, kvalues);
         }
+    }
+    
+    
+    /// Based on kernel values, computes the decision values for this problem.
+    fn compute_decision_values(&self, problem: &mut Problem) {
 
-        // Reset votes ... TODO: Is there a better way to do this?
-        for vote in problem.vote.iter_mut() {
-            *vote = 0;
-        }
-
-
-
-        // TODO: For some strange reason this code down here seems to have little performance impact ...
+        // TODO: For some strange reason this code here seems to have little performance impact ...
         let mut p = 0;
-        for i in 0 .. self.classes.len() {
+        let dec_values = &mut problem.decision_values;
 
-//            let s_i = self.starts[i] as usize;
-//            let nsv_i = self.num_support_vectors[i] as usize;
+        for i in 0 .. self.classes.len() {
 
             for j in (i+1) .. self.classes.len() {
 
-//                let s_j = self.starts[j] as usize;
-//                let nsv_j = self.num_support_vectors[j] as usize;
-
                 let mut simd_sum = f64s::splat(0.0);
-                
+
                 let class_1 = &self.classes[j-1];
                 let class_2 = &self.classes[i];
 
-
                 let sv_coef1 = class_1.coefficients.get_vector(i);
-
                 let sv_coef2 = class_2.coefficients.get_vector(j-1);
 
+                partial_decision(&mut simd_sum, sv_coef1, problem.kernel_values.get_vector(j-1));
+                partial_decision(&mut simd_sum, sv_coef2, problem.kernel_values.get_vector(i));
 
-                RbfCSVM::simd_compute_partial_decision_value(&mut simd_sum,sv_coef1, problem.kernel_values.get_vector(j-1));
-                RbfCSVM::simd_compute_partial_decision_value(&mut simd_sum, sv_coef2, problem.kernel_values.get_vector(i));
-                
-                let sum = sum_f64s(simd_sum, simd_width_f64) - self.rho[p];
+                let sum = sum_f64s(simd_sum) - self.rho[p];
 
                 dec_values[p] = sum ;
 
@@ -189,9 +163,12 @@ impl RbfCSVM {
 
                 p += 1;
             }
-        }
-
-
+        } 
+    }  
+    
+    
+    /// Based on decision values, computes the actuall classification label. 
+    fn compute_label(&self, problem: &mut Problem) {
         let mut vote_max_idx = 0;
 
         for i in 1 .. self.classes.len() {
@@ -200,12 +177,23 @@ impl RbfCSVM {
             }
         }
 
-
         problem.label = self.classes[vote_max_idx].label;
-
+    }
+    
+    
+    // Predict the value for one problem.
+    pub fn predict_value_one(&self, problem: &mut Problem) {
+        
+        // Reset all votes
+        set_all(&mut problem.vote, 0);
+        
+        // Compute kernel, decision values and eventually the label 
+        self.compute_kernel_values(problem);
+        self.compute_decision_values(problem);
+        self.compute_label(problem);
     }
 
-    /// Creates a new CSVM from a raw model.
+    /// Predicts all values for a set of problems.
     pub fn predict_values(&self, problems: &mut [Problem]) {
           
         // Compute all problems ...
@@ -213,66 +201,59 @@ impl RbfCSVM {
             self.predict_value_one(problem)            
         });
     }
+}
 
 
-    /// Computes our partial decision value
-    fn simd_compute_partial_decision_value(simd_sum: &mut f64s, coef: &[f64], kvalue: &[f64]) {
-        // TODO: WE MIGHT NEED TO REWORK THIS SINCE THIS 
-        // TODO: SUM NEEDS HIGH PRECISION (f64) FROM THE LOOKS OF IT
-       
-        for (x, y) in zip(coef.simd_iter(), kvalue.simd_iter()) {
-            *simd_sum = *simd_sum + x * y;
-        }
+mod test {
+    use rbfcsvm::RbfCSVM;
+    use data::Problem;
+    use randomization::Randomize;
+    
+    #[allow(unused_imports)] // TODO: Removing this causes 'unused import' warnings although it's being used.
+    use test::{Bencher};
+
+    /// Produces a test case run for benchmarking
+    #[allow(dead_code)]
+    fn produce_testcase(classes: usize, sv_per_class: usize, attributes: usize, num_problems: usize) -> impl FnMut()
+    {
+        let mut svm = RbfCSVM::random(classes, sv_per_class, attributes);
+        let mut problems = (0 .. num_problems).map(|_| {
+            Problem::from_svm(&svm).randomize()
+        }).collect::<Vec<Problem>>();
+
+        move || { (&mut svm).predict_values(&mut problems) }
     }
 
-}
-
-
-
-/// Produces a test case run for benchmarking
-#[allow(dead_code)]
-fn produce_testcase(classes: usize, sv_per_class: usize, attributes: usize, num_problems: usize) -> impl FnMut()
-{
-    let mut svm = RbfCSVM::random(classes, sv_per_class, attributes);
-    let mut problems = Vec::with_capacity(num_problems);
-    
-    for _i in 0 .. num_problems {
-        let mut problem = Problem::from_svm(&svm);
-        problem.features = random_vec(attributes);
-        problems.push(problem);
+    #[bench]
+    fn csvm_predict_sv128_attr16_problems1(b: &mut Bencher) {
+        b.iter(produce_testcase(2, 64, 16, 1));
     }
-    
-    move || { (&mut svm).predict_values(&mut problems) } 
-}
 
-#[bench]
-fn csvm_predict_sv128_attr16_problems1(b: &mut Bencher) {
-    b.iter(produce_testcase(2, 64, 16, 1));
-}
+    #[bench]
+    fn csvm_predict_sv1024_attr16_problems1(b: &mut Bencher) {
+        b.iter(produce_testcase(2, 512, 16, 1));
+    }
 
-#[bench]
-fn csvm_predict_sv1024_attr16_problems1(b: &mut Bencher) {
-    b.iter(produce_testcase(2, 512, 16, 1));
-}
+    #[bench]
+    fn csvm_predict_sv128_attr16_problems1024(b: &mut Bencher) {
+        b.iter(produce_testcase(2, 64, 16, 1024));
+    }
 
-#[bench]
-fn csvm_predict_sv128_attr16_problems1024(b: &mut Bencher) {
-    b.iter(produce_testcase(2, 64, 16, 1024));
-}
+    #[bench]
+    fn csvm_predict_sv1024_attr16_problems128(b: &mut Bencher) {
+        b.iter(produce_testcase(2, 512, 16, 128));
+    }
 
-#[bench]
-fn csvm_predict_sv1024_attr16_problems128(b: &mut Bencher) {
-    b.iter(produce_testcase(2, 512, 16, 128));
-}
-
-#[bench]
-fn csvm_predict_sv1024_attr1024_problems1(b: &mut Bencher) {
-    b.iter(produce_testcase(2, 512, 1024, 1));
-}
+    #[bench]
+    fn csvm_predict_sv1024_attr1024_problems1(b: &mut Bencher) {
+        b.iter(produce_testcase(2, 512, 1024, 1));
+    }
 
 
 
-#[test]
-fn test_something() {
-    assert_eq!(4, 2+2);
+    #[test]
+    fn test_something() {
+        assert_eq!(4, 2+2);
+    }
+
 }

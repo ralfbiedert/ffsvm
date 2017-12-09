@@ -19,10 +19,11 @@ extern crate itertools;
 extern crate rayon;
 
 pub mod manyvectors;
-pub mod csvm;
+pub mod rbfcsvm;
 pub mod parser;
 pub mod data;
-mod util;
-mod randomization;
+pub mod util;
+pub mod randomization;
+pub mod rbfkernel;
 
 //

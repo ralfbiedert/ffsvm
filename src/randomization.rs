@@ -3,7 +3,7 @@ use std::iter::Iterator;
 use rand::{ChaChaRng, Rng, Rand};
 
 use manyvectors::ManyVectors;
-use data::Class;
+use data::{Class, Problem};
 
 
 /// Randomizes a data structure 
@@ -43,6 +43,17 @@ impl Randomize for Class {
     }
     
 }
+
+
+impl Randomize for Problem {
+
+    fn randomize(mut self) -> Self {
+        self.features = random_vec(self.features.len());
+        self
+    }
+    
+}
+
 
 
 /// Creates a vector of random 
