@@ -35,6 +35,23 @@ pub struct RawModel<'a> {
 
 
 
+impl <'a> RawModel<'a> {
+
+    /// Parses a string into a SVM model
+    pub fn from_str(model: &str) -> Result<RawModel, &'static str> {
+
+        // Parse string to struct
+        let res = svm_file(model);
+
+        match res {
+            Ok(m) => Result::Ok(m.1),
+            Err(_) => Result::Err("Error parsing file."),
+        }
+    }
+}
+
+
+
 /// Accepts an alphanumeric identifier or '_'
 fn svm_non_whitespace(chr: char) -> bool {
     is_alphanumeric(chr as u8) || chr == '_' || chr == '.' || chr == '-'
@@ -144,23 +161,4 @@ named!(svm_file <&str, RawModel>,
         )
     )
 );
-
-
-impl <'a> RawModel<'a> {
-
-    /// Parses a string into a SVM model
-    pub fn from_str(model: &str) -> Result<RawModel, &'static str> {
-        
-        // Parse string to struct
-        let res = svm_file(model);
-
-        match res {
-            Ok(m) => { return Result::Ok(m.1); },
-            Err(_) => { return Result::Err("Error parsing file."); },
-        }
-    } 
-    
-    
-   
-}
 

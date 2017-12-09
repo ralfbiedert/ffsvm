@@ -3,8 +3,9 @@ use rand::{random};
 use itertools::{zip};
 use rayon::prelude::*;
 
-use matrix::Matrix;
+use manyvectors::ManyVectors;
 use parser::RawModel;
+use data::{Class, Problem, SVM};
 use util::{sum_f32s, sum_f64s, random_vec };
 
 
@@ -12,81 +13,17 @@ use util::{sum_f32s, sum_f64s, random_vec };
 use test::{Bencher};
 
 
-#[derive(Debug)]
-pub struct Problem {
-    pub features: Vec<f32>,
-    pub kvalues: Matrix<f64>,
-    pub vote: Vec<u32>,
-    pub dec_values: Vec<f64>,
-    pub label: u32
-}
+pub struct RbfCData {
+    gamma: f64,
+} 
+
+pub type RbfCSVM = SVM<RbfCData>;
 
 
-#[derive(Debug)]
-pub struct Class {
-    num_support_vectors: usize,
-    label: u32,
-    coefficients: Matrix<f64>,
-    support_vectors: Matrix<f32>,
-}
-
-
-#[derive(Debug)]
-pub struct CSVM {
-    pub total_support_vectors: usize,
-    pub num_attributes: usize,
-    pub gamma: f64,
-    pub rho: Vec<f64>,
-    pub classes: Vec<Class>,
-}
-
-
-
-impl Class {
-    
-    pub fn new(classes: usize, support_vectors: usize, attributes: usize) -> Class {
-
-        Class {
-            num_support_vectors: support_vectors, 
-            label: 0,
-            coefficients: Matrix::new(classes - 1, support_vectors, Default::default()),
-            support_vectors: Matrix::new(support_vectors, attributes, Default::default()),
-        }
-    }
-    
-}
-
-impl Problem {
-    
-    pub fn new(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem {
-        let num_decision_values = num_classes * (num_classes - 1) / 2;
-        
-        Problem {
-            kvalues: Matrix::new(num_classes, total_sv, Default::default()),
-            features: vec![Default::default(); num_attributes],
-            vote: vec![Default::default(); num_classes],
-            dec_values: vec![Default::default(); num_decision_values],
-            label: 0
-        }
-    }
-    
-    pub fn from_csvm(csvm: &CSVM) -> Problem {
-        Problem::new(csvm.total_support_vectors, csvm.classes.len(), csvm.num_attributes)           
-    }
-
-    
-    pub fn from_csvm_with_random(csvm: &CSVM) -> Problem {
-        let mut problem = Problem::from_csvm(csvm);
-        problem.features = random_vec(csvm.num_attributes);
-        problem
-    }
-
-}
-
-impl CSVM {
+impl RbfCSVM {
     
     /// Creates a new random CSVM
-    pub fn new_random(num_classes: usize, sv_per_class: usize, num_attributes: usize) -> CSVM {
+    pub fn random(num_classes: usize, sv_per_class: usize, num_attributes: usize) -> RbfCSVM {
         let mut starts = vec![0; num_classes];
         let mut classes = Vec::with_capacity(num_classes);
         
@@ -100,25 +37,27 @@ impl CSVM {
             let mut class = Class {
                 num_support_vectors: sv_per_class,
                 label: i as u32,
-                coefficients: Matrix::new(num_classes - 1, sv_per_class, Default::default()),
-                support_vectors: Matrix::new(sv_per_class, num_attributes, Default::default())
+                coefficients: ManyVectors::with_dimension(num_classes - 1, sv_per_class, Default::default()),
+                support_vectors: ManyVectors::with_dimension(sv_per_class, num_attributes, Default::default())
             };    
             
             classes.push(class);
         }
 
 
-        CSVM {
+        RbfCSVM {
             num_attributes,
             total_support_vectors: total_sv,
-            gamma: random(),
             rho: random_vec(num_classes),
+            extra: RbfCData {
+                gamma: random()
+            },
             classes
         }
     }
 
     
-    pub fn from_raw_model(raw_model: &RawModel) -> Result<CSVM, &'static str> {
+    pub fn from_raw_model(raw_model: &RawModel) -> Result<RbfCSVM, &'static str> {
         let header = &raw_model.header;
         let vectors = &raw_model.vectors;
         
@@ -128,17 +67,19 @@ impl CSVM {
         let total_support_vectors = header.total_sv as usize;
 
         // Allocate model
-        let mut csvm_model = CSVM {
+        let mut csvm_model = RbfCSVM {
             num_attributes,
             total_support_vectors,
-            gamma: header.gamma,
+            extra: RbfCData {
+                gamma: header.gamma
+            },
             rho: header.rho.clone(),
             classes: Vec::with_capacity(num_classes),
         };
 
 
         for i in 0 .. num_classes {
-            let mut c = Class::new(num_classes, header.nr_sv[i] as usize, num_attributes);
+            let mut c = Class::with_dimensions(num_classes, header.nr_sv[i] as usize, num_attributes);
             c.label = header.label[i];
             
             csvm_model.classes.push(c);
@@ -190,13 +131,13 @@ impl CSVM {
 
 
         // Get current problem and decision values array
-        let dec_values = &mut problem.dec_values;
+        let dec_values = &mut problem.decision_values;
         let current_problem = &problem.features[..];
         
         
         for i_class in 0 .. self.classes.len() {
             let class = &self.classes[i_class];
-            let kvalues = problem.kvalues.get_vector_mut(i_class);
+            let kvalues = problem.kernel_values.get_vector_mut(i_class);
             
             for i_sv in 0 .. class.support_vectors.vectors {
                 let sv = class.support_vectors.get_vector(i_sv);
@@ -211,7 +152,7 @@ impl CSVM {
                 }
 
                 let sum = sum_f32s(simd_sum, simd_width_f32);
-                let kvalue = (-self.gamma * sum as f64).exp();
+                let kvalue = (-self.extra.gamma * sum as f64).exp();
 
                 kvalues[i_sv] = kvalue;
             }
@@ -247,8 +188,8 @@ impl CSVM {
                 let sv_coef2 = class_2.coefficients.get_vector(j-1);
 
 
-                CSVM::simd_compute_partial_decision_value(&mut simd_sum,sv_coef1, problem.kvalues.get_vector(j-1));
-                CSVM::simd_compute_partial_decision_value(&mut simd_sum, sv_coef2, problem.kvalues.get_vector(i));
+                RbfCSVM::simd_compute_partial_decision_value(&mut simd_sum,sv_coef1, problem.kernel_values.get_vector(j-1));
+                RbfCSVM::simd_compute_partial_decision_value(&mut simd_sum, sv_coef2, problem.kernel_values.get_vector(i));
                 
                 let sum = sum_f64s(simd_sum, simd_width_f64) - self.rho[p];
 
@@ -307,11 +248,12 @@ impl CSVM {
 #[allow(dead_code)]
 fn produce_testcase(classes: usize, sv_per_class: usize, attributes: usize, num_problems: usize) -> impl FnMut()
 {
-    let mut svm = CSVM::new_random(classes, sv_per_class, attributes);
+    let mut svm = RbfCSVM::random(classes, sv_per_class, attributes);
     let mut problems = Vec::with_capacity(num_problems);
     
     for _i in 0 .. num_problems {
-        let problem = Problem::from_csvm_with_random(&svm);
+        let mut problem = Problem::from_svm(&svm);
+        problem.features = random_vec(attributes);
         problems.push(problem);
     }
     

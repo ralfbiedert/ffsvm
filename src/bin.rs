@@ -1,7 +1,8 @@
 extern crate ffsvm;
 
 use ffsvm::parser::RawModel;
-use ffsvm::csvm::{CSVM, Problem};
+use ffsvm::data::Problem;
+use ffsvm::csvm::{RbfCSVM};
 
 
 pub fn main() {
@@ -10,9 +11,9 @@ pub fn main() {
     let model = RawModel::from_str(model_str).unwrap();
 //    let mut problem = produce_problem(1, 10);
 //
-    let csvm = CSVM::from_raw_model(&model).unwrap();
-    let mut problem1 = Problem::from_csvm(&csvm);
-    let mut problem2 = Problem::from_csvm(&csvm);
+    let csvm = RbfCSVM::from_raw_model(&model).unwrap();
+    let mut problem1 = Problem::from_svm(&csvm);
+    let mut problem2 = Problem::from_svm(&csvm);
 
     problem1.features = vec![0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.0, 0.0, 1.0, 0.1137485];
     problem2.features = vec![0.3332312, 0.0, 0.0, 0.0, 0.09657142, 1.0, 0.0, 0.0, 1.0, 0.09917226];

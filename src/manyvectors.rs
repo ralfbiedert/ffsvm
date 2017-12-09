@@ -1,16 +1,13 @@
-use std;
 use std::fmt;
 use std::iter::{IntoIterator};
+use std::marker::{Sized,Copy};
 
 
 /// Basic "matrix' we use for fast SIMD and parallel operations.
 /// 
 /// Note: Right now we use a Matrix mostly as a vector of vectors and is mostly 
 /// intended for read operations.
-pub struct Matrix<T> where
-    T : std::marker::Copy,
-    T : std::marker::Sized,
-    T : std::clone::Clone,
+pub struct ManyVectors<T> where T : Copy + Sized,
 {
     /// Number of vectors this matrix has 
     pub vectors: usize,
@@ -23,25 +20,25 @@ pub struct Matrix<T> where
 }
 
 
+
 /// Basic iterator struct to go over matrix 
-pub struct IterMatrix<'a, T: 'a> where
-    T : std::marker::Sized,
-    T : std::marker::Copy,
-    T : std::clone::Clone,
+pub struct IterManyVectors<'a, T: 'a> where  T : Copy + Sized
 {
-    pub matrix: &'a Matrix<T>,
+    /// Reference to the matrix we iterate over.
+    pub matrix: &'a ManyVectors<T>,
+    
+    /// Current index of vector iteration.
     pub index: usize,
 }
 
 
-impl<T> Matrix<T> where
-    T : std::marker::Sized,
-    T : std::marker::Copy,
-    T : std::clone::Clone,
+
+
+impl<T> ManyVectors<T> where T : Copy + Sized
 {
     /// Creates a new emptry Matrix.
-    pub fn new(vectors: usize, attributes: usize, default: T) -> Matrix<T> {
-        Matrix::<T> {
+    pub fn with_dimension(vectors: usize, attributes: usize, default: T) -> ManyVectors<T> {
+        ManyVectors::<T> {
             vectors,
             attributes,
             data: vec![default; vectors * attributes],
@@ -49,8 +46,8 @@ impl<T> Matrix<T> where
     }
     
     /// Given a flat vec and dimensions, set the matrix with the given dimensions 
-    pub fn from_flat_vec(vector: Vec<T>, vectors: usize, attributes: usize) -> Matrix<T> {
-        Matrix::<T> {
+    pub fn from_flat(vector: Vec<T>, vectors: usize, attributes: usize) -> ManyVectors<T> {
+        ManyVectors::<T> {
             vectors,
             attributes,
             data: vector,
@@ -96,37 +93,29 @@ impl<T> Matrix<T> where
 }
 
 
-impl <T> fmt::Debug for Matrix<T> where
-    T : std::marker::Sized,
-    T : std::marker::Copy,
-    T : std::clone::Clone,
+impl <T> fmt::Debug for ManyVectors<T> where T : Copy + Sized
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "({}, {}, [data])", self.vectors, self.attributes)
     }
+    
 }
 
 
 
-impl <'a, T> IntoIterator for &'a Matrix<T> where
-    T : std::marker::Sized,
-    T : std::marker::Copy,
-    T : std::clone::Clone,
+impl <'a, T> IntoIterator for &'a ManyVectors<T> where T : Copy + Sized
 {
     type Item = &'a [T];
-    type IntoIter = IterMatrix<'a, T>;
+    type IntoIter = IterManyVectors<'a, T>;
 
     fn into_iter(self) -> Self::IntoIter {
-        IterMatrix{ matrix: self, index: 0 }
+        IterManyVectors { matrix: self, index: 0 }
     }
 }
 
 
 
-impl <'a, T> Iterator for IterMatrix<'a, T> where
-    T : std::marker::Sized,
-    T : std::marker::Copy,
-    T : std::clone::Clone,
+impl <'a, T> Iterator for IterManyVectors<'a, T> where T : Copy + Sized
 {
     type Item = &'a [T];
 
@@ -144,7 +133,7 @@ impl <'a, T> Iterator for IterMatrix<'a, T> where
 
 #[test]
 fn test_iter() {
-    let matrix = Matrix::new(10, 5, 0);
+    let matrix = ManyVectors::with_dimension(10, 5, 0);
     for x in &matrix {
         assert_eq!(x[0], 0);
     }
