@@ -1,4 +1,5 @@
 use manyvectors::ManyVectors;
+use util;
 
 /// Core support vector machine 
 #[derive(Debug)]
@@ -82,9 +83,10 @@ impl Problem {
 
     pub fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem {
         let num_decision_values = num_classes * (num_classes - 1) / 2;
+        let preferred_attributes = util::prefered_simd_size(num_attributes);
 
         Problem {
-            features: vec![Default::default(); num_attributes],
+            features: vec![Default::default(); preferred_attributes],
             kernel_values: ManyVectors::with_dimension(num_classes, total_sv, Default::default()),
             decision_values: vec![Default::default(); num_decision_values],
             vote: vec![Default::default(); num_classes],

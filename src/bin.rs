@@ -15,7 +15,7 @@ pub fn main() {
     let mut problem2 = Problem::from_svm(&csvm);
 
 //    problem1.features = vec![0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.0, 0.0, 1.0, 0.1137485];
-    problem2.features = vec![0.3332312, 0.0, 0.0, 0.0, 0.09657142, 1.0, 0.0, 0.0, 1.0, 0.09917226];
+    problem2.features = vec![0.3332312, 0.0, 0.0, 0.0, 0.09657142, 1.0, 0.0, 0.0, 1.0, 0.09917226, 0f32, 0f32];
 
 //    csvm.predict_value_one(&mut problem1);
     csvm.predict_value_one(&mut problem2);

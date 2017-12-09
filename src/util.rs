@@ -42,10 +42,10 @@ pub fn sum_f64s(v: f64s) -> f64 {
 /// Computes our prefered SIMD size for vectors. 
 pub fn prefered_simd_size(size: usize) -> usize {
     const ALIGN: usize = 4;
-    if size % ALIGN == 0 { 
+    if size % ALIGN == 0 {
         size 
-    } else  { 
-        ((size / ALIGN) + 1) * ALIGN 
+    } else {
+        ((size / ALIGN) + 1) * ALIGN
     }
 }
 

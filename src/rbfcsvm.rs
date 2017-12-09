@@ -15,10 +15,15 @@ pub type RbfCSVM = SVM<RbfKernel>;
 
 /// Computes our partial decision value
 fn partial_decision(simd_sum: &mut f64s, coef: &[f64], kvalue: &[f64]) {
-
+    println!("{:?} {:?} ", coef.len(), kvalue.len());
+    
     for (x, y) in zip(coef.simd_iter(), kvalue.simd_iter()) {
+        println!("{:?} {:?} ", x, y);
         *simd_sum = *simd_sum + x * y;
+    
     }
+    println!("Dne");
+
 }
 
 
@@ -59,7 +64,6 @@ impl RbfCSVM {
             let label = header.label[class]; 
             Class::with_parameters(num_classes, header.nr_sv[class] as usize, num_attributes, label)
         }).collect();
-
         
         // Allocate model
         let mut svm = RbfCSVM {
@@ -100,7 +104,7 @@ impl RbfCSVM {
 
                 // Set coefficients 
                 for (i_coefficient, coefficient) in vector.coefs.iter().enumerate() {
-                    svm.classes[i].coefficients.set(i_coefficient,i_vector, *coefficient as f64);
+                    svm.classes[i].coefficients.set(i_coefficient, i_vector, *coefficient as f64);
                 }
             }      
 
@@ -112,7 +116,32 @@ impl RbfCSVM {
         return Result::Ok(svm);            
     }
 
-    
+
+    /// Predicts all values for a set of problems.
+    pub fn predict_values(&self, problems: &mut [Problem]) {
+
+        // Compute all problems ...
+        problems.par_iter_mut().for_each( | problem| {
+            self.predict_value_one(problem)
+        });
+    }
+
+
+    // Predict the value for one problem.
+    pub fn predict_value_one(&self, problem: &mut Problem) {
+        // TODO: Dirty hack until faster allows us to operate on zipped, non-aligned arrays.
+        assert_eq!(problem.features.len() % 4, 0);
+
+        // Reset all votes
+        set_all(&mut problem.vote, 0);
+
+        // Compute kernel, decision values and eventually the label 
+        self.compute_kernel_values(problem);
+        self.compute_decision_values(problem);
+        self.compute_label(problem);
+    }
+
+
     /// Computes the kernel values for this problem
     fn compute_kernel_values(&self, problem: &mut Problem) {
         // Get current problem and decision values array
@@ -136,19 +165,18 @@ impl RbfCSVM {
         let dec_values = &mut problem.decision_values;
 
         for i in 0 .. self.classes.len() {
-
             for j in (i+1) .. self.classes.len() {
 
+                
+                // For class i and j, we now want to compare coefficients 
+                // i.j and j.i
                 let mut simd_sum = f64s::splat(0.0);
 
-                let class_1 = &self.classes[j-1];
-                let class_2 = &self.classes[i];
+                let sv_coef0 = self.classes[i].coefficients.get_vector(j-1);
+                let sv_coef1 = self.classes[j].coefficients.get_vector(i);
 
-                let sv_coef1 = class_1.coefficients.get_vector(i);
-                let sv_coef2 = class_2.coefficients.get_vector(j-1);
-
-                partial_decision(&mut simd_sum, sv_coef1, problem.kernel_values.get_vector(j-1));
-                partial_decision(&mut simd_sum, sv_coef2, problem.kernel_values.get_vector(i));
+                partial_decision(&mut simd_sum, sv_coef0, problem.kernel_values.get_vector(i));
+                partial_decision(&mut simd_sum, sv_coef1, problem.kernel_values.get_vector(j));
 
                 let sum = sum_f64s(simd_sum) - self.rho[p];
 
@@ -159,7 +187,6 @@ impl RbfCSVM {
                 } else {
                     problem.vote[j] += 1;
                 }
-
 
                 p += 1;
             }
@@ -179,28 +206,7 @@ impl RbfCSVM {
 
         problem.label = self.classes[vote_max_idx].label;
     }
-    
-    
-    // Predict the value for one problem.
-    pub fn predict_value_one(&self, problem: &mut Problem) {
-        
-        // Reset all votes
-        set_all(&mut problem.vote, 0);
-        
-        // Compute kernel, decision values and eventually the label 
-        self.compute_kernel_values(problem);
-        self.compute_decision_values(problem);
-        self.compute_label(problem);
-    }
 
-    /// Predicts all values for a set of problems.
-    pub fn predict_values(&self, problems: &mut [Problem]) {
-          
-        // Compute all problems ...
-        problems.par_iter_mut().for_each( | problem| {
-            self.predict_value_one(problem)            
-        });
-    }
 }
 
 
