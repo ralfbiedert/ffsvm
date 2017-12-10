@@ -2,8 +2,8 @@ use faster::{f32s,f64s};
 use std::marker::Copy;
 use std::cmp::PartialOrd;
 
-const SIMD_F32_WIDTH: usize = 4;
-const SIMD_F64_WIDTH: usize = 2;
+const SIMD_F32_WIDTH: usize = 8;
+const SIMD_F64_WIDTH: usize = 4;
 
 
 /// Sets all items of a mutable vector to the given value.
@@ -15,7 +15,7 @@ pub fn set_all<T>(vector: &mut Vec<T>, value: T) where T: Copy {
 
 
 /// Finds the item with the maximum index.
-pub fn find_max_index<T>(array: &Vec<T>) -> usize where T: PartialOrd {
+pub fn find_max_index<T>(array: &[T]) -> usize where T: PartialOrd {
     
     let mut vote_max_idx = 0;
 
@@ -58,11 +58,10 @@ pub fn sum_f64s(v: f64s) -> f64 {
 
 /// Computes our prefered SIMD size for vectors. 
 pub fn prefered_simd_size(size: usize) -> usize {
-    const ALIGN: usize = 4;
-    if size % ALIGN == 0 {
+    if size % SIMD_F32_WIDTH == 0 {
         size 
     } else {
-        ((size / ALIGN) + 1) * ALIGN
+        ((size / SIMD_F32_WIDTH) + 1) * SIMD_F32_WIDTH
     }
 }
 
