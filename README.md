@@ -1,11 +1,11 @@
 
 # Overview
 
-`ffsvm-rust` 
+`ffsvm-rust` is
 
-* is optimized for SIMD and parallelism
-* is allocation-free during classification
-* is classification-only
+* optimized for SIMD and parallelism
+* allocation-free during classification
+* classification-only
 * but can load trained [libsvm](https://github.com/cjlin1/libsvm) **RBF C-SVM** models (without sparse parameters)
 
 
