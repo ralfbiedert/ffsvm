@@ -1,14 +1,35 @@
 
+
 # Overview
+
+`ffsvm-rust` was written to enable real-time SVM classification, where [libsvm](https://github.com/cjlin1/libsvm) is too slow.
+
 
 `ffsvm-rust` is
 
 * optimized for SIMD (using [Faster](https://github.com/AdamNiederer/faster)) and threading (using [Rayon](https://github.com/rayon-rs/rayon))
 * allocation-free during classification
 * classification-only
-* but can load trained [libsvm](https://github.com/cjlin1/libsvm) **RBF C-SVM** models (without sparse parameters)
+* but can load trained [libsvm](https://github.com/cjlin1/libsvm) **RBF C-SVM** models (without sparse attributes)
+
+In other words: train with `libsvm` (e.g., using the tool `svm-train`), then classify with `ffsvm-rust`.
 
 
+# Status
+
+**December 10, 2017**
+
+`ffsvm-rust` is right now in **PRE-ALPHA**, which means it will probably not even work on your machine.
+
+**Please do not use it just yet!**
+
+Right now I just put the code online to collect feedback. The biggest show stoppers are:
+
+* SIMD size detection not implemented
+* No parameter / model sanity checking
+* Lack of unit tests to ensure we match `libsvm` output
+
+Once these issues are resolved this warning will be removed.
 
 
 # Performance History
@@ -24,7 +45,32 @@ I keep these numbers mostly to track my own progress over time while playing wit
 
 # FAQ
 
-These FAQs are mostly for myself.
+
+## General
+
+#### Why `ffsvm-rust`? What is the problem with libsvm?
+
+First, in many cases there is nothing wrong with  [libsvm](https://github.com/cjlin1/libsvm). If time is not an issue, `libsvm` is probably the better, more flexible, choice.
+
+However, when using `libsvm` in real-time applications (games!), a number of problems become noticable:
+
+* it does lots of small allocation per classification call
+* data is stored all over the place (e.g., pointers to pointers to a single value)
+* there is no bulk classification
+
+`ffsvm-rust` tries to address that by:
+
+* being zero-allocation during classification
+* packing all data SIMD-friendly, and using SIMD intrinsics whereever reasonable
+* offering a bulk classifification call
+* making use of all available CPU cores for classification
+* being designed and measured, from day 1, for speed
+
+
+However, `libsvm` still has nice, portable tools for training and grid search. The ultimate plan for `ffsvm-rust` is not to replace these, but to use their output. 
+
+
+## Development
 
 #### How do I enable AVX2 support?
 
@@ -42,7 +88,8 @@ From using `Instruments` and looking at the performance results it seems most ti
 Changing the "lower parts" (computing decision values) to `f32` does not seem to give much performance (compare commit `e656296`), but decision values start to notably differ from `libsvm`.
 
 
-# Questions & TODO                                               
+
+# Open Questions                                               
 
 
 #### Usage
