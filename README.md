@@ -1,7 +1,7 @@
 
 # Performance History
 
-![xx](./docs/benchmark.png)
+![xx](docs/benchmarks.png)
 
 
 
