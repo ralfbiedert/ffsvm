@@ -5,7 +5,7 @@ use util;
 #[derive(Debug)]
 pub struct SVM<T> {
     /// Total number of support vectors
-    pub total_support_vectors: usize,
+    pub num_total_sv: usize,
 
     /// Number of attributes per support vector
     pub num_attributes: usize,
@@ -109,7 +109,7 @@ impl Problem {
     /// Creates a new problem for the given SVM.
     pub fn from_svm<T>(svm: &SVM<T>) -> Problem {
         Problem::with_dimension(
-            svm.total_support_vectors,
+            svm.num_total_sv,
             svm.classes.len(),
             svm.num_attributes,
         )

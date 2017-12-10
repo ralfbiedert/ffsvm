@@ -15,18 +15,18 @@ pub type RbfCSVM = SVM<RbfKernel>;
 
 impl RbfCSVM {
     /// Creates a new random CSVM
-    pub fn random(num_classes: usize, sv_per_class: usize, num_attributes: usize) -> RbfCSVM {
-        let total_sv = num_classes * sv_per_class;
-        let classes: Vec<Class> = (0..num_classes)
+    pub fn random(num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> RbfCSVM {
+        
+        let num_total_sv = num_classes * num_sv_per_class;
+        let classes = (0..num_classes)
             .map(|class| {
-                Class::with_parameters(num_classes, sv_per_class, num_attributes, class as u32)
-                    .randomize()
+                Class::with_parameters(num_classes, num_sv_per_class, num_attributes, class as u32).randomize()
             })
-            .collect();
+            .collect::<Vec<Class>>();
 
         RbfCSVM {
+            num_total_sv,
             num_attributes,
-            total_support_vectors: total_sv,
             rho: random_vec(num_classes),
             kernel: RbfKernel { gamma: random() },
             classes,
@@ -42,25 +42,23 @@ impl RbfCSVM {
         // Get basic info
         let num_attributes = vectors[0].features.len();
         let num_classes = header.nr_class as usize;
-        let total_support_vectors = header.total_sv as usize;
+        let num_total_sv = header.total_sv as usize;
 
+        
         // Construct vector of classes
-        let classes: Vec<Class> = (0..num_classes)
+        let classes = (0..num_classes)
             .map(|class| {
                 let label = header.label[class];
-                Class::with_parameters(
-                    num_classes,
-                    header.nr_sv[class] as usize,
-                    num_attributes,
-                    label,
-                )
+                Class::with_parameters(num_classes, header.nr_sv[class] as usize, num_attributes, label)
             })
-            .collect();
+            .collect::<Vec<Class>>();
 
+        
+        
         // Allocate model
         let mut svm = RbfCSVM {
+            num_total_sv,
             num_attributes,
-            total_support_vectors,
             kernel: RbfKernel {
                 gamma: header.gamma,
             },
@@ -76,30 +74,27 @@ impl RbfCSVM {
 
         // In the raw file, support vectors are grouped by class
         for i in 0..num_classes {
+            
             let num_sv_per_class = &header.nr_sv[i];
             let stop_offset = start_offset + *num_sv_per_class as usize;
 
             // Set support vector and coefficients
             for (i_vector, vector) in vectors[start_offset..stop_offset].iter().enumerate() {
+                
                 // Set support vectors
                 for (i_attribute, attribute) in vector.features.iter().enumerate() {
+                    
                     // Make sure we have a "sane" file.
                     if attribute.index as usize != i_attribute {
                         return Result::Err("SVM support vector indices MUST range from [0 ... #(num_attributes - 1)].");
                     }
 
-                    svm.classes[i].support_vectors.set(
-                        i_vector,
-                        attribute.index as usize,
-                        attribute.value,
-                    );
+                    svm.classes[i].support_vectors.set(i_vector, attribute.index as usize, attribute.value);
                 }
 
                 // Set coefficients
                 for (i_coefficient, coefficient) in vector.coefs.iter().enumerate() {
-                    svm.classes[i]
-                        .coefficients
-                        .set(i_coefficient, i_vector, *coefficient as f64);
+                    svm.classes[i].coefficients.set(i_coefficient, i_vector, *coefficient as f64);
                 }
             }
 
@@ -114,10 +109,11 @@ impl RbfCSVM {
 
     /// Predicts all values for a set of problems.
     pub fn predict_values(&self, problems: &mut [Problem]) {
+        
         // Compute all problems ...
-        problems
-            .par_iter_mut()
-            .for_each(|problem| self.predict_value_one(problem));
+        problems.par_iter_mut().for_each(|problem| 
+            self.predict_value_one(problem)
+        );
     }
 
 
@@ -144,16 +140,17 @@ impl RbfCSVM {
 
         // Compute kernel values per class
         for (i, class) in self.classes.iter().enumerate() {
+            
             let kvalues = problem.kernel_values.get_vector_mut(i);
 
-            self.kernel
-                .compute(&class.support_vectors, problem_features, kvalues);
+            self.kernel.compute(&class.support_vectors, problem_features, kvalues);
         }
     }
 
 
     /// Based on kernel values, computes the decision values for this problem.
     fn compute_decision_values(&self, problem: &mut Problem) {
+        
         // Reset all votes
         set_all(&mut problem.vote, 0);
 
@@ -183,6 +180,7 @@ impl RbfCSVM {
 
         for i in 0..self.classes.len() {
             for j in (i + 1)..self.classes.len() {
+                
                 let sv_coef0 = self.classes[i].coefficients.get_vector(j - 1);
                 let sv_coef1 = self.classes[j].coefficients.get_vector(i);
 
@@ -213,63 +211,3 @@ impl RbfCSVM {
 }
 
 
-mod test {
-    use rbfcsvm::RbfCSVM;
-    use data::Problem;
-    use randomization::Randomize;
-
-    #[allow(unused_imports)] // TODO: Removing this causes 'unused import' warnings although it's being used.
-    use test::Bencher;
-
-    /// Produces a test case run for benchmarking
-    #[allow(dead_code)]
-    fn produce_testcase(
-        classes: usize,
-        sv_per_class: usize,
-        attributes: usize,
-        num_problems: usize,
-    ) -> impl FnMut() {
-        let mut svm = RbfCSVM::random(classes, sv_per_class, attributes);
-
-        let mut problems = (0..num_problems)
-            .map(|_| Problem::from_svm(&svm).randomize())
-            .collect::<Vec<Problem>>();
-
-        move || (&mut svm).predict_values(&mut problems)
-    }
-
-    #[bench]
-    fn csvm_predict_sv128_attr16_problems1(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 64, 16, 1));
-    }
-
-    #[bench]
-    fn csvm_predict_sv1024_attr16_problems1(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 512, 16, 1));
-    }
-
-    #[bench]
-    fn csvm_predict_sv128_attr16_problems1024(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 64, 16, 1024));
-    }
-
-    #[bench]
-    fn csvm_predict_aaa_t(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 3000, 8, 40));
-    }
-
-    #[bench]
-    fn csvm_predict_sv1024_attr16_problems128(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 512, 16, 128));
-    }
-
-    #[bench]
-    fn csvm_predict_sv1024_attr1024_problems1(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 512, 1024, 1));
-    }
-
-    #[test]
-    fn test_something() {
-        assert_eq!(4, 2 + 2);
-    }
-}

@@ -62,10 +62,6 @@ named!(svm_line_string <&str, (&str)>,
     do_parse!( svm_string >> tag!(" ") >> value: svm_string >> line_ending >> (value) )
 );
 
-named!(svm_line_f64 <&str, (f64)>,
-    do_parse!( svm_string >> tag!(" ") >> value: map_res!(svm_string, FromStr::from_str) >> line_ending >> (value) )
-);
-
 named!(svm_line_f32 <&str, (f32)>,
     do_parse!( svm_string >> tag!(" ") >> value: map_res!(svm_string, FromStr::from_str) >> line_ending >> (value) )
 );

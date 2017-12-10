@@ -8,12 +8,17 @@ use std::cmp::PartialOrd;
 //
 // Nothing relying on these two should exist in this code.
 //
-const SIMD_F32_WIDTH: usize = 8;
-const SIMD_F64_WIDTH: usize = 4;
+// When using "-C target-feature=+avx2"
+//const SIMD_F32_WIDTH: usize = 8;
+//const SIMD_F64_WIDTH: usize = 4;
+//
+// When using defaults 
+const SIMD_F32_WIDTH: usize = 4;
+const SIMD_F64_WIDTH: usize = 2;
 
 
 /// Sets all items of a mutable vector to the given value.
-pub fn set_all<T>(vector: &mut Vec<T>, value: T)
+pub fn set_all<T>(vector: &mut [T], value: T)
 where
     T: Copy,
 {
@@ -21,6 +26,7 @@ where
         *item = value;
     }
 }
+
 
 /// Finds the item with the maximum index.
 pub fn find_max_index<T>(array: &[T]) -> usize

@@ -5,7 +5,7 @@ TODO: Paste Excel numbers here
 
 
 
-# Open Questions                                               
+# Questions & TODO                                               
 
 
 #### Performance
@@ -20,8 +20,10 @@ TODO: Paste Excel numbers here
 
 #### Idiomatic Rust
 
+ * Implement [common traits](https://doc.rust-lang.org/1.0.0/style/features/traits/common.html). 
  * How should I name number variables consistently? `num_vectors`? `vectors`? `n_vectors`?   
- * How to name constructors that take multiple arguments? `with_a_b_c`, `with_something`, `with`?   
+ * How to name constructors that take multiple arguments? `with_a_b_c`, `with_something`, `with`?
+ * How to implement common method for `Vec<T>` and `&[T]`?   
 
 
 #### SIMD / Faster 

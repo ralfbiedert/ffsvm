@@ -8,8 +8,10 @@ use data::{Class, Problem};
 
 /// Randomizes a data structure
 pub trait Randomize {
-    /// Randomizes data in a structure (mostly its vectors) within the strcuture's parameters.
+    
+    /// Randomizes data in a structure (mostly its vectors) within the structure's parameters.
     fn randomize(self) -> Self;
+    
 }
 
 
@@ -31,8 +33,6 @@ where
         self
     }
 }
-
-
 
 
 impl Randomize for Class {
