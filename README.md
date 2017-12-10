@@ -3,7 +3,7 @@
 
 `ffsvm-rust` is
 
-* optimized for SIMD and parallelism
+* optimized for SIMD (using [Faster](https://github.com/AdamNiederer/faster)) and threading (using [Rayon](https://github.com/rayon-rs/rayon))
 * allocation-free during classification
 * classification-only
 * but can load trained [libsvm](https://github.com/cjlin1/libsvm) **RBF C-SVM** models (without sparse parameters)
@@ -26,7 +26,7 @@ I keep these numbers mostly to track my own progress over time while playing wit
 
 These FAQs are mostly for myself.
 
-#### How do I enable AVX2 support?
+##### How do I enable AVX2 support?
 
 If using the Fish shell run:
 
@@ -35,13 +35,28 @@ If using the Fish shell run:
 Also make sure to modify `utils.rs` and set `SIMD_F32_WIDTH` and `SIMD_F64_WIDTH`.
 
 
+##### Is going full `f32` worth it, and what about classification accuracy?
+
+From using `Instruments` and looking at the performance results it seems most time is spent in the kernel. The kernel uses already `f32` and the numbers don't seem to deviate much from `libsvm`.
+
+Changing the "lower parts" (computing decision values) to `f32` does not seem to give much performance (compare commit `e656296`), but decision values start to notably differ from `libsvm`.
+
 
 # Questions & TODO                                               
 
 
+#### Usage
+
+ * How to provide FFI interfaces for `C`?
+
+
 #### Performance
 
- * Is going full `f32` worth it, and what about classification accuracy?
+
+
+#### Features
+
+ * Which `libsvm` features to implement next?
 
 
 #### Building
