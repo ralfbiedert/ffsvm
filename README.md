@@ -48,7 +48,7 @@ I keep these numbers mostly to track my own progress over time while playing wit
 
 ## General
 
-### Why `ffsvm-rust`? What is the problem with libsvm?
+### Why `ffsvm-rust`? What is the problem with `libsvm`?
 
 First, in many cases there is nothing wrong with  [libsvm](https://github.com/cjlin1/libsvm). If time is not an issue, `libsvm` is probably the better, more flexible, choice.
 
@@ -78,7 +78,7 @@ In order to use a trained `libsvm` model, it needs to fulfill these requirements
 
 * `svm_type` must be `c_svc`
 * `kernel_type` must be `rbf`
-* All attributes must start from `0`, there must be no sparse attributes.
+* All attributes must start with index `0`, there must be no sparse attributes.
 
 
 
