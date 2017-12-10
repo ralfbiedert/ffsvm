@@ -2,7 +2,11 @@
 name = "ffsvm"
 version = "0.1.0"
 authors = ["Ralf Biedert <rb@xr.io>"]
-
+publish = false
+readme = "README.md"
+categories = ["science", "algorithms"]
+license = "BSD-2-Clause"
+maintenance = { status = "experimental" }
 
 [dependencies]
 faster = "^0.2"
@@ -10,8 +14,6 @@ rand = "^0.3"
 itertools = "^0.7"
 rayon = "0.9"
 nom = { git = "https://github.com/Geal/nom" }
-# nom = "^3.2"
-
 
 [lib]
 name = "ffsvm"
@@ -21,3 +23,16 @@ path = "src/lib.rs"
 [[bin]]
 name = "ffsvm"
 path = "src/bin.rs"
+
+
+[profile.release]
+opt-level = 3
+debug = true
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'unwind'
+
+
+[features]
