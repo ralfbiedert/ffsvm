@@ -26,7 +26,7 @@ I keep these numbers mostly to track my own progress over time while playing wit
 
 These FAQs are mostly for myself.
 
-##### How do I enable AVX2 support?
+#### How do I enable AVX2 support?
 
 If using the Fish shell run:
 
@@ -35,7 +35,7 @@ If using the Fish shell run:
 Also make sure to modify `utils.rs` and set `SIMD_F32_WIDTH` and `SIMD_F64_WIDTH`.
 
 
-##### Is going full `f32` worth it, and what about classification accuracy?
+#### Is going full `f32` worth it, and what about classification accuracy?
 
 From using `Instruments` and looking at the performance results it seems most time is spent in the kernel. The kernel uses already `f32` and the numbers don't seem to deviate much from `libsvm`.
 
@@ -48,10 +48,6 @@ Changing the "lower parts" (computing decision values) to `f32` does not seem to
 #### Usage
 
  * How to provide FFI interfaces for `C`?
-
-
-#### Performance
-
 
 
 #### Features
