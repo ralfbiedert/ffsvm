@@ -14,7 +14,7 @@ impl Kernel for RbfKernel {
     
     fn compute(&self, vectors: &ManyVectors<f32>, feature: &[f32], kernel_values: &mut [f64]) {
 
-        // According to our profiler, for realistic SVMs and problems, the VAST majority of our 
+        // According to Instruments, for realistic SVMs and problems, the VAST majority of our 
         // CPU time is spent in this method.
         for (i, sv) in vectors.into_iter().enumerate() {
             let mut simd_sum = f32s::splat(0.0);
@@ -27,7 +27,7 @@ impl Kernel for RbfKernel {
 
             // This seems to be the single-biggest CPU spike: saving back kernel_values,  
             // and computing exp() (saving back seems to have 3x time impact over exp(),
-            // but I might misread "Instruments").
+            // but I might misread "Instruments" for that particular one).
             kernel_values[i] = (-self.gamma * sum_f32s(simd_sum)).exp() as f64;
         }
     }

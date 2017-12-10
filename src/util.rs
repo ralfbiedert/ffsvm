@@ -2,6 +2,12 @@ use faster::{f32s,f64s};
 use std::marker::Copy;
 use std::cmp::PartialOrd;
 
+
+// This is the worst possible hack. We have to find a proper way to get 
+// the word size from faster, AND also sum a vector to a scalar.
+//
+// Nothing relying on these two should exist in this code.
+//
 const SIMD_F32_WIDTH: usize = 8;
 const SIMD_F64_WIDTH: usize = 4;
 
@@ -12,7 +18,6 @@ pub fn set_all<T>(vector: &mut Vec<T>, value: T) where T: Copy {
         *item = value;
     }
 }
-
 
 /// Finds the item with the maximum index.
 pub fn find_max_index<T>(array: &[T]) -> usize where T: PartialOrd {
@@ -43,6 +48,7 @@ pub fn sum_f32s(v: f32s) -> f32 {
     sum
 }
 
+/// Sum elements of a f64s ...
 #[inline]
 pub fn sum_f64s(v: f64s) -> f64 {
     let mut sum = 0.0;
@@ -64,4 +70,3 @@ pub fn prefered_simd_size(size: usize) -> usize {
         ((size / SIMD_F32_WIDTH) + 1) * SIMD_F32_WIDTH
     }
 }
-
