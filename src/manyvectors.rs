@@ -145,12 +145,17 @@ where
     }
 }
 
-
-
-#[test]
-fn test_iter() {
-    let matrix = ManyVectors::with_dimension(10, 5, 0);
-    for x in &matrix {
-        assert_eq!(x[0], 0);
+#[cfg(test)]
+mod tests {
+    use manyvectors::ManyVectors;
+    
+    #[test]
+    fn test_iter() {
+        let matrix = ManyVectors::with_dimension(10, 5, 0);
+        for x in &matrix {
+            assert_eq!(x[0], 0);
+        }
     }
 }
+
+

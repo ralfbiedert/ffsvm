@@ -1,7 +1,21 @@
 
 # Performance History
 
-TODO: Paste Excel numbers here
+![xx](./docs/benchmark.png)
+
+
+
+# FAQ
+
+These FAQs are mostly for myself.
+
+#### How do I enable AVX2 support?
+
+If using the Fish shell run:
+
+`set -g -x RUSTFLAGS "-C target-feature=+avx2"`
+
+Also make sure to modify `utils.rs` and set `SIMD_F32_WIDTH` and `SIMD_F64_WIDTH`.
 
 
 
@@ -20,13 +34,13 @@ TODO: Paste Excel numbers here
 
 #### Idiomatic Rust
 
- * Implement [common traits](https://doc.rust-lang.org/1.0.0/style/features/traits/common.html). 
+ * Implement [common traits](https://doc.rust-lang.org/1.0.0/style/features/traits/common.html).
  * How should I name number variables consistently? `num_vectors`? `vectors`? `n_vectors`?   
  * How to name constructors that take multiple arguments? `with_a_b_c`, `with_something`, `with`?
  * How to implement common method for `Vec<T>` and `&[T]`?   
 
 
-#### SIMD / Faster 
+#### SIMD / Faster
 
  * How to sum a f32s to a single scalar with [faster](https://github.com/AdamNiederer/faster)?
  * How to get rid of [itertools](https://github.com/bluss/rust-itertools) `zip` with [faster](https://github.com/AdamNiederer/faster)?
