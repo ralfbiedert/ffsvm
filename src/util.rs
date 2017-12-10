@@ -1,5 +1,6 @@
 use faster::{f32s,f64s};
 use std::marker::Copy;
+use std::cmp::PartialOrd;
 
 const SIMD_F32_WIDTH: usize = 4;
 const SIMD_F64_WIDTH: usize = 2;
@@ -10,6 +11,22 @@ pub fn set_all<T>(vector: &mut Vec<T>, value: T) where T: Copy {
     for item in vector.iter_mut() {
         *item = value;
     }
+}
+
+
+/// Finds the item with the maximum index.
+pub fn find_max_index<T>(array: &Vec<T>) -> usize where T: PartialOrd {
+    
+    let mut vote_max_idx = 0;
+
+    for i in 1 .. array.len() {
+        
+        if array[i] > array[vote_max_idx] {
+            vote_max_idx = i;
+        }
+    }
+    
+    vote_max_idx
 }
 
 

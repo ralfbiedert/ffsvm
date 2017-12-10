@@ -7,7 +7,7 @@ use parser::RawModel;
 use data::{Class, Problem, SVM, Kernel};
 use rbfkernel::{RbfKernel};
 use randomization::{Randomize, random_vec};
-use util::{sum_f64s, set_all};
+use util::{sum_f64s, set_all, find_max_index};
 
 
 pub type RbfCSVM = SVM<RbfKernel>;
@@ -18,7 +18,6 @@ fn partial_decision(simd_sum: &mut f64s, coef: &[f64], kvalue: &[f64]) {
     
     for (x, y) in zip(coef.simd_iter(), kvalue.simd_iter()) {
         *simd_sum = *simd_sum + x * y;
-    
     }
 }
 
@@ -135,7 +134,10 @@ impl RbfCSVM {
         // Compute kernel, decision values and eventually the label 
         self.compute_kernel_values(problem);
         self.compute_decision_values(problem);
-        self.compute_label(problem);
+
+        // Compute highest vote
+        let highest_vote = find_max_index(&problem.vote);
+        problem.label = self.classes[highest_vote].label;
     }
 
 
@@ -161,12 +163,30 @@ impl RbfCSVM {
         let mut p = 0;
         let dec_values = &mut problem.decision_values;
 
+        
+        // Since classification is symmetric, if we have N classes, we only need to go through
+        // (N * N - 1) - 1 cases. For example for 4 classes we do:
+        // 
+        //          j ---> 
+        //          0    1   2   3
+        //    i 0        x   x   x       
+        //    | 1            x   x
+        //    v 2                x
+        //      3
+        //
+        // For each valid combination (e.g., i:1, j:2), we then need to compute 
+        // the decision values, which consists of two parts:
+        // 
+        // a) The coefficients of class(1) related to class(2) and
+        // b) The coefficients of class(2) related to class(1).
+        // 
+        // Both a) and b) are multiplied with the computed kernel values and summed,
+        // and eventually used to compute on which side we are.
+        
         for i in 0 .. self.classes.len() {
+            
             for j in (i+1) .. self.classes.len() {
 
-                
-                // For class i and j, we now want to compare coefficients 
-                // i.j and j.i
                 let mut simd_sum = f64s::splat(0.0);
 
                 let sv_coef0 = self.classes[i].coefficients.get_vector(j-1);
@@ -174,36 +194,18 @@ impl RbfCSVM {
 
                 partial_decision(&mut simd_sum, sv_coef0, problem.kernel_values.get_vector(i));
                 partial_decision(&mut simd_sum, sv_coef1, problem.kernel_values.get_vector(j));
-
+                
+                // TODO: Double check the index for RHO if it makes sense how we traverse the classes 
                 let sum = sum_f64s(simd_sum) - self.rho[p];
+                let index_to_vote = if sum > 0.0 { i } else { j };
 
-                dec_values[p] = sum ;
-
-                if dec_values[p] > 0.0 {
-                    problem.vote[i] += 1;
-                } else {
-                    problem.vote[j] += 1;
-                }
+                dec_values[p] = sum;
+                problem.vote[index_to_vote] += 1;
 
                 p += 1;
             }
         } 
-    }  
-    
-    
-    /// Based on decision values, computes the actuall classification label. 
-    fn compute_label(&self, problem: &mut Problem) {
-        let mut vote_max_idx = 0;
-
-        for i in 1 .. self.classes.len() {
-            if problem.vote[i] > problem.vote[vote_max_idx] {
-                vote_max_idx = i;
-            }
-        }
-
-        problem.label = self.classes[vote_max_idx].label;
     }
-
 }
 
 
@@ -245,6 +247,11 @@ mod test {
     }
 
     #[bench]
+    fn csvm_predict_aaa_t(b: &mut Bencher) {
+        b.iter(produce_testcase(2, 3000, 8, 40));
+    }
+
+    #[bench]
     fn csvm_predict_sv1024_attr16_problems128(b: &mut Bencher) {
         b.iter(produce_testcase(2, 512, 16, 128));
     }
@@ -253,13 +260,10 @@ mod test {
     fn csvm_predict_sv1024_attr1024_problems1(b: &mut Bencher) {
         b.iter(produce_testcase(2, 512, 1024, 1));
     }
-
-
-
+    
     #[test]
     fn test_something() {
         
         assert_eq!(4, 2+2);
     }
-
 }
