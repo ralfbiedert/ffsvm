@@ -74,7 +74,7 @@ impl Class {
             support_vectors: ManyVectors::with_dimension(support_vectors, attributes, Default::default()),
         }
     }
-  
+    
 }
 
 

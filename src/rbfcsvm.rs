@@ -13,15 +13,6 @@ use util::{sum_f64s, set_all, find_max_index};
 pub type RbfCSVM = SVM<RbfKernel>;
 
 
-/// Computes our partial decision value
-fn partial_decision(simd_sum: &mut f64s, coef: &[f64], kvalue: &[f64]) {
-    
-    for (x, y) in zip(coef.simd_iter(), kvalue.simd_iter()) {
-        *simd_sum = *simd_sum + x * y;
-    }
-}
-
-
 impl RbfCSVM {
     
     /// Creates a new random CSVM
@@ -126,10 +117,7 @@ impl RbfCSVM {
     pub fn predict_value_one(&self, problem: &mut Problem) {
         
         // TODO: Dirty hack until faster allows us to operate on zipped, non-aligned arrays.
-        assert_eq!(problem.features.len() % 4, 0);
-
-        // Reset all votes
-        set_all(&mut problem.vote, 0);
+        assert_eq!(problem.features.len() % 8, 0);
 
         // Compute kernel, decision values and eventually the label 
         self.compute_kernel_values(problem);
@@ -159,6 +147,9 @@ impl RbfCSVM {
     /// Based on kernel values, computes the decision values for this problem.
     fn compute_decision_values(&self, problem: &mut Problem) {
 
+        // Reset all votes
+        set_all(&mut problem.vote, 0);
+
         // TODO: For some strange reason this code here seems to have little performance impact ...
         let mut p = 0;
         let dec_values = &mut problem.decision_values;
@@ -185,15 +176,23 @@ impl RbfCSVM {
         
         for i in 0 .. self.classes.len() {
             
-            for j in (i+1) .. self.classes.len() {
-
-                let mut simd_sum = f64s::splat(0.0);
-
+            for j in (i + 1) .. self.classes.len() {
+                
                 let sv_coef0 = self.classes[i].coefficients.get_vector(j-1);
                 let sv_coef1 = self.classes[j].coefficients.get_vector(i);
 
-                partial_decision(&mut simd_sum, sv_coef0, problem.kernel_values.get_vector(i));
-                partial_decision(&mut simd_sum, sv_coef1, problem.kernel_values.get_vector(j));
+                let kvalues0 = problem.kernel_values.get_vector(i);
+                let kvalues1 = problem.kernel_values.get_vector(j);
+
+                let mut simd_sum = f64s::splat(0.0);
+                
+                for (x, y) in zip(sv_coef0.simd_iter(), kvalues0.simd_iter()) {
+                    simd_sum = simd_sum + x * y;
+                }
+
+                for (x, y) in zip(sv_coef1.simd_iter(), kvalues1.simd_iter()) {
+                    simd_sum = simd_sum + x * y;
+                }
                 
                 // TODO: Double check the index for RHO if it makes sense how we traverse the classes 
                 let sum = sum_f64s(simd_sum) - self.rho[p];
