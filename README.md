@@ -1,7 +1,24 @@
 
+# Overview
+
+`ffsvm-rust` is
+
+* is optimized for SIMD and parallelism
+* allocation-free during classification
+* classification-only
+* but can load trained [libsvm](https://github.com/cjlin1/libsvm) **RBF C-SVM** models (without sparse parameters)
+
+
+
+
 # Performance History
 
-![xx](docs/benchmarks.png)
+Numbers reported by `cargo bench` as *nanoseconds per iter*. In other words, on my machine (MBP 2015 i7), classifiying a given problem takes the time shown.
+
+![benchmarks](docs/benchmarks.png)
+
+I keep these numbers mostly to track my own progress over time while playing with different Rust concepts (e.g., [Rayon](https://github.com/rayon-rs/rayon) or [Faster](https://github.com/AdamNiederer/faster)).
+
 
 
 
