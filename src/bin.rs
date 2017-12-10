@@ -1,8 +1,8 @@
 extern crate ffsvm;
 
-use ffsvm::parser::RawModel;
-use ffsvm::data::Problem;
-use ffsvm::rbfcsvm::RbfCSVM;
+use ffsvm::RawModel;
+use ffsvm::Problem;
+use ffsvm::RbfCSVM;
 
 
 pub fn main() {

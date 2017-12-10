@@ -19,18 +19,20 @@ extern crate rand;
 extern crate rayon;
 extern crate test;
 
-pub mod manyvectors;
-pub mod rbfcsvm;
-pub mod parser;
-pub mod data;
-pub mod util;
-pub mod randomization;
-pub mod rbfkernel;
+mod manyvectors;
+mod rbfcsvm;
+mod parser;
+mod data;
+mod util;
+mod randomization;
+mod rbfkernel;
 
+pub use manyvectors::ManyVectors;
+pub use rbfcsvm::RbfCSVM;
+pub use parser::{RawModel};
+pub use data::{Class, Kernel, Problem, SVM};
+pub use randomization::Randomize;
 
-use data::Problem;
-use rbfcsvm::RbfCSVM;
-use parser::RawModel;
 
 
 

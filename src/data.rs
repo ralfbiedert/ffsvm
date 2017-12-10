@@ -106,7 +106,7 @@ impl Problem {
         }
     }
 
-    /// Creates a new problem for the given SVM. 
+    /// Creates a new problem for the given SVM.
     pub fn from_svm<T>(svm: &SVM<T>) -> Problem {
         Problem::with_dimension(
             svm.total_support_vectors,

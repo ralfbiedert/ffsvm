@@ -230,6 +230,7 @@ mod test {
         num_problems: usize,
     ) -> impl FnMut() {
         let mut svm = RbfCSVM::random(classes, sv_per_class, attributes);
+
         let mut problems = (0..num_problems)
             .map(|_| Problem::from_svm(&svm).randomize())
             .collect::<Vec<Problem>>();
