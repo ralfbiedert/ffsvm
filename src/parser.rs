@@ -7,7 +7,7 @@ use std::str::FromStr;
 pub struct FileHeader<'a> {
     pub svm_type: &'a str,
     pub kernel_type: &'a str,
-    pub gamma: f64,
+    pub gamma: f32,
     pub nr_class: u32,
     pub total_sv: u32,
     pub rho: Vec<f64>,
@@ -68,6 +68,10 @@ named!(svm_line_f64 <&str, (f64)>,
     do_parse!( svm_string >> tag!(" ") >> value: map_res!(svm_string, FromStr::from_str) >> line_ending >> (value) )
 );
 
+named!(svm_line_f32 <&str, (f32)>,
+    do_parse!( svm_string >> tag!(" ") >> value: map_res!(svm_string, FromStr::from_str) >> line_ending >> (value) )
+);
+
 named!(svm_line_u32 <&str, (u32)>,
     do_parse!( svm_string >> tag!(" ") >> value: map_res!(svm_string, FromStr::from_str) >> line_ending >> (value) )
 );
@@ -96,7 +100,7 @@ named!(svm_header <&str, FileHeader>,
     do_parse!(
         svm_type: svm_line_string >>
         kernel_type: svm_line_string >>
-        gamma: svm_line_f64 >>
+        gamma: svm_line_f32 >>
         nr_class: svm_line_u32 >>
         total_sv: svm_line_u32 >>
         rho: svm_line_vec_f64 >>

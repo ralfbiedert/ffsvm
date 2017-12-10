@@ -42,8 +42,8 @@ fn test_simple_classification() {
     let mut problem0= Problem::from_svm(&csvm);
     let mut problem1 = Problem::from_svm(&csvm);
 
-    problem0.features = vec![0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.0, 0.0, 1.0, 0.1137485, 0f32, 0f32];
-    problem1.features = vec![0.3332312, 0.0, 0.0, 0.0, 0.09657142, 1.0, 0.0, 0.0, 1.0, 0.09917226, 0f32, 0f32];
+    problem0.features = vec![0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.0, 0.0, 1.0, 0.1137485, 0f32, 0f32, 0f32, 0f32, 0f32, 0f32];
+    problem1.features = vec![0.3332312, 0.0, 0.0, 0.0, 0.09657142, 1.0, 0.0, 0.0, 1.0, 0.09917226, 0f32, 0f32, 0f32, 0f32, 0f32, 0f32];
 
     csvm.predict_value_one(&mut problem0);
     csvm.predict_value_one(&mut problem1);
