@@ -1,37 +1,41 @@
 use std::fmt;
-use std::iter::{IntoIterator};
-use std::marker::{Sized,Copy};
+use std::iter::IntoIterator;
+use std::marker::{Copy, Sized};
 
 use util;
 
 
 /// Basic "matrix' we use for fast SIMD and parallel operations.
-/// 
-/// Note: Right now we use a Matrix mostly as a vector of vectors and is mostly 
+///
+/// Note: Right now we use a Matrix mostly as a vector of vectors and is mostly
 /// intended for read operations.
-pub struct ManyVectors<T> where T : Copy + Sized,
+pub struct ManyVectors<T>
+where
+    T: Copy + Sized,
 {
-    /// Number of vectors this matrix has 
+    /// Number of vectors this matrix has
     pub vectors: usize,
-    
+
     /// Number of attributes this matrix has per subvector
     pub attributes: usize,
-    
-    /// Actual length of vectors 
-    pub vector_length: usize, 
-    
+
+    /// Actual length of vectors
+    pub vector_length: usize,
+
     /// We store all data in one giant array for performance reasons (caching)
-    pub data: Vec<T>
+    pub data: Vec<T>,
 }
 
 
 
-/// Basic iterator struct to go over matrix 
-pub struct IterManyVectors<'a, T: 'a> where  T : Copy + Sized
+/// Basic iterator struct to go over matrix
+pub struct IterManyVectors<'a, T: 'a>
+where
+    T: Copy + Sized,
 {
     /// Reference to the matrix we iterate over.
     pub matrix: &'a ManyVectors<T>,
-    
+
     /// Current index of vector iteration.
     pub index: usize,
 }
@@ -39,13 +43,14 @@ pub struct IterManyVectors<'a, T: 'a> where  T : Copy + Sized
 
 
 
-impl<T> ManyVectors<T> where T : Copy + Sized
+impl<T> ManyVectors<T>
+where
+    T: Copy + Sized,
 {
     /// Creates a new empty Matrix.
     pub fn with_dimension(vectors: usize, attributes: usize, default: T) -> ManyVectors<T> {
-        
         let preferred_length = util::prefered_simd_size(attributes);
-        
+
         ManyVectors::<T> {
             vectors,
             attributes,
@@ -53,8 +58,8 @@ impl<T> ManyVectors<T> where T : Copy + Sized
             data: vec![default; vectors * preferred_length],
         }
     }
-    
-    
+
+
     #[inline]
     pub fn get_vector(&self, index_vector: usize) -> &[T] {
         let start_index = self.offset(index_vector, 0);
@@ -66,68 +71,76 @@ impl<T> ManyVectors<T> where T : Copy + Sized
         let start_index = self.offset(index_vector, 0);
         &mut self.data[start_index..start_index + self.vector_length]
     }
-    
-    
+
+
     #[inline]
     pub fn set_vector(&mut self, index_vector: usize, vector: &[T]) {
         let start_index = self.offset(index_vector, 0);
-        for i in 0 .. self.attributes {
-            self.data[start_index + i] = vector[i];    
+        for i in 0..self.attributes {
+            self.data[start_index + i] = vector[i];
         }
     }
-    
+
     #[inline]
     pub fn offset(&self, index_vector: usize, index_attribute: usize) -> usize {
         (index_vector * self.vector_length + index_attribute)
     }
-    
+
     #[inline]
     pub fn set(&mut self, index_vector: usize, index_attribute: usize, value: T) {
-        let  index = self.offset(index_vector, index_attribute);
+        let index = self.offset(index_vector, index_attribute);
         self.data[index] = value;
     }
 
     #[inline]
     pub fn get(&self, index_vector: usize, index_attribute: usize) -> T {
-        let  index = self.offset(index_vector, index_attribute);
+        let index = self.offset(index_vector, index_attribute);
         self.data[index]
     }
 }
 
 
 
-impl <T> fmt::Debug for ManyVectors<T> where T : Copy + Sized
+impl<T> fmt::Debug for ManyVectors<T>
+where
+    T: Copy + Sized,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "({}, {}, [data])", self.vectors, self.attributes)
     }
-    
 }
 
 
 
-impl <'a, T> IntoIterator for &'a ManyVectors<T> where T : Copy + Sized
+impl<'a, T> IntoIterator for &'a ManyVectors<T>
+where
+    T: Copy + Sized,
 {
     type Item = &'a [T];
     type IntoIter = IterManyVectors<'a, T>;
 
     fn into_iter(self) -> Self::IntoIter {
-        IterManyVectors { matrix: self, index: 0 }
+        IterManyVectors {
+            matrix: self,
+            index: 0,
+        }
     }
 }
 
 
 
-impl <'a, T> Iterator for IterManyVectors<'a, T> where T : Copy + Sized
+impl<'a, T> Iterator for IterManyVectors<'a, T>
+where
+    T: Copy + Sized,
 {
     type Item = &'a [T];
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.index >= self.matrix.vectors { 
-            None 
+        if self.index >= self.matrix.vectors {
+            None
         } else {
             self.index += 1;
-            Some(self.matrix.get_vector(self.index-1))
+            Some(self.matrix.get_vector(self.index - 1))
         }
     }
 }

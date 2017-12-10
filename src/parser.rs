@@ -1,4 +1,4 @@
-use nom::{ line_ending, is_alphanumeric };
+use nom::{is_alphanumeric, line_ending};
 use std::str;
 use std::str::FromStr;
 
@@ -18,28 +18,26 @@ pub struct FileHeader<'a> {
 #[derive(Debug)]
 pub struct Attribute {
     pub index: u32,
-    pub value: f32
+    pub value: f32,
 }
 
 #[derive(Debug)]
 pub struct SupportVector {
     pub coefs: Vec<f32>,
-    pub features: Vec<Attribute>
+    pub features: Vec<Attribute>,
 }
 
 #[derive(Debug)]
 pub struct RawModel<'a> {
     pub header: FileHeader<'a>,
-    pub vectors: Vec<SupportVector>
+    pub vectors: Vec<SupportVector>,
 }
 
 
 
-impl <'a> RawModel<'a> {
-
+impl<'a> RawModel<'a> {
     /// Parses a string into a SVM model
     pub fn from_str(model: &str) -> Result<RawModel, &'static str> {
-
         // Parse string to struct
         let res = svm_file(model);
 
@@ -52,7 +50,7 @@ impl <'a> RawModel<'a> {
 
 
 
-/// Accepts an alphanumeric identifier or '_'
+/// Accepts an alphanumeric identifier or '_'.
 fn svm_non_whitespace(chr: char) -> bool {
     is_alphanumeric(chr as u8) || chr == '_' || chr == '.' || chr == '-'
 }
@@ -165,4 +163,3 @@ named!(svm_file <&str, RawModel>,
         )
     )
 );
-
