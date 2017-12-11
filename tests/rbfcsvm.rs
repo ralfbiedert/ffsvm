@@ -8,6 +8,35 @@ mod tests {
     use ffsvm::RbfCSVM;
     use ffsvm::Problem;
     use ffsvm::RawModel;
+
+    
+    // This doesn't work like that. Support vectors are not guaranteed 
+    // to be classified into their respective class ...
+    //
+    //    fn rbfcsvm_test_model(model_str: &str) {
+    //        let model = RawModel::from_str(model_str).unwrap();
+    //        let csvm: RbfCSVM = RbfCSVM::from_raw_model(&model).unwrap();
+    //        let num_preferred_attributes = util::prefered_simd_size(csvm.num_attributes);
+    //
+    //        for class in &csvm.classes {
+    //            for support_vector in &class.support_vectors {
+    //                let mut v = vec![0f32; num_preferred_attributes];
+    //
+    //                for (i, a) in support_vector.iter().enumerate() {
+    //                    v[i] = *a;
+    //                }
+    //
+    //                let mut problem = Problem { features: v, .. Problem::from_svm(&csvm) };
+    //
+    //                csvm.predict_value(&mut problem);
+    //
+    //                println!("{:?}: {:?} {:?}", problem.features, class.label, problem.label);
+    //                assert_eq!(class.label, problem.label);
+    //            }
+    //        }
+    //
+    //
+    //    }
     
     #[test]
     fn rbfcsvm_test_small_model() {
