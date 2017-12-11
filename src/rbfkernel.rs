@@ -10,6 +10,7 @@ pub struct RbfKernel {
 
 
 impl Kernel for RbfKernel {
+    
     fn compute(&self, vectors: &ManyVectors<f32>, feature: &[f32], kernel_values: &mut [f64]) {
         
         // According to Instruments, for realistic SVMs and problems, the VAST majority of our
