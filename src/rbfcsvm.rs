@@ -7,7 +7,7 @@ use parser::RawModel;
 use data::{Class, Kernel, Problem, SVM};
 use rbfkernel::RbfKernel;
 use randomization::{random_vec, Randomize};
-use util::{find_max_index, set_all, sum_f64s};
+use util::{find_max_index, set_all, sum_f64s, prefered_simd_size};
 
 
 pub type RbfCSVM = SVM<RbfKernel>;
@@ -112,15 +112,15 @@ impl RbfCSVM {
         
         // Compute all problems ...
         problems.par_iter_mut().for_each(|problem| 
-            self.predict_value_one(problem)
+            self.predict_value(problem)
         );
     }
 
 
     // Predict the value for one problem.
-    pub fn predict_value_one(&self, problem: &mut Problem) {
+    pub fn predict_value(&self, problem: &mut Problem) {
         // TODO: Dirty hack until faster allows us to operate on zipped, non-aligned arrays.
-        assert_eq!(problem.features.len() % 8, 0);
+        assert_eq!(problem.features.len() % prefered_simd_size(3), 0);
 
         // Compute kernel, decision values and eventually the label
         self.compute_kernel_values(problem);

@@ -13,9 +13,9 @@ mod manyvectors;
 mod rbfcsvm;
 mod parser;
 mod data;
-mod util;
 mod randomization;
 mod rbfkernel;
+pub mod util;
 
 pub use manyvectors::ManyVectors;
 pub use rbfcsvm::RbfCSVM;
