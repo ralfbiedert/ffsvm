@@ -2,9 +2,9 @@ use std::marker::{Copy, Sized};
 use std::iter::Iterator;
 use rand::{ChaChaRng, Rand, Rng};
 
-use vectors::flat::ManyVectors;
+use vectors::SimdOptimized;
 use svm::Class;
-use svm::problem::Problem;
+use svm::Problem;
 
 /// Randomizes a data structure
 pub trait Randomize {
@@ -16,7 +16,7 @@ pub trait Randomize {
 
 
 
-impl<T> Randomize for ManyVectors<T>
+impl<T> Randomize for SimdOptimized<T>
 where
     T: Sized + Copy + Rand,
 {

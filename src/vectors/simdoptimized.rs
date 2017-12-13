@@ -9,7 +9,7 @@ use util;
 ///
 /// Note: Right now we use a Matrix mostly as a vector of vectors and is mostly
 /// intended for read operations.
-pub struct ManyVectors<T>
+pub struct SimdOptimized<T>
     where
         T: Copy + Sized,
 {
@@ -36,7 +36,7 @@ pub struct IterManyVectors<'a, T: 'a>
         T: Copy + Sized,
 {
     /// Reference to the matrix we iterate over.
-    pub matrix: &'a ManyVectors<T>,
+    pub matrix: &'a SimdOptimized<T>,
 
     /// Current index of vector iteration.
     pub index: usize,
@@ -45,15 +45,15 @@ pub struct IterManyVectors<'a, T: 'a>
 
 
 
-impl<T> ManyVectors<T>
+impl<T> SimdOptimized<T>
     where
         T: Copy + Sized,
 {
     /// Creates a new empty Matrix.
-    pub fn with_dimension(vectors: usize, attributes: usize, default: T) -> ManyVectors<T> {
+    pub fn with_dimension(vectors: usize, attributes: usize, default: T) -> SimdOptimized<T> {
         let preferred_length = util::prefered_simd_size(attributes);
 
-        ManyVectors::<T> {
+        SimdOptimized::<T> {
             vectors,
             attributes,
             vector_length: preferred_length,
@@ -103,7 +103,7 @@ impl<T> ManyVectors<T>
 
 
 
-impl<T> fmt::Debug for ManyVectors<T>
+impl<T> fmt::Debug for SimdOptimized<T>
     where
         T: Copy + Sized,
 {
@@ -114,7 +114,7 @@ impl<T> fmt::Debug for ManyVectors<T>
 
 
 
-impl<'a, T> IntoIterator for &'a ManyVectors<T>
+impl<'a, T> IntoIterator for &'a SimdOptimized<T>
     where
         T: Copy + Sized,
 {
@@ -153,11 +153,11 @@ impl<'a, T> Iterator for IterManyVectors<'a, T>
 
 #[cfg(test)]
 mod tests {
-    use vectors::flat::ManyVectors;
+    use vectors::simdoptimized::SimdOptimized;
 
     #[test]
     fn test_iter() {
-        let matrix = ManyVectors::with_dimension(10, 5, 0);
+        let matrix = SimdOptimized::with_dimension(10, 5, 0);
         for x in &matrix {
             assert_eq!(x[0], 0);
         }

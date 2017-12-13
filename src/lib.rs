@@ -16,10 +16,10 @@ mod svm;
 mod random;
 pub mod util;
 
-pub use vectors::flat::ManyVectors;
-pub use kernel::rbf::RbfKernel;
-pub use svm::problem::Problem;
+pub use kernel::RbfKernel;
+pub use svm::Problem;
 pub use svm::{SVM, Class};
-pub use svm::crbf::RbfCSVM;
-pub use parser::model::RawModel;
+pub use svm::RbfCSVM;
+pub use parser::ParsedModel;
+pub use vectors::SimdOptimized;
 pub use random::Randomize;

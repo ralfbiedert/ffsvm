@@ -19,7 +19,7 @@
 /// The values will be stored from "left to right", from 
 /// "up" to "down".
 ///
-pub struct TriangularMatrix<T>
+pub struct Triangular<T>
     where
         T: Copy + Sized,
 {
@@ -34,13 +34,13 @@ pub struct TriangularMatrix<T>
 
 
 
-impl <T> TriangularMatrix<T>
+impl <T> Triangular<T>
     where
         T: Copy + Sized,
 {
-    pub fn with_dimension(dimension: usize, default: T) -> TriangularMatrix<T> {
+    pub fn with_dimension(dimension: usize, default: T) -> Triangular<T> {
         let len = (dimension * (dimension - 1)) / 2;
-        TriangularMatrix {
+        Triangular {
             dimension,
             data: vec![default; len]
         }
