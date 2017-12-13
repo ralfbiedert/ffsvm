@@ -3,11 +3,11 @@ use rand::random;
 use itertools::zip;
 use rayon::prelude::*;
 
-use parser::RawModel;
 use data::{Class, Kernel, Problem, SVM};
-use rbfkernel::RbfKernel;
 use randomization::{random_vec, Randomize};
 use util::{find_max_index, set_all, sum_f64s, prefered_simd_size};
+use parser::RawModel;
+use rbfkernel::RbfKernel;
 
 
 pub type RbfCSVM = SVM<RbfKernel>;
@@ -49,7 +49,8 @@ impl RbfCSVM {
         let classes = (0..num_classes)
             .map(|class| {
                 let label = header.label[class];
-                Class::with_parameters(num_classes, header.nr_sv[class] as usize, num_attributes, label)
+                let num_sv = header.nr_sv[class] as usize;
+                Class::with_parameters(num_classes, num_sv , num_attributes, label)
             })
             .collect::<Vec<Class>>();
 
