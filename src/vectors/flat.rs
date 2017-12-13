@@ -10,8 +10,8 @@ use util;
 /// Note: Right now we use a Matrix mostly as a vector of vectors and is mostly
 /// intended for read operations.
 pub struct ManyVectors<T>
-where
-    T: Copy + Sized,
+    where
+        T: Copy + Sized,
 {
     /// Number of vectors this matrix has
     pub vectors: usize,
@@ -28,10 +28,12 @@ where
 
 
 
+
+
 /// Basic iterator struct to go over matrix
 pub struct IterManyVectors<'a, T: 'a>
-where
-    T: Copy + Sized,
+    where
+        T: Copy + Sized,
 {
     /// Reference to the matrix we iterate over.
     pub matrix: &'a ManyVectors<T>,
@@ -44,8 +46,8 @@ where
 
 
 impl<T> ManyVectors<T>
-where
-    T: Copy + Sized,
+    where
+        T: Copy + Sized,
 {
     /// Creates a new empty Matrix.
     pub fn with_dimension(vectors: usize, attributes: usize, default: T) -> ManyVectors<T> {
@@ -102,8 +104,8 @@ where
 
 
 impl<T> fmt::Debug for ManyVectors<T>
-where
-    T: Copy + Sized,
+    where
+        T: Copy + Sized,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "({}, {}, [data])", self.vectors, self.attributes)
@@ -113,8 +115,8 @@ where
 
 
 impl<'a, T> IntoIterator for &'a ManyVectors<T>
-where
-    T: Copy + Sized,
+    where
+        T: Copy + Sized,
 {
     type Item = &'a [T];
     type IntoIter = IterManyVectors<'a, T>;
@@ -130,8 +132,8 @@ where
 
 
 impl<'a, T> Iterator for IterManyVectors<'a, T>
-where
-    T: Copy + Sized,
+    where
+        T: Copy + Sized,
 {
     type Item = &'a [T];
 
@@ -145,10 +147,14 @@ where
     }
 }
 
+
+
+
+
 #[cfg(test)]
 mod tests {
-    use manyvectors::ManyVectors;
-    
+    use vectors::flat::ManyVectors;
+
     #[test]
     fn test_iter() {
         let matrix = ManyVectors::with_dimension(10, 5, 0);
