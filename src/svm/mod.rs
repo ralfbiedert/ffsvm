@@ -1,7 +1,11 @@
-pub mod crbf;
-pub mod problem;
+mod crbf;
+mod problem;
 
-use vectors::flat::ManyVectors;
+use vectors::SimdOptimized;
+
+pub use self::crbf::RbfCSVM;
+pub use self::problem::Problem;
+
 
 /// Core support vector machine
 #[derive(Debug)]
@@ -33,10 +37,10 @@ pub struct Class {
     pub num_support_vectors: usize,
 
     /// Coefficients between this class and n-1 other classes.
-    pub coefficients: ManyVectors<f64>,
+    pub coefficients: SimdOptimized<f64>,
 
     /// All support vectors in this class.
-    pub support_vectors: ManyVectors<f32>,
+    pub support_vectors: SimdOptimized<f32>,
 }
 
 
@@ -54,12 +58,12 @@ impl Class {
         Class {
             label,
             num_support_vectors: support_vectors,
-            coefficients: ManyVectors::with_dimension(
+            coefficients: SimdOptimized::with_dimension(
                 classes - 1,
                 support_vectors,
                 Default::default(),
             ),
-            support_vectors: ManyVectors::with_dimension(
+            support_vectors: SimdOptimized::with_dimension(
                 support_vectors,
                 attributes,
                 Default::default(),

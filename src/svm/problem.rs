@@ -1,7 +1,8 @@
 
-use vectors::flat::ManyVectors;
+use vectors::SimdOptimized;
 use svm::SVM;
 use util;
+
 
 /// A single problem we should classify.
 #[derive(Debug)]
@@ -10,7 +11,7 @@ pub struct Problem {
     pub features: Vec<f32>,
 
     /// Kernel values. A vector for each class.
-    pub kernel_values: ManyVectors<f64>,
+    pub kernel_values: SimdOptimized<f64>,
 
     /// All votes for a given class label.
     pub vote: Vec<u32>,
@@ -33,7 +34,7 @@ impl Problem {
 
         Problem {
             features: vec![Default::default(); preferred_attributes],
-            kernel_values: ManyVectors::with_dimension(num_classes, total_sv, Default::default()),
+            kernel_values: SimdOptimized::with_dimension(num_classes, total_sv, Default::default()),
             decision_values: vec![Default::default(); num_decision_values],
             vote: vec![Default::default(); num_classes],
             label: 0,

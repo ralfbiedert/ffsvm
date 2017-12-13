@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 
 #[derive(Debug)]
-pub struct FileHeader<'a> {
+pub struct ModelHeader<'a> {
     pub svm_type: &'a str,
     pub kernel_type: &'a str,
     pub gamma: f32,
@@ -28,16 +28,16 @@ pub struct SupportVector {
 }
 
 #[derive(Debug)]
-pub struct RawModel<'a> {
-    pub header: FileHeader<'a>,
+pub struct ParsedModel<'a> {
+    pub header: ModelHeader<'a>,
     pub vectors: Vec<SupportVector>,
 }
 
 
 
-impl<'a> RawModel<'a> {
+impl<'a> ParsedModel<'a> {
     /// Parses a string into a SVM model
-    pub fn from_str(model: &str) -> Result<RawModel, &'static str> {
+    pub fn from_str(model: &str) -> Result<ParsedModel, &'static str> {
         // Parse string to struct
         let res = svm_file(model);
 
@@ -90,7 +90,7 @@ named!(svm_attribute <&str, (Attribute)>,
     )
 );
 
-named!(svm_header <&str, FileHeader>,
+named!(svm_header <&str, ModelHeader>,
     do_parse!(
         svm_type: svm_line_string >>
         kernel_type: svm_line_string >>
@@ -101,7 +101,7 @@ named!(svm_header <&str, FileHeader>,
         label: svm_line_vec_u32 >>
         nr_sv: svm_line_vec_u32 >>
         (
-            FileHeader {
+            ModelHeader {
                 svm_type: svm_type,
                 kernel_type: kernel_type,
                 gamma: gamma,
@@ -146,13 +146,13 @@ named_args!(svm_svs(num_coef: u32) <&str, (Vec<SupportVector>)>,
 );
 
 
-named!(svm_file <&str, RawModel>,
+named!(svm_file <&str, ParsedModel>,
     do_parse!(
         header: svm_header >>
         svm_string >> line_ending >>
         support_vectors: call!(svm_svs, header.nr_class - 1) >>
         (
-            RawModel {
+            ParsedModel {
                 header: header,
                 vectors: support_vectors,
             }

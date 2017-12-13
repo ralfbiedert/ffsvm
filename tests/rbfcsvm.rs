@@ -7,7 +7,7 @@ extern crate ffsvm;
 mod tests {
     use ffsvm::RbfCSVM;
     use ffsvm::Problem;
-    use ffsvm::RawModel;
+    use ffsvm::ParsedModel;
 
     
     // This doesn't work like that. Support vectors are not guaranteed 
@@ -41,7 +41,7 @@ mod tests {
     #[test]
     fn rbfcsvm_small() {
         let model_str: &str = include_str!("test.small.model");
-        let model = RawModel::from_str(model_str).unwrap();
+        let model = ParsedModel::from_str(model_str).unwrap();
         let csvm = RbfCSVM::from_raw_model(&model).unwrap();
 
         let mut problem0 = Problem::from_svm(&csvm);

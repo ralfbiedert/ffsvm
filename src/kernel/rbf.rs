@@ -2,7 +2,7 @@ use faster::{IntoPackedRefIterator, f32s};
 use itertools::zip;
 
 use kernel::Kernel;
-use vectors::flat::ManyVectors;
+use vectors::SimdOptimized;
 use util;
 
 
@@ -11,10 +11,9 @@ pub struct RbfKernel {
 }
 
 
-
 impl Kernel for RbfKernel {
 
-    fn compute(&self, vectors: &ManyVectors<f32>, feature: &[f32], kernel_values: &mut [f64]) {
+    fn compute(&self, vectors: &SimdOptimized<f32>, feature: &[f32], kernel_values: &mut [f64]) {
 
         // According to Instruments, for realistic SVMs and problems, the VAST majority of our
         // CPU time is spent in this method.

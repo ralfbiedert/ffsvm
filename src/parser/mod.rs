@@ -1,1 +1,4 @@
-pub mod model;
+mod model;
+
+pub use self::model::ParsedModel;
+
