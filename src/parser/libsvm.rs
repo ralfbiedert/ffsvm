@@ -4,6 +4,12 @@ use std::str::FromStr;
 
 
 #[derive(Debug)]
+pub struct LibSvmModel<'a> {
+    pub header: Header<'a>,
+    pub vectors: Vec<SupportVector>,
+}
+
+#[derive(Debug)]
 pub struct Header<'a> {
     pub svm_type: &'a str,
     pub kernel_type: &'a str,
@@ -27,17 +33,13 @@ pub struct SupportVector {
     pub features: Vec<Attribute>,
 }
 
-#[derive(Debug)]
-pub struct LibSvmModel<'a> {
-    pub header: Header<'a>,
-    pub vectors: Vec<SupportVector>,
-}
-
 
 
 impl<'a> LibSvmModel<'a> {
+    
     /// Parses a string into a SVM model
     pub fn from_str(model: &str) -> Result<LibSvmModel, &'static str> {
+        
         // Parse string to struct
         let res = svm_file(model);
 
@@ -46,6 +48,7 @@ impl<'a> LibSvmModel<'a> {
             Err(_) => Result::Err("Error parsing file."),
         }
     }
+    
 }
 
 
