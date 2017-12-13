@@ -1,4 +1,4 @@
-mod model;
+mod libsvm;
 
-pub use self::model::ParsedModel;
+pub use self::libsvm::LibSvmModel;
 
