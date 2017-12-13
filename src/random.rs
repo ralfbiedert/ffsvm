@@ -2,9 +2,9 @@ use std::marker::{Copy, Sized};
 use std::iter::Iterator;
 use rand::{ChaChaRng, Rand, Rng};
 
-use manyvectors::ManyVectors;
-use data::{Class, Problem};
-
+use vectors::flat::ManyVectors;
+use svm::Class;
+use svm::problem::Problem;
 
 /// Randomizes a data structure
 pub trait Randomize {

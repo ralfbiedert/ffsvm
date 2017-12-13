@@ -1,8 +1,3 @@
-use std::fmt;
-use std::iter::IntoIterator;
-use std::marker::{Copy, Sized};
-
-use util;
 
 
 /// Square triangular matrix.
@@ -25,21 +20,23 @@ use util;
 /// "up" to "down".
 ///
 pub struct TriangularMatrix<T>
-where
-    T: Copy + Sized,
+    where
+        T: Copy + Sized,
 {
-    
+
     /// Width and height of the matrix 
     pub dimension: usize,
-    
+
     /// Actual data
     pub data: Vec<T>,
 }
 
 
+
+
 impl <T> TriangularMatrix<T>
-where
-    T: Copy + Sized, 
+    where
+        T: Copy + Sized,
 {
     pub fn with_dimension(dimension: usize, default: T) -> TriangularMatrix<T> {
         let len = (dimension * (dimension - 1)) / 2;
@@ -69,9 +66,7 @@ where
         debug_assert!(i < j);
         debug_assert!(i < self.dimension);
         debug_assert!(j < self.dimension);
-        
+
     }
-    
+
 }
-
-

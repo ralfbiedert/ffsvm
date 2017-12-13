@@ -3,11 +3,14 @@ use rand::random;
 use itertools::zip;
 use rayon::prelude::*;
 
-use data::{Class, Kernel, Problem, SVM};
-use randomization::{random_vec, Randomize};
+use random::{random_vec, Randomize};
 use util::{find_max_index, set_all, sum_f64s, prefered_simd_size};
-use parser::RawModel;
-use rbfkernel::RbfKernel;
+use svm::{SVM, Class};
+use svm::problem::Problem;
+use parser::model::RawModel;
+use kernel::rbf::RbfKernel;
+use kernel::Kernel;
+
 
 
 pub type RbfCSVM = SVM<RbfKernel>;
@@ -16,7 +19,7 @@ pub type RbfCSVM = SVM<RbfKernel>;
 impl RbfCSVM {
     /// Creates a new random CSVM
     pub fn random(num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> RbfCSVM {
-        
+
         let num_total_sv = num_classes * num_sv_per_class;
         let classes = (0..num_classes)
             .map(|class| {
@@ -44,7 +47,7 @@ impl RbfCSVM {
         let num_classes = header.nr_class as usize;
         let num_total_sv = header.total_sv as usize;
 
-        
+
         // Construct vector of classes
         let classes = (0..num_classes)
             .map(|class| {
@@ -54,8 +57,8 @@ impl RbfCSVM {
             })
             .collect::<Vec<Class>>();
 
-        
-        
+
+
         // Allocate model
         let mut svm = RbfCSVM {
             num_total_sv,
@@ -75,16 +78,16 @@ impl RbfCSVM {
 
         // In the raw file, support vectors are grouped by class
         for i in 0..num_classes {
-            
+
             let num_sv_per_class = &header.nr_sv[i];
             let stop_offset = start_offset + *num_sv_per_class as usize;
 
             // Set support vector and coefficients
             for (i_vector, vector) in vectors[start_offset..stop_offset].iter().enumerate() {
-                
+
                 // Set support vectors
                 for (i_attribute, attribute) in vector.features.iter().enumerate() {
-                    
+
                     // Make sure we have a "sane" file.
                     if attribute.index as usize != i_attribute {
                         return Result::Err("SVM support vector indices MUST range from [0 ... #(num_attributes - 1)].");
@@ -110,9 +113,9 @@ impl RbfCSVM {
 
     /// Predicts all values for a set of problems.
     pub fn predict_values(&self, problems: &mut [Problem]) {
-        
+
         // Compute all problems ...
-        problems.par_iter_mut().for_each(|problem| 
+        problems.par_iter_mut().for_each(|problem|
             self.predict_value(problem)
         );
     }
@@ -141,7 +144,7 @@ impl RbfCSVM {
 
         // Compute kernel values per class
         for (i, class) in self.classes.iter().enumerate() {
-            
+
             let kvalues = problem.kernel_values.get_vector_mut(i);
 
             self.kernel.compute(&class.support_vectors, problem_features, kvalues);
@@ -151,7 +154,7 @@ impl RbfCSVM {
 
     /// Based on kernel values, computes the decision values for this problem.
     fn compute_decision_values(&self, problem: &mut Problem) {
-        
+
         // Reset all votes
         set_all(&mut problem.vote, 0);
 
@@ -181,7 +184,7 @@ impl RbfCSVM {
 
         for i in 0..self.classes.len() {
             for j in (i + 1)..self.classes.len() {
-                
+
                 let sv_coef0 = self.classes[i].coefficients.get_vector(j - 1);
                 let sv_coef1 = self.classes[j].coefficients.get_vector(i);
 
@@ -210,5 +213,3 @@ impl RbfCSVM {
         }
     }
 }
-
-
