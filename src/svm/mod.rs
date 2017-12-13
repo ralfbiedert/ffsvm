@@ -48,13 +48,9 @@ pub struct Class {
 
 
 impl Class {
+    
     /// Creates a new class with the given parameters.
-    pub fn with_parameters(
-        classes: usize,
-        support_vectors: usize,
-        attributes: usize,
-        label: u32,
-    ) -> Class {
+    pub fn with_parameters(classes: usize, support_vectors: usize, attributes: usize, label: u32) -> Class {
         Class {
             label,
             num_support_vectors: support_vectors,
@@ -70,6 +66,7 @@ impl Class {
             ),
         }
     }
+    
 }
 
 
