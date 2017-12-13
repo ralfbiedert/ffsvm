@@ -17,9 +17,7 @@ mod random;
 pub mod util;
 
 pub use kernel::RbfKernel;
-pub use svm::Problem;
-pub use svm::{SVM, Class};
-pub use svm::RbfCSVM;
-pub use parser::ParsedModel;
+pub use svm::{SVM, Class, Problem, RbfCSVM};
+pub use parser::LibSvmModel;
 pub use vectors::SimdOptimized;
 pub use random::Randomize;

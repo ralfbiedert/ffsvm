@@ -7,7 +7,7 @@ use random::{random_vec, Randomize};
 use util::{find_max_index, set_all, sum_f64s, prefered_simd_size};
 use svm::{SVM, Class};
 use svm::problem::Problem;
-use parser::ParsedModel;
+use parser::LibSvmModel;
 use kernel::RbfKernel;
 use kernel::Kernel;
 
@@ -38,7 +38,7 @@ impl RbfCSVM {
 
 
     /// Creates a SVM from the given raw model.
-    pub fn from_raw_model(raw_model: &ParsedModel) -> Result<RbfCSVM, &'static str> {
+    pub fn from_raw_model(raw_model: &LibSvmModel) -> Result<RbfCSVM, &'static str> {
         let header = &raw_model.header;
         let vectors = &raw_model.vectors;
 
