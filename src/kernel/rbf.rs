@@ -1,7 +1,9 @@
+use std::convert::From;
 use faster::{IntoPackedRefIterator, f32s};
 use itertools::zip;
 
 use kernel::Kernel;
+use parser::ModelFile;
 use vectors::SimdOptimized;
 use util;
 
@@ -33,5 +35,13 @@ impl Kernel for RbfKernel {
             kernel_values[i] = (-self.gamma * util::sum_f32s(simd_sum)).exp() as f64;
 
         }
+    }
+}
+
+
+impl <'a> From<&'a ModelFile<'a>> for RbfKernel {
+
+    fn from(model: &'a ModelFile<'a>) -> Self {
+        RbfKernel { gamma: model.header.gamma }
     }
 }

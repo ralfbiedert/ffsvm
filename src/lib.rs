@@ -1,10 +1,14 @@
-// TODO:
-// * Get away from "monolithic" impl's for a struct, towards small traits and *their* impls for a struct
+// TODO impls:
+// Try?From<&str> for parser
+// Index for SIMDXX ...
+// FromModel for Kernel
+// crbf to csvm<K>
 
 
 #![feature(toowned_clone_into)]
 #![feature(test)]
 #![feature(repr_simd)]
+#![feature(try_from)]
 
 extern crate faster;
 extern crate itertools;
@@ -22,6 +26,6 @@ pub mod util;
 
 pub use kernel::RbfKernel;
 pub use svm::{SVM, Class, Problem, RbfCSVM, PredictProblem};
-pub use parser::{ModelFile, FromModelFile};
+pub use parser::{ModelFile};
 pub use vectors::SimdOptimized;
 pub use random::Randomize;

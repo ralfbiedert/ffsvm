@@ -42,8 +42,11 @@ impl Problem {
         }
     }
 
-    /// Creates a new problem for the given SVM.
-    pub fn from_svm<T>(svm: &SVM<T>) -> Problem where T : Kernel {
+}
+
+
+impl <'a, T> From<&'a SVM<T>> for Problem where T: Kernel {
+    fn from(svm: &SVM<T>) -> Self {
         Problem::with_dimension(
             svm.num_total_sv,
             svm.classes.len(),
@@ -51,7 +54,6 @@ impl Problem {
         )
     }
 }
-
 
 
 impl Randomize for Problem {

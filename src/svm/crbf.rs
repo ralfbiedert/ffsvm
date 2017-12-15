@@ -1,3 +1,5 @@
+use std::convert::TryFrom;
+
 use faster::{IntoPackedRefIterator, f64s};
 use rand::random;
 use itertools::zip;
@@ -6,7 +8,7 @@ use random::{random_vec, Randomize};
 use util::{find_max_index, set_all, sum_f64s, prefered_simd_size};
 use svm::{SVM, Class,PredictProblem};
 use svm::problem::Problem;
-use parser::{ModelFile, FromModelFile};
+use parser::{ModelFile};
 use kernel::RbfKernel;
 use kernel::Kernel;
 
@@ -16,6 +18,7 @@ pub type RbfCSVM = SVM<RbfKernel>;
 
 
 impl SVM<RbfKernel> {
+    
     /// Creates a new random CSVM
     pub fn random(num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> RbfCSVM {
 
@@ -115,10 +118,12 @@ impl SVM<RbfKernel> {
     }
 }
 
-impl FromModelFile for RbfCSVM {
+
+impl <'a> TryFrom<&'a ModelFile<'a>> for RbfCSVM {
+    type Error = &'static str;
 
     /// Creates a SVM from the given raw model.
-    fn from_model(raw_model: &ModelFile) -> Result<RbfCSVM, &'static str> {
+    fn try_from(raw_model: &ModelFile<'a>) -> Result<RbfCSVM, &'static str> {
         let header = &raw_model.header;
         let vectors = &raw_model.vectors;
 
