@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 
 #[derive(Debug)]
-pub struct LibSvmModel<'a> {
+pub struct ModelFile<'a> {
     pub header: Header<'a>,
     pub vectors: Vec<SupportVector>,
 }
@@ -35,10 +35,10 @@ pub struct SupportVector {
 
 
 
-impl<'a> LibSvmModel<'a> {
+impl<'a> ModelFile<'a> {
     
     /// Parses a string into a SVM model
-    pub fn from_str(model: &str) -> Result<LibSvmModel, &'static str> {
+    pub fn from_str(model: &str) -> Result<ModelFile, &'static str> {
         
         // Parse string to struct
         let res = svm_file(model);
@@ -149,13 +149,13 @@ named_args!(svm_svs(num_coef: u32) <&str, (Vec<SupportVector>)>,
 );
 
 
-named!(svm_file <&str, LibSvmModel>,
+named!(svm_file <&str, ModelFile>,
     do_parse!(
         header: svm_header >>
         svm_string >> line_ending >>
         support_vectors: call!(svm_svs, header.nr_class - 1) >>
         (
-            LibSvmModel {
+            ModelFile {
                 header: header,
                 vectors: support_vectors,
             }

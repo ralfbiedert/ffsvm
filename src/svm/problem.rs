@@ -1,7 +1,8 @@
-
 use vectors::SimdOptimized;
 use svm::SVM;
 use util;
+use kernel::Kernel;
+use random::{Randomize, random_vec};
 
 
 /// A single problem we should classify.
@@ -42,7 +43,7 @@ impl Problem {
     }
 
     /// Creates a new problem for the given SVM.
-    pub fn from_svm<T>(svm: &SVM<T>) -> Problem {
+    pub fn from_svm<T>(svm: &SVM<T>) -> Problem where T : Kernel {
         Problem::with_dimension(
             svm.num_total_sv,
             svm.classes.len(),
@@ -52,5 +53,12 @@ impl Problem {
 }
 
 
+
+impl Randomize for Problem {
+    fn randomize(mut self) -> Self {
+        self.features = random_vec(self.features.len());
+        self
+    }
+}
 
 

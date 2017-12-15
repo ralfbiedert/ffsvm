@@ -1,15 +1,21 @@
 mod crbf;
 mod problem;
-
-use vectors::SimdOptimized;
+mod class;
 
 pub use self::crbf::RbfCSVM;
 pub use self::problem::Problem;
+pub use self::class::Class;
+
+use rayon::prelude::*;
+use std::marker::Sync;
+use kernel::Kernel;
 
 
 /// Core support vector machine
 #[derive(Debug)]
-pub struct SVM<T> {
+pub struct SVM<T> where
+T : Kernel
+{
     /// Total number of support vectors
     pub num_total_sv: usize,
 
@@ -26,47 +32,34 @@ pub struct SVM<T> {
 }
 
 
-
-/// Represents one class of the SVM model.
-#[derive(Debug)]
-pub struct Class {
-    /// The label of this class
-    pub label: u32,
-
-    /// The number of support vectors in this class
-    pub num_support_vectors: usize,
-
-    /// Coefficients between this class and n-1 other classes.
-    pub coefficients: SimdOptimized<f64>,
-
-    /// All support vectors in this class.
-    pub support_vectors: SimdOptimized<f32>,
-}
+// Maybe not, that would be a very special trait ... Should probably be part of 
+// the struct impl instead. 
+// 
+// Maybe the whole random thing should be one though.
+// HOWEVER, That would be problematic, since it would need special arguments (e.g., size),
+// which would be hard to reflect in a generic trait.
+//trait FromLibSvmModel {
+//    fn form(xxx) -> Self;    
+//}
+//
 
 
+/// Predict a problem. 
+pub trait PredictProblem where Self : Sync
+{
+    /// Predict a single value for a problem.
+    fn predict_value(&self, &mut Problem);
 
-
-
-impl Class {
     
-    /// Creates a new class with the given parameters.
-    pub fn with_parameters(classes: usize, support_vectors: usize, attributes: usize, label: u32) -> Class {
-        Class {
-            label,
-            num_support_vectors: support_vectors,
-            coefficients: SimdOptimized::with_dimension(
-                classes - 1,
-                support_vectors,
-                Default::default(),
-            ),
-            support_vectors: SimdOptimized::with_dimension(
-                support_vectors,
-                attributes,
-                Default::default(),
-            ),
-        }
+    /// Predicts all values for a set of problems.
+    fn predict_values(&self, problems: &mut [Problem]) {
+
+        // Compute all problems ...
+        problems.par_iter_mut().for_each(|problem|
+            self.predict_value(problem)
+        );
     }
-    
 }
+
 
 
