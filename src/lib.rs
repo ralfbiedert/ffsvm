@@ -28,4 +28,4 @@ pub use kernel::RbfKernel;
 pub use svm::{SVM, Class, Problem, RbfCSVM, PredictProblem};
 pub use parser::{ModelFile};
 pub use vectors::SimdOptimized;
-pub use random::Randomize;
+pub use random::{Randomize, Random};

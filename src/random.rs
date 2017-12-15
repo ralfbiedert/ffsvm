@@ -10,6 +10,11 @@ pub trait Randomize {
 }
 
 
+pub trait Random {
+    /// Creates a new random thing.
+    fn new_random() -> Self;
+}
+
 
 /// Creates a vector of random
 pub fn random_vec<T>(size: usize) -> Vec<T>
@@ -19,3 +24,4 @@ where
     let mut rng = ChaChaRng::new_unseeded();
     rng.gen_iter().take(size).collect()
 }
+

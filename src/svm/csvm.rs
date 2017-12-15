@@ -1,10 +1,11 @@
 use std::convert::TryFrom;
+use std::marker::Sync;
 
 use faster::{IntoPackedRefIterator, f64s};
 use rand::random;
 use itertools::zip;
 
-use random::{random_vec, Randomize};
+use random::{random_vec, Randomize, Random};
 use util::{find_max_index, set_all, sum_f64s, prefered_simd_size};
 use svm::{SVM, Class,PredictProblem};
 use svm::problem::Problem;
@@ -14,13 +15,11 @@ use kernel::Kernel;
 
 
 
-pub type RbfCSVM = SVM<RbfKernel>;
-
-
-impl SVM<RbfKernel> {
+impl <'a, T> SVM<T> where T : Kernel + Random 
+{
     
     /// Creates a new random CSVM
-    pub fn random(num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> RbfCSVM {
+    pub fn random(num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self {
 
         let num_total_sv = num_classes * num_sv_per_class;
         let classes = (0..num_classes)
@@ -29,11 +28,11 @@ impl SVM<RbfKernel> {
             })
             .collect::<Vec<Class>>();
 
-        RbfCSVM {
+        SVM {
             num_total_sv,
             num_attributes,
             rho: random_vec(num_classes),
-            kernel: RbfKernel { gamma: random() },
+            kernel: T::new_random(),
             classes,
         }
     }
@@ -119,11 +118,12 @@ impl SVM<RbfKernel> {
 }
 
 
-impl <'a> TryFrom<&'a ModelFile<'a>> for RbfCSVM {
+impl <'a, 'b, T> TryFrom<&'b ModelFile<'a>> for SVM<T> where T : Kernel + From<&'b ModelFile<'a>> 
+{
     type Error = &'static str;
 
     /// Creates a SVM from the given raw model.
-    fn try_from(raw_model: &ModelFile<'a>) -> Result<RbfCSVM, &'static str> {
+    fn try_from(raw_model: &'b ModelFile<'a>) -> Result<SVM<T>, &'static str> {
         let header = &raw_model.header;
         let vectors = &raw_model.vectors;
 
@@ -145,12 +145,10 @@ impl <'a> TryFrom<&'a ModelFile<'a>> for RbfCSVM {
 
 
         // Allocate model
-        let mut svm = RbfCSVM {
+        let mut svm = SVM {
             num_total_sv,
             num_attributes,
-            kernel: RbfKernel {
-                gamma: header.gamma,
-            },
+            kernel: T::from(raw_model),
             rho: header.rho.clone(),
             classes,
         };
@@ -198,7 +196,8 @@ impl <'a> TryFrom<&'a ModelFile<'a>> for RbfCSVM {
 }
 
 
-impl PredictProblem for RbfCSVM {
+impl <'a, T> PredictProblem for SVM<T> where T : Kernel + Random + Sync
+{
     
     // Predict the value for one problem.
     fn predict_value(&self, problem: &mut Problem) {
