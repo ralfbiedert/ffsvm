@@ -46,7 +46,7 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
         // Compute kernel values per class
         for (i, class) in self.classes.iter().enumerate() {
 
-            let kvalues = problem.kernel_values.get_vector_mut(i);
+            let kvalues = &mut problem.kernel_values[i];
 
             self.kernel.compute(&class.support_vectors, problem_features, kvalues);
         }
@@ -86,11 +86,11 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
         for i in 0..self.classes.len() {
             for j in (i + 1)..self.classes.len() {
 
-                let sv_coef0 = self.classes[i].coefficients.get_vector(j - 1);
-                let sv_coef1 = self.classes[j].coefficients.get_vector(i);
+                let sv_coef0 = &self.classes[i].coefficients[j - 1];
+                let sv_coef1 = &self.classes[j].coefficients[i];
 
-                let kvalues0 = problem.kernel_values.get_vector(i);
-                let kvalues1 = problem.kernel_values.get_vector(j);
+                let kvalues0 = &problem.kernel_values[i];
+                let kvalues1 = &problem.kernel_values[j];
 
                 let mut simd_sum = f64s::splat(0.0);
 
@@ -174,12 +174,12 @@ impl <'a, 'b, Knl> TryFrom<&'a ModelFile<'b>> for SVM<Knl> where Knl: Kernel + F
                         return Result::Err("SVM support vector indices MUST range from [0 ... #(num_attributes - 1)].");
                     }
 
-                    svm.classes[i].support_vectors.set(i_vector, attribute.index as usize, attribute.value);
+                    svm.classes[i].support_vectors[(i_vector, attribute.index as usize)] = attribute.value;
                 }
 
                 // Set coefficients
                 for (i_coefficient, coefficient) in vector.coefs.iter().enumerate() {
-                    svm.classes[i].coefficients.set(i_coefficient, i_vector, *coefficient as f64);
+                    svm.classes[i].coefficients[(i_coefficient, i_vector)] = *coefficient as f64;
                 }
             }
 

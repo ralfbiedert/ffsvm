@@ -34,17 +34,6 @@ T : Kernel
 }
 
 
-// Maybe not, that would be a very special trait ... Should probably be part of 
-// the struct impl instead. 
-// 
-// Maybe the whole random thing should be one though.
-// HOWEVER, That would be problematic, since it would need special arguments (e.g., size),
-// which would be hard to reflect in a generic trait.
-//trait FromLibSvmModel {
-//    fn form(xxx) -> Self;    
-//}
-//
-
 
 /// Predict a problem. 
 pub trait PredictProblem where Self : Sync

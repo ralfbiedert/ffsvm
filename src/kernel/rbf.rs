@@ -20,7 +20,7 @@ impl Kernel for RbfKernel {
     fn compute(&self, vectors: &SimdOptimized<f32>, feature: &[f32], kernel_values: &mut [f64]) {
 
         // According to Instruments, for realistic SVMs and problems, the VAST majority of our
-        // CPU time is spent in this method.
+        // CPU time is spent in this loop.
         for (i, sv) in vectors.into_iter().enumerate() {
 
             let mut simd_sum = f32s::splat(0.0);
@@ -35,7 +35,6 @@ impl Kernel for RbfKernel {
             // and computing exp() (saving back seems to have 3x time impact over exp(),
             // but I might misread "Instruments" for that particular one).
             kernel_values[i] = (-self.gamma * util::sum_f32s(simd_sum)).exp() as f64;
-
         }
     }
 }
