@@ -1,5 +1,5 @@
 use vectors::SimdOptimized;
-use random::{Randomize, random_vec};
+use random::{Randomize};
 
 /// Represents one class of the SVM model.
 #[derive(Debug)]

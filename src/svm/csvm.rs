@@ -2,7 +2,6 @@ use std::convert::TryFrom;
 use std::marker::Sync;
 
 use faster::{IntoPackedRefIterator, f64s};
-use rand::random;
 use itertools::zip;
 
 use random::{random_vec, Randomize, Random};
@@ -10,7 +9,6 @@ use util::{find_max_index, set_all, sum_f64s, prefered_simd_size};
 use svm::{SVM, Class,PredictProblem};
 use svm::problem::Problem;
 use parser::{ModelFile};
-use kernel::RbfKernel;
 use kernel::Kernel;
 
 
