@@ -13,7 +13,7 @@ use kernel::Kernel;
 
 
 
-impl <'a, T> SVM<T> where T : Kernel + Random 
+impl <Knl> SVM<Knl> where Knl: Kernel + Random 
 {
     
     /// Creates a new random CSVM
@@ -30,7 +30,7 @@ impl <'a, T> SVM<T> where T : Kernel + Random
             num_total_sv,
             num_attributes,
             rho: random_vec(num_classes),
-            kernel: T::new_random(),
+            kernel: Knl::new_random(),
             classes,
         }
     }
@@ -116,12 +116,12 @@ impl <'a, T> SVM<T> where T : Kernel + Random
 }
 
 
-impl <'a, 'b, T> TryFrom<&'b ModelFile<'a>> for SVM<T> where T : Kernel + From<&'b ModelFile<'a>> 
+impl <'a, 'b, Knl> TryFrom<&'a ModelFile<'b>> for SVM<Knl> where Knl: Kernel + From<&'a ModelFile<'b>> 
 {
     type Error = &'static str;
 
     /// Creates a SVM from the given raw model.
-    fn try_from(raw_model: &'b ModelFile<'a>) -> Result<SVM<T>, &'static str> {
+    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<SVM<Knl>, &'static str> {
         let header = &raw_model.header;
         let vectors = &raw_model.vectors;
 
@@ -146,7 +146,7 @@ impl <'a, 'b, T> TryFrom<&'b ModelFile<'a>> for SVM<T> where T : Kernel + From<&
         let mut svm = SVM {
             num_total_sv,
             num_attributes,
-            kernel: T::from(raw_model),
+            kernel: Knl::from(raw_model),
             rho: header.rho.clone(),
             classes,
         };
@@ -194,7 +194,7 @@ impl <'a, 'b, T> TryFrom<&'b ModelFile<'a>> for SVM<T> where T : Kernel + From<&
 }
 
 
-impl <'a, T> PredictProblem for SVM<T> where T : Kernel + Random + Sync
+impl <Knl> PredictProblem for SVM<Knl> where Knl: Kernel + Random + Sync
 {
     
     // Predict the value for one problem.
