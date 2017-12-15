@@ -1,8 +1,6 @@
 // TODO impls:
-// Try?From<&str> for parser
 // Index for SIMDXX ...
-// FromModel for Kernel
-// crbf to csvm<K>
+// when process an array, take iterable trait, not slice type
 
 
 #![feature(toowned_clone_into)]

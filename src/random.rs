@@ -12,6 +12,7 @@ pub trait Randomize {
 pub trait Random {
     /// Creates a new random thing.
     fn new_random() -> Self;
+    
 }
 
 
