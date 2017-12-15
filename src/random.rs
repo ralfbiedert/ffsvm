@@ -3,15 +3,11 @@ use std::iter::Iterator;
 use rand::{ChaChaRng, Rand, Rng};
 
 use vectors::SimdOptimized;
-use svm::Class;
-use svm::Problem;
 
 /// Randomizes a data structure
 pub trait Randomize {
-    
     /// Randomizes data in a structure (mostly its vectors) within the structure's parameters.
     fn randomize(self) -> Self;
-    
 }
 
 
@@ -34,22 +30,6 @@ where
     }
 }
 
-
-impl Randomize for Class {
-    fn randomize(mut self) -> Self {
-        self.coefficients = self.coefficients.randomize();
-        self.support_vectors = self.support_vectors.randomize();
-        self
-    }
-}
-
-
-impl Randomize for Problem {
-    fn randomize(mut self) -> Self {
-        self.features = random_vec(self.features.len());
-        self
-    }
-}
 
 
 

@@ -5,9 +5,8 @@ extern crate ffsvm;
 
 #[cfg(test)]
 mod tests {
-    use ffsvm::RbfCSVM;
-    use ffsvm::Problem;
-    use ffsvm::LibSvmModel;
+    use ffsvm::{RbfCSVM, PredictProblem, Problem};
+    use ffsvm::{ModelFile, FromModelFile};
 
     
     // This doesn't work like that. Support vectors are not guaranteed 
@@ -41,8 +40,8 @@ mod tests {
     #[test]
     fn rbfcsvm_small() {
         let model_str: &str = include_str!("test.small.model");
-        let model = LibSvmModel::from_str(model_str).unwrap();
-        let csvm = RbfCSVM::from_raw_model(&model).unwrap();
+        let model = ModelFile::from_str(model_str).unwrap();
+        let csvm = RbfCSVM::from_model(&model).unwrap();
 
         let mut problem0 = Problem::from_svm(&csvm);
         let mut problem1 = Problem::from_svm(&csvm);

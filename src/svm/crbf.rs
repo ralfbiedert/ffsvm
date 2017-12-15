@@ -1,13 +1,12 @@
 use faster::{IntoPackedRefIterator, f64s};
 use rand::random;
 use itertools::zip;
-use rayon::prelude::*;
 
 use random::{random_vec, Randomize};
 use util::{find_max_index, set_all, sum_f64s, prefered_simd_size};
-use svm::{SVM, Class};
+use svm::{SVM, Class,PredictProblem};
 use svm::problem::Problem;
-use parser::LibSvmModel;
+use parser::{ModelFile, FromModelFile};
 use kernel::RbfKernel;
 use kernel::Kernel;
 
@@ -16,7 +15,7 @@ use kernel::Kernel;
 pub type RbfCSVM = SVM<RbfKernel>;
 
 
-impl RbfCSVM {
+impl SVM<RbfKernel> {
     /// Creates a new random CSVM
     pub fn random(num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> RbfCSVM {
 
@@ -36,104 +35,6 @@ impl RbfCSVM {
         }
     }
 
-
-    /// Creates a SVM from the given raw model.
-    pub fn from_raw_model(raw_model: &LibSvmModel) -> Result<RbfCSVM, &'static str> {
-        let header = &raw_model.header;
-        let vectors = &raw_model.vectors;
-
-        // Get basic info
-        let num_attributes = vectors[0].features.len();
-        let num_classes = header.nr_class as usize;
-        let num_total_sv = header.total_sv as usize;
-
-
-        // Construct vector of classes
-        let classes = (0..num_classes)
-            .map(|class| {
-                let label = header.label[class];
-                let num_sv = header.nr_sv[class] as usize;
-                Class::with_parameters(num_classes, num_sv , num_attributes, label)
-            })
-            .collect::<Vec<Class>>();
-
-
-
-        // Allocate model
-        let mut svm = RbfCSVM {
-            num_total_sv,
-            num_attributes,
-            kernel: RbfKernel {
-                gamma: header.gamma,
-            },
-            rho: header.rho.clone(),
-            classes,
-        };
-
-
-        // TODO: Things down here are a bit ugly as the file format is a bit ugly ...
-
-        // Now read all vectors and decode stored information
-        let mut start_offset = 0;
-
-        // In the raw file, support vectors are grouped by class
-        for i in 0..num_classes {
-
-            let num_sv_per_class = &header.nr_sv[i];
-            let stop_offset = start_offset + *num_sv_per_class as usize;
-
-            // Set support vector and coefficients
-            for (i_vector, vector) in vectors[start_offset..stop_offset].iter().enumerate() {
-
-                // Set support vectors
-                for (i_attribute, attribute) in vector.features.iter().enumerate() {
-
-                    // Make sure we have a "sane" file.
-                    if attribute.index as usize != i_attribute {
-                        return Result::Err("SVM support vector indices MUST range from [0 ... #(num_attributes - 1)].");
-                    }
-
-                    svm.classes[i].support_vectors.set(i_vector, attribute.index as usize, attribute.value);
-                }
-
-                // Set coefficients
-                for (i_coefficient, coefficient) in vector.coefs.iter().enumerate() {
-                    svm.classes[i].coefficients.set(i_coefficient, i_vector, *coefficient as f64);
-                }
-            }
-
-            // Update last offset.
-            start_offset = stop_offset;
-        }
-
-        // Return what we have
-        return Result::Ok(svm);
-    }
-
-
-    /// Predicts all values for a set of problems.
-    pub fn predict_values(&self, problems: &mut [Problem]) {
-
-        // Compute all problems ...
-        problems.par_iter_mut().for_each(|problem|
-            self.predict_value(problem)
-        );
-    }
-
-
-    // Predict the value for one problem.
-    pub fn predict_value(&self, problem: &mut Problem) {
-        // TODO: Dirty hack until faster allows us to operate on zipped, non-aligned arrays.
-        assert_eq!(problem.features.len() % prefered_simd_size(3), 0);
-
-        // Compute kernel, decision values and eventually the label
-        self.compute_kernel_values(problem);
-        self.compute_decision_values(problem);
-
-        // Compute highest vote
-        let highest_vote = find_max_index(&problem.vote);
-        problem.label = self.classes[highest_vote].label;
-    }
 
 
     /// Computes the kernel values for this problem
@@ -212,4 +113,100 @@ impl RbfCSVM {
             }
         }
     }
+}
+
+impl FromModelFile for RbfCSVM {
+
+    /// Creates a SVM from the given raw model.
+    fn from_model(raw_model: &ModelFile) -> Result<RbfCSVM, &'static str> {
+        let header = &raw_model.header;
+        let vectors = &raw_model.vectors;
+
+        // Get basic info
+        let num_attributes = vectors[0].features.len();
+        let num_classes = header.nr_class as usize;
+        let num_total_sv = header.total_sv as usize;
+
+
+        // Construct vector of classes
+        let classes = (0..num_classes)
+            .map(|class| {
+                let label = header.label[class];
+                let num_sv = header.nr_sv[class] as usize;
+                Class::with_parameters(num_classes, num_sv , num_attributes, label)
+            })
+            .collect::<Vec<Class>>();
+
+
+
+        // Allocate model
+        let mut svm = RbfCSVM {
+            num_total_sv,
+            num_attributes,
+            kernel: RbfKernel {
+                gamma: header.gamma,
+            },
+            rho: header.rho.clone(),
+            classes,
+        };
+
+
+        // TODO: Things down here are a bit ugly as the file format is a bit ugly ...
+
+        // Now read all vectors and decode stored information
+        let mut start_offset = 0;
+
+        // In the raw file, support vectors are grouped by class
+        for i in 0..num_classes {
+
+            let num_sv_per_class = &header.nr_sv[i];
+            let stop_offset = start_offset + *num_sv_per_class as usize;
+
+            // Set support vector and coefficients
+            for (i_vector, vector) in vectors[start_offset..stop_offset].iter().enumerate() {
+
+                // Set support vectors
+                for (i_attribute, attribute) in vector.features.iter().enumerate() {
+
+                    // Make sure we have a "sane" file.
+                    if attribute.index as usize != i_attribute {
+                        return Result::Err("SVM support vector indices MUST range from [0 ... #(num_attributes - 1)].");
+                    }
+
+                    svm.classes[i].support_vectors.set(i_vector, attribute.index as usize, attribute.value);
+                }
+
+                // Set coefficients
+                for (i_coefficient, coefficient) in vector.coefs.iter().enumerate() {
+                    svm.classes[i].coefficients.set(i_coefficient, i_vector, *coefficient as f64);
+                }
+            }
+
+            // Update last offset.
+            start_offset = stop_offset;
+        }
+
+        // Return what we have
+        return Result::Ok(svm);
+    }
+
+}
+
+
+impl PredictProblem for RbfCSVM {
+    
+    // Predict the value for one problem.
+    fn predict_value(&self, problem: &mut Problem) {
+        // TODO: Dirty hack until faster allows us to operate on zipped, non-aligned arrays.
+        assert_eq!(problem.features.len() % prefered_simd_size(3), 0);
+
+        // Compute kernel, decision values and eventually the label
+        self.compute_kernel_values(problem);
+        self.compute_decision_values(problem);
+
+        // Compute highest vote
+        let highest_vote = find_max_index(&problem.vote);
+        problem.label = self.classes[highest_vote].label;
+    }
+    
 }

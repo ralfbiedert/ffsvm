@@ -1,3 +1,7 @@
+// TODO:
+// * Get away from "monolithic" impl's for a struct, towards small traits and *their* impls for a struct
+
+
 #![feature(toowned_clone_into)]
 #![feature(test)]
 #![feature(repr_simd)]
@@ -17,7 +21,7 @@ mod random;
 pub mod util;
 
 pub use kernel::RbfKernel;
-pub use svm::{SVM, Class, Problem, RbfCSVM};
-pub use parser::LibSvmModel;
+pub use svm::{SVM, Class, Problem, RbfCSVM, PredictProblem};
+pub use parser::{ModelFile, FromModelFile};
 pub use vectors::SimdOptimized;
 pub use random::Randomize;
