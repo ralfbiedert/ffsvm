@@ -1,14 +1,16 @@
-mod crbf;
+mod csvm;
 mod problem;
 mod class;
 
-pub use self::crbf::RbfCSVM;
 pub use self::problem::Problem;
 pub use self::class::Class;
 
 use rayon::prelude::*;
 use std::marker::Sync;
-use kernel::Kernel;
+use kernel::{Kernel, RbfKernel};
+
+
+pub type RbfCSVM = SVM<RbfKernel>;
 
 
 /// Core support vector machine

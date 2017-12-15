@@ -5,6 +5,8 @@ use itertools::zip;
 use kernel::Kernel;
 use parser::ModelFile;
 use vectors::SimdOptimized;
+use random::Random;
+use rand::random;
 use util;
 
 
@@ -35,6 +37,13 @@ impl Kernel for RbfKernel {
             kernel_values[i] = (-self.gamma * util::sum_f32s(simd_sum)).exp() as f64;
 
         }
+    }
+}
+
+
+impl Random for RbfKernel {
+    fn new_random() -> Self {
+        RbfKernel { gamma: random() }
     }
 }
 

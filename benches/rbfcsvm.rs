@@ -9,7 +9,7 @@ extern crate ffsvm;
 mod benchmarks {
     
     use test::Bencher;
-    use ffsvm::RbfCSVM;
+    use ffsvm::{RbfCSVM, SVM, PredictProblem};
     use ffsvm::Problem;
     use ffsvm::Randomize;
 
@@ -20,7 +20,7 @@ mod benchmarks {
 
         let mut svm = RbfCSVM::random(num_classes, num_sv_per_class, num_attributes);
         let mut problems = (0..num_problems)
-            .map(|_| Problem::from_svm(&svm).randomize())
+            .map(|_| Problem::from(&svm).randomize())
             .collect::<Vec<Problem>>();
 
         move || (&mut svm).predict_values(&mut problems)
