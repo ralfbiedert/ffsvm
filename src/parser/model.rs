@@ -1,7 +1,7 @@
-use nom::{is_alphanumeric, line_ending};
 use std::str;
 use std::str::FromStr;
-
+use std::convert::TryFrom;
+use nom::{is_alphanumeric, line_ending};
 
 #[derive(Debug)]
 pub struct ModelFile<'a> {
@@ -35,11 +35,12 @@ pub struct SupportVector {
 
 
 
-impl<'a> ModelFile<'a> {
-    
+impl <'a> TryFrom<&'a str> for ModelFile<'a> {
+    type Error = &'static str;
+
     /// Parses a string into a SVM model
-    pub fn from_str(model: &str) -> Result<ModelFile, &'static str> {
-        
+    fn try_from(model: &str) -> Result<ModelFile, &'static str> {
+
         // Parse string to struct
         let res = svm_file(model);
 
@@ -47,8 +48,7 @@ impl<'a> ModelFile<'a> {
             Ok(m) => Result::Ok(m.1),
             Err(_) => Result::Err("Error parsing file."),
         }
-    }
-    
+    }    
 }
 
 

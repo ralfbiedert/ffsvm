@@ -1,8 +1,10 @@
 use std::fmt;
 use std::iter::IntoIterator;
 use std::marker::{Copy, Sized};
+use rand::{ChaChaRng, Rand, Rng};
 
 use util;
+use random::{Randomize, random_vec};
 
 
 /// Basic "matrix' we use for fast SIMD and parallel operations.
@@ -144,6 +146,26 @@ impl<'a, T> Iterator for IterManyVectors<'a, T>
             self.index += 1;
             Some(self.matrix.get_vector(self.index - 1))
         }
+    }
+}
+
+
+
+impl<T> Randomize for SimdOptimized<T>
+    where
+        T: Sized + Copy + Rand,
+{
+    fn randomize(mut self) -> Self {
+        let mut rng = ChaChaRng::new_unseeded();
+
+        for i in 0..self.vectors {
+            let gen = rng.gen_iter::<T>();
+            let vector = gen.take(self.attributes).collect::<Vec<T>>();
+
+            self.set_vector(i, vector.as_slice());
+        }
+
+        self
     }
 }
 
