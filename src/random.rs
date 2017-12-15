@@ -1,4 +1,3 @@
-use std::marker::{Copy, Sized};
 use std::iter::Iterator;
 use rand::{ChaChaRng, Rand, Rng};
 

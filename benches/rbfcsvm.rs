@@ -9,7 +9,7 @@ extern crate ffsvm;
 mod benchmarks {
     
     use test::Bencher;
-    use ffsvm::{RbfCSVM, SVM, PredictProblem};
+    use ffsvm::{RbfCSVM, PredictProblem};
     use ffsvm::Problem;
     use ffsvm::Randomize;
 

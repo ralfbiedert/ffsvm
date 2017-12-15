@@ -4,7 +4,7 @@ use std::marker::{Copy, Sized};
 use rand::{ChaChaRng, Rand, Rng};
 
 use util;
-use random::{Randomize, random_vec};
+use random::{Randomize};
 
 
 /// Basic "matrix' we use for fast SIMD and parallel operations.
