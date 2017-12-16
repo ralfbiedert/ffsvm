@@ -2,6 +2,5 @@
 **/*.rs.bk
 Cargo.lock
 .idea
-test.large.model
 
 

@@ -1,5 +1,6 @@
 // TODO impls:
 // when process an array, take iterable trait, not slice type
+// Problem: Introduce option for label, features and probabilites  
 
 
 #![feature(toowned_clone_into)]

@@ -5,9 +5,9 @@ use faster::{IntoPackedRefIterator, f64s};
 use itertools::zip;
 
 use random::{Randomize, Random};
-use util::{find_max_index, set_all, sum_f64s, prefered_simd_size};
-use vectors::Triangular;
-use svm::{SVM, Class,PredictProblem};
+use util::{find_max_index, set_all, sum_f64s, prefered_simd_size, sigmoid_predict};
+use vectors::{Triangular};
+use svm::{SVM, Class,PredictProblem, Probabilities};
 use svm::problem::Problem;
 use parser::{ModelFile};
 use kernel::Kernel;
@@ -32,10 +32,11 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
             num_attributes,
             rho: Triangular::with_dimension(num_classes, Default::default()),
             kernel: Knl::new_random(),
+            probabilities: None,
             classes,
         }
     }
-
+    
 
 
     /// Computes the kernel values for this problem
@@ -135,11 +136,22 @@ impl <'a, 'b, Knl> TryFrom<&'a ModelFile<'b>> for SVM<Knl> where Knl: Kernel + F
             .collect::<Vec<Class>>();
 
 
-
+        let probabilities = match (&raw_model.header.prob_a, &raw_model.header.prob_b) {
+            (&Some(ref p_a), &Some(ref p_b)) => {
+                Some(Probabilities {
+                    a: Triangular::from(p_a),
+                    b: Triangular::from(p_b),
+                })
+            }
+            
+            (_, _) => { None }
+        };
+        
         // Allocate model
         let mut svm = SVM {
             num_total_sv,
             num_attributes,
+            probabilities,
             kernel: Knl::from(raw_model),
             rho: Triangular::from(&header.rho),
             classes,
@@ -190,6 +202,45 @@ impl <'a, 'b, Knl> TryFrom<&'a ModelFile<'b>> for SVM<Knl> where Knl: Kernel + F
 
 impl <Knl> PredictProblem for SVM<Knl> where Knl: Kernel + Random + Sync
 {
+    fn predict_probability(&self, problem: &mut Problem) {
+        const MIN_PROB : f64 = 1e-7;
+
+        // Ensure we have probabilities set. If not, there is nothing to do
+        if self.probabilities.is_none() { return; }
+        
+        let num_classes = self.classes.len();
+        let probabilities = self.probabilities.as_ref().unwrap();
+        
+        // First we need to predict the problem for our decision values
+        self.predict_value(problem);    
+        
+        // Now compute probability values
+        for i in 0 .. num_classes {
+            for j in i + 1 .. num_classes {
+                
+                let decision_value = problem.decision_values[(i, j)];
+                let a = probabilities.a[(i, j)];
+                let b = probabilities.b[(i, j)];
+                
+                let sigmoid = sigmoid_predict(decision_value, a, b).max(MIN_PROB).min(1f64 - MIN_PROB);
+
+                problem.pairwise[(i, j)] = sigmoid;
+                problem.pairwise[(j, i)] = 1f64 - sigmoid;
+            }
+        }
+        
+        
+        if num_classes == 2 {
+            problem.probabilities[0] = problem.pairwise[(0, 1)];
+            problem.probabilities[1] = problem.pairwise[(1, 0)];
+        } else {
+            unimplemented!("Only supporting 2 classes right now.")
+        }
+        
+        let max_index = find_max_index(problem.probabilities.as_slice());
+        problem.label = self.classes[max_index].label;
+    }
+
     
     // Predict the value for one problem.
     fn predict_value(&self, problem: &mut Problem) {
