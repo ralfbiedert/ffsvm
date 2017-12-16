@@ -2,7 +2,7 @@
 
 = Highlights
 
-* can load trained https://github.com/cjlin1/libsvm[libsvm] models (RBF-CSVM without sparse attributes)
+* can load trained https://github.com/cjlin1/libsvm[libSVM] models (currently binary RBF-CSVM without sparse attributes)
 * optimized for SIMD (using https://github.com/AdamNiederer/faster[Faster]) and threading (using https://github.com/rayon-rs/rayon[Rayon])
 * allocation-free during classification
 * much faster than `libsvm`
@@ -10,7 +10,7 @@
 
 = Principal Usage
 
-Train with https://github.com/cjlin1/libsvm[libsvm] (e.g., using the tool `svm-train`), then classify with `ffsvm-rust`.
+Train with https://github.com/cjlin1/libsvm[libSVM] (e.g., using the tool `svm-train`), then classify with `ffsvm-rust`.
 
 
 = Status
