@@ -20,11 +20,8 @@ Train with https://github.com/cjlin1/libsvm[libsvm] (e.g., using the tool `svm-t
 
 = Performance History
 
-Numbers reported by `cargo bench` as *nanoseconds per iter*. In other words, on my machine (MBP'15 i7), classifiying a given problem takes the time shown.
-
 image::docs/benchmarks.png[]
 
-I keep these numbers mostly to track my own progress over time while playing with different Rust concepts (e.g., https://github.com/rayon-rs/rayon[Rayon] or https://github.com/AdamNiederer/faster[Faster]).
 
 link:docs/performance{ext-relative}[See here for details.]
 
