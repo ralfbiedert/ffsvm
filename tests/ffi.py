@@ -18,7 +18,8 @@ ffi.cdef("""
     int ffsvm_test(int);
     int ffsvm_context_create(void**);
     int ffsvm_context_destroy(void**);
-    int ffsvm_parse_model(void*, char*, int);
+    int ffsvm_load_model(void*, char*);
+    int ffsvm_set_max_problems(void*, int);
 """);
 
 # Will hold our context
@@ -31,5 +32,6 @@ C = ffi.dlopen("../target/release/libffsvm.dylib");
 # Some test calls
 C.ffsvm_test(667);
 C.ffsvm_context_create(ptr);
-C.ffsvm_parse_model(ptr[0], model, 10);
+C.ffsvm_load_model(ptr[0], model);
+C.ffsvm_set_max_problems(ptr[0], 100);
 C.ffsvm_context_destroy(ptr);

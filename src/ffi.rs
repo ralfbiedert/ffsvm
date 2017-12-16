@@ -1,5 +1,6 @@
 use libc::{c_char, uint32_t};
 use std::ffi::CStr;
+use std::slice;
 use std::ptr::{null_mut};
 use std::convert::TryFrom;
 
@@ -10,9 +11,12 @@ use parser::ModelFile;
 /// Possible error conditions we can return.
 enum Errors {
     Ok = 0,
-    NoValidUTF8 = -1,
-    ModelParseError = -2,
-    SVMCreationError = -3,
+    NullPointerPassed = -1,
+    NoValidUTF8 = -10,
+    ModelParseError = -20,
+    SVMCreationError = -30,
+    SVMNoModel = -31,
+    ProblemPoolTooSmall = -40,
 }
 
 
@@ -33,9 +37,10 @@ pub extern fn ffsvm_test(value: i32) -> i32 {
 
 #[no_mangle]
 pub extern fn ffsvm_context_create(context_ptr: *mut *mut Context) -> i32 {
+    if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
     
     let context = Context {
-        max_problems: 128,
+        max_problems: 1,
         model: None,
         problems: Vec::new()
     };
@@ -51,12 +56,12 @@ pub extern fn ffsvm_context_create(context_ptr: *mut *mut Context) -> i32 {
 }
 
 #[no_mangle]
-pub extern fn ffsvm_parse_model(context: *mut Context, model_c_ptr: *const c_char, max_problems: usize) -> i32 {
-    assert!(!context.is_null());
-    assert!(!model_c_ptr.is_null());
+pub extern fn ffsvm_load_model(context_ptr: *mut Context, model_c_ptr: *const c_char) -> i32 {
+    if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
+    if model_c_ptr.is_null() { return Errors::NullPointerPassed as i32; }
 
     let context = unsafe { 
-        &mut *context 
+        &mut *context_ptr 
     };
     
     // Convert pointer to our strucutre  
@@ -82,17 +87,67 @@ pub extern fn ffsvm_parse_model(context: *mut Context, model_c_ptr: *const c_cha
         Ok(m) => { m }
     };
 
-    context.max_problems = max_problems;
-    context.problems = (0 .. max_problems).map(|_| Problem::from(&svm)).collect();
+    context.problems = (0 .. context.max_problems).map(|_| Problem::from(&svm)).collect();
     context.model = Some(Box::from(svm));
 
     Errors::Ok as i32
 }
 
 
+
+
 #[no_mangle]
-pub extern fn ffsvm_predict_values(context: *mut Context, num_problems: usize, data: *mut f32, return_values: *mut u32) -> i32 {
-    assert!(!context.is_null());
+pub extern fn ffsvm_set_max_problems(context_ptr: *mut Context, max_problems: usize) -> i32 {
+    if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
+
+
+    let context = unsafe {
+        &mut *context_ptr
+    };
+    
+    match &context.model {
+        &None => { return Errors::SVMNoModel as i32; }
+        &Some(ref model) => {
+            let svm = model.as_ref();
+            context.max_problems = max_problems;
+            context.problems = (0 .. max_problems).map(|_| Problem::from(svm)).collect();
+        }
+    }
+
+    Errors::Ok as i32
+}
+
+
+
+#[no_mangle]
+pub extern fn ffsvm_predict_values(context_ptr: *mut Context, features_ptr: *mut f32, features_len: usize, labels_ptr: *mut u32, labels_len: u32) -> i32 {
+    if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
+    if features_ptr.is_null() { return Errors::NullPointerPassed as i32; }
+    if labels_ptr.is_null() { return Errors::NullPointerPassed as i32; }
+
+    
+    let context = unsafe {
+        &mut *context_ptr
+    };
+    
+    if num_problems > context.max_problems {
+        return Errors::ProblemPoolTooSmall as i32;
+    }
+    
+    let features = unsafe {
+        labels_ptr
+    }
+
+    match &context.model {
+        &None => { return Errors::SVMNoModel as i32; }
+        &Some(ref model) => {
+            let svm = model.as_ref();
+            
+            let ptr_size = num_problems * svm.num_attributes; 
+        }
+    }
+
+
 
     Errors::Ok as i32
 }
@@ -100,6 +155,7 @@ pub extern fn ffsvm_predict_values(context: *mut Context, num_problems: usize, d
 
 #[no_mangle]
 pub extern fn ffsvm_context_destroy(context_ptr: *mut *mut Context) -> i32 {
+    if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
 
     let context = unsafe {
         Box::from_raw(*context_ptr)
