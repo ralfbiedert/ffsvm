@@ -30,7 +30,6 @@ pub struct Problem {
 impl Problem {
     /// Creates a new problem with the given parameters.
     pub fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem {
-        let num_decision_values = num_classes * (num_classes - 1) / 2;
         let preferred_attributes = util::prefered_simd_size(num_attributes);
 
         Problem {

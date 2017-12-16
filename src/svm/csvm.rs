@@ -60,11 +60,6 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
         // Reset all votes
         set_all(&mut problem.vote, 0);
 
-        // TODO: For some strange reason this code here seems to have little performance impact ...
-        let mut p = 0;
-        let dec_values = &mut problem.decision_values;
-
-
         // Since classification is symmetric, if we have N classes, we only need to go through
         // (N * N - 1) - 1 cases. For example for 4 classes we do:
         //
@@ -107,10 +102,8 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
                 let sum = sum_f64s(simd_sum) - self.rho[(i, j)];
                 let index_to_vote = if sum > 0.0 { i } else { j };
 
-                dec_values[(i,j)] = sum;
+                problem.decision_values[(i,j)] = sum;
                 problem.vote[index_to_vote] += 1;
-
-                p += 1;
             }
         }
     }
