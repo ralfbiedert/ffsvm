@@ -7,6 +7,7 @@
 #![feature(test)]
 #![feature(repr_simd)]
 #![feature(try_from)]
+#![feature(libc)]
 
 extern crate faster;
 extern crate itertools;
@@ -14,12 +15,14 @@ extern crate itertools;
 extern crate rand;
 extern crate rayon;
 extern crate test;
+extern crate libc;
 
 mod vectors;
 mod kernel;
 mod parser;
 mod svm;
 mod random;
+pub mod ffi;
 pub mod util;
 
 pub use kernel::RbfKernel;

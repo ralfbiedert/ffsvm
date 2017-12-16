@@ -137,10 +137,10 @@ impl <'a, 'b, Knl> TryFrom<&'a ModelFile<'b>> for SVM<Knl> where Knl: Kernel + F
 
 
         let probabilities = match (&raw_model.header.prob_a, &raw_model.header.prob_b) {
-            (&Some(ref p_a), &Some(ref p_b)) => {
+            (&Some(ref a), &Some(ref b)) => {
                 Some(Probabilities {
-                    a: Triangular::from(p_a),
-                    b: Triangular::from(p_b),
+                    a: Triangular::from(a),
+                    b: Triangular::from(b),
                 })
             }
             
