@@ -1,5 +1,4 @@
 // TODO impls:
-// Index for SIMDXX ...
 // when process an array, take iterable trait, not slice type
 
 

@@ -74,9 +74,10 @@ impl<T> SimdOptimized<T>
         }
     }
 
+    /// Computes an offset for a vector and attribute. 
     #[inline]
-    pub fn offset(&self, index_vector: usize, index_attribute: usize) -> usize {
-        (index_vector * self.vector_length + index_attribute)
+    pub fn offset(&self, vector: usize, attribute: usize) -> usize {
+        (vector * self.vector_length + attribute)
     }
 }
 

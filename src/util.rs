@@ -9,12 +9,12 @@ use std::cmp::PartialOrd;
 // Nothing relying on these two should exist in this code.
 //
 // When using "-C target-feature=+avx2"
-const SIMD_F32_WIDTH: usize = 8;
-const SIMD_F64_WIDTH: usize = 4;
+//const SIMD_F32_WIDTH: usize = 8;
+//const SIMD_F64_WIDTH: usize = 4;
 //
 // When using defaults 
-//const SIMD_F32_WIDTH: usize = 4;
-//const SIMD_F64_WIDTH: usize = 2;
+const SIMD_F32_WIDTH: usize = 4;
+const SIMD_F64_WIDTH: usize = 2;
 
 
 /// Sets all items of a mutable vector to the given value.
