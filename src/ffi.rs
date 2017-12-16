@@ -130,20 +130,17 @@ pub extern fn ffsvm_predict_values(context_ptr: *mut Context, features_ptr: *mut
         &mut *context_ptr
     };
     
-    if num_problems > context.max_problems {
-        return Errors::ProblemPoolTooSmall as i32;
-    }
-    
     let features = unsafe {
-        labels_ptr
-    }
+        slice::from_raw_parts(features_ptr, features_len)
+    };
+    
 
     match &context.model {
         &None => { return Errors::SVMNoModel as i32; }
         &Some(ref model) => {
             let svm = model.as_ref();
             
-            let ptr_size = num_problems * svm.num_attributes; 
+//            let ptr_size = num_problems * svm.num_attributes; 
         }
     }
 
