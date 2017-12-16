@@ -1,4 +1,4 @@
-use vectors::SimdOptimized;
+use vectors::{SimdOptimized, Triangular};
 use svm::SVM;
 use util;
 use kernel::Kernel;
@@ -18,7 +18,7 @@ pub struct Problem {
     pub vote: Vec<u32>,
 
     /// Decision values.
-    pub decision_values: Vec<f64>,
+    pub decision_values: Triangular<f64>,
 
     /// Computed label. This is what we update eventually.
     pub label: u32,
@@ -36,7 +36,7 @@ impl Problem {
         Problem {
             features: vec![Default::default(); preferred_attributes],
             kernel_values: SimdOptimized::with_dimension(num_classes, total_sv, Default::default()),
-            decision_values: vec![Default::default(); num_decision_values],
+            decision_values: Triangular::with_dimension(num_classes, Default::default()),
             vote: vec![Default::default(); num_classes],
             label: 0,
         }

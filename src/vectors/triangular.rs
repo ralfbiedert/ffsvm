@@ -1,5 +1,5 @@
 use std::ops::{Index, IndexMut};
-
+use std::fmt;
 
 // Layout of our data in this structure.
 // The values will be stored from "left to right", from "up" to "down".
@@ -85,6 +85,24 @@ impl <T> Triangular<T> where T: Copy + Sized,
 }
 
 
+impl <'a, T> From<&'a Vec<T>> for Triangular<T> where T: Copy + Sized {
+    fn from(vec: &Vec<T>) -> Self {
+        // len  1:   dim: 2
+        // len  3:   dim: 3
+        // len  6:   dim: 4
+        // len 10:   dim: 5
+        
+        // dim = round_down(sqrt(2 * len)) + 1
+        // 
+        let dimension = (((2 * vec.len()) as f32).sqrt() as usize) + 1;
+        
+        Triangular {
+            dimension,
+            data: vec.clone()
+        }
+    }
+}
+
 
 impl <T> Index<(usize, usize)> for Triangular<T> where T: Copy + Sized,
 {
@@ -103,6 +121,16 @@ impl <T> IndexMut<(usize, usize)> for Triangular<T> where T: Copy + Sized,
     fn index_mut(&mut self, index: (usize, usize)) -> &mut T {
         let offset = self.offset(index.0, index.1);
         &mut self.data[offset]
+    }
+}
+
+
+impl<T> fmt::Debug for Triangular<T>
+    where
+        T: Copy + Sized,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "(Triangular {}, [data])", self.dimension)
     }
 }
 

@@ -7,6 +7,7 @@ pub use self::class::Class;
 
 use rayon::prelude::*;
 use std::marker::Sync;
+use vectors::Triangular;
 use kernel::{Kernel, RbfKernel};
 
 
@@ -24,7 +25,7 @@ T : Kernel
     /// Number of attributes per support vector
     pub num_attributes: usize,
 
-    pub rho: Vec<f64>,
+    pub rho: Triangular<f64>,
 
     /// SVM specific data needed for classification
     pub kernel: T,

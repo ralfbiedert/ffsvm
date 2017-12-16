@@ -131,7 +131,7 @@ impl<T> fmt::Debug for SimdOptimized<T>
         T: Copy + Sized,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({}, {}, [data])", self.vectors, self.attributes)
+        write!(f, "(SimdOptimized {}, {}, [data])", self.vectors, self.attributes)
     }
 }
 

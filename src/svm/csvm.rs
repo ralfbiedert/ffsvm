@@ -4,8 +4,9 @@ use std::marker::Sync;
 use faster::{IntoPackedRefIterator, f64s};
 use itertools::zip;
 
-use random::{random_vec, Randomize, Random};
+use random::{Randomize, Random};
 use util::{find_max_index, set_all, sum_f64s, prefered_simd_size};
+use vectors::Triangular;
 use svm::{SVM, Class,PredictProblem};
 use svm::problem::Problem;
 use parser::{ModelFile};
@@ -29,7 +30,7 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
         SVM {
             num_total_sv,
             num_attributes,
-            rho: random_vec(num_classes),
+            rho: Triangular::with_dimension(num_classes, Default::default()),
             kernel: Knl::new_random(),
             classes,
         }
@@ -103,10 +104,10 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
                 }
 
                 // TODO: Double check the index for RHO if it makes sense how we traverse the classes
-                let sum = sum_f64s(simd_sum) - self.rho[p];
+                let sum = sum_f64s(simd_sum) - self.rho[(i, j)];
                 let index_to_vote = if sum > 0.0 { i } else { j };
 
-                dec_values[p] = sum;
+                dec_values[(i,j)] = sum;
                 problem.vote[index_to_vote] += 1;
 
                 p += 1;
@@ -147,7 +148,7 @@ impl <'a, 'b, Knl> TryFrom<&'a ModelFile<'b>> for SVM<Knl> where Knl: Kernel + F
             num_total_sv,
             num_attributes,
             kernel: Knl::from(raw_model),
-            rho: header.rho.clone(),
+            rho: Triangular::from(&header.rho),
             classes,
         };
 
