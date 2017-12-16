@@ -1,22 +1,22 @@
 [%header,format=csv]
 |===
-Commit,sv1024_attr1024_problems1,sv1024_attr16_problems1,sv1024_attr16_problems128,sv128_attr16_problems1,sv128_attr16_problems1024,Comment
-c113268,"1,073,971","31,443","3,410,183","4,267",,Initial version
-c113268a21,"1,033,887","31,967","3,634,116","2,980","2,850,332",Extracted classify_one into its own version
-6df50cb,"1,083,723","22,909","2,962,079","2,929","2,844,761",Removed scratchpad creation in loop (and removed classify_one)
-17b7363,"1,099,008","22,256","2,986,959","2,763","2,891,460","Explicit for loop, non-iter version"
-eafbef1,"727,193","22,179","2,950,449","2,694","3,014,605",Partial manual vectorization
-0bb8bad,"433,894","16,182","2,136,659","2,031","2,195,818",First SIMD version
-897348e,"429,576","15,899","2,104,521","2,092","2,093,678",Reworked structs for better parallelism
-03d05c9,"437,886","17,682","957,889","2,101","967,774",Using Rayon
-a7c1ace,"438,990","16,515","990,902","1,978","925,099",SIMD-ified lower loops (?? This should be faster …)
-1ef6feb,"863,804","22,627","1,299,863","2,691","1,306,680",Changed f32 to f64
-cd44f59,"465,087","17,316","1,069,814","2,234","1,093,131",After major refactoring (but likely buggy …)
-6a88c0d,"456,811","18,429","1,078,498","2,342","1,092,597",During cleanup refactoring
-1346c0f,"445,205","17,944","1,156,507","2,293","1,169,703",Now should classifiy correctly again.
-2e8d41f,"273,918","16,272","873,803","2,056","890,141","set RUSTFLAGS ""-C target-feature=+avx2"""
-e656296,"271,376","14,789","862,861","1,888","867,486",Test branch: switched back to f32
-6bb2443,"291,406","15,069","823,869","1,965","862,139","Back to f64, but set gamma to f32"
-912333,"274,085","16,041","882,246","2,012","892,663",Rustified code even more
-64110fb,"279,659","15,475","850,441","2,071","859,663",Changed to std::ops::Index
+sv1024_attr1024_prob1,sv128_attr16_prob1,sv128_attr16_prob1024,Comment
+"1,073,971","4,267",,Initial version
+"1,033,887","2,980","2,850,332",Extracted classify_one into its own version
+"1,083,723","2,929","2,844,761",Removed scratchpad creation in loop (and removed classify_one)
+"1,099,008","2,763","2,891,460","Explicit for loop, non-iter version"
+"727,193","2,694","3,014,605",Partial manual vectorization
+"433,894","2,031","2,195,818",First SIMD version
+"429,576","2,092","2,093,678",Reworked structs for better parallelism
+"437,886","2,101","967,774",Using Rayon
+"438,990","1,978","925,099",SIMD-ified lower loops (?? This should be faster …)
+"863,804","2,691","1,306,680",Changed f32 to f64
+"465,087","2,234","1,093,131",After major refactoring (but likely buggy …)
+"456,811","2,342","1,092,597",During cleanup refactoring
+"445,205","2,293","1,169,703",Now should classifiy correctly again.
+"273,918","2,056","890,141","set RUSTFLAGS ""-C target-feature=+avx2"""
+"271,376","1,888","867,486",Test branch: switched back to f32
+"291,406","1,965","862,139","Back to f64, but set gamma to f32"
+"274,085","2,012","892,663",Rustified code even more
+"279,659","2,071","859,663",Changed to std::ops::Index
 |===
