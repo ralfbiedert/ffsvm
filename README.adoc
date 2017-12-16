@@ -26,9 +26,9 @@ Numbers reported by `cargo bench` as *nanoseconds per iter*. In other words, on 
 
 I keep these numbers mostly to track my own progress over time while playing with different Rust concepts (e.g., [Rayon](https://github.com/rayon-rs/rayon) or [Faster](https://github.com/AdamNiederer/faster)).
 
-link::docs/performance[See here for details.]
+link:docs/performance{ext-relative}[See here for details.]
 
 
 # FAQ
 
-link::docs/FAQ[See here.]
+link:docs/FAQ{ext-relative}[See here for details.]
