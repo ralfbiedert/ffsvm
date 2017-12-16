@@ -18,6 +18,8 @@ pub struct Header<'a> {
     pub total_sv: u32,
     pub rho: Vec<f64>,
     pub label: Vec<u32>,
+    pub prob_a: Option<Vec<f64>>,
+    pub prob_b: Option<Vec<f64>>,
     pub nr_sv: Vec<u32>,
 }
 
@@ -77,9 +79,14 @@ named!(svm_line_vec_f64 <&str, (Vec<f64>)>,
     do_parse!( svm_string >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
 );
 
+named!(svm_line_prob_vec_f64 <&str, (Vec<f64>)>,
+    do_parse!( alt!(tag!("probA") | tag!("probB")) >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
+);
+
 named!(svm_line_vec_u32 <&str, (Vec<u32>)>,
     do_parse!( svm_string >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
 );
+
 
 named!(svm_attribute <&str, (Attribute)>,
     do_parse!(
@@ -102,17 +109,21 @@ named!(svm_header <&str, Header>,
         total_sv: svm_line_u32 >>
         rho: svm_line_vec_f64 >>
         label: svm_line_vec_u32 >>
+        prob_a: opt!(svm_line_prob_vec_f64) >>
+        prob_b: opt!(svm_line_prob_vec_f64) >>
         nr_sv: svm_line_vec_u32 >>
         (
             Header {
-                svm_type: svm_type,
-                kernel_type: kernel_type,
-                gamma: gamma,
-                nr_class: nr_class,
-                total_sv: total_sv,
-                rho: rho,
-                label: label,
-                nr_sv: nr_sv,
+                svm_type,
+                kernel_type,
+                gamma,
+                nr_class,
+                total_sv,
+                rho,
+                label,
+                prob_a,
+                prob_b,                
+                nr_sv,
             }
         )
     )
@@ -131,12 +142,12 @@ named_args!(svm_line_sv(num_coef: u32) <&str, (SupportVector)>,
     do_parse!(
         // label: map_res!(svm_string, FromStr::from_str) >>
         coefs: call!(svm_coef, num_coef) >>
-        values: many0!(preceded!(tag!(" "), svm_attribute)) >>
+        features: many0!(preceded!(tag!(" "), svm_attribute)) >>
         many0!(tag!(" ")) >>
         line_ending >>
         (SupportVector {
-            coefs: coefs,
-            features: values
+            coefs,
+            features
         })
     )
 );
@@ -153,11 +164,11 @@ named!(svm_file <&str, ModelFile>,
     do_parse!(
         header: svm_header >>
         svm_string >> line_ending >>
-        support_vectors: call!(svm_svs, header.nr_class - 1) >>
+        vectors: call!(svm_svs, header.nr_class - 1) >>
         (
             ModelFile {
-                header: header,
-                vectors: support_vectors,
+                header,
+                vectors,
             }
         )
     )

@@ -19,6 +19,12 @@ pub struct Problem {
 
     /// Decision values.
     pub decision_values: Triangular<f64>,
+    
+    /// Pairwise probabilities 
+    pub pairwise: SimdOptimized<f64>,
+
+    /// Pairwise probabilities 
+    pub probabilities: Vec<f64>,
 
     /// Computed label. This is what we update eventually.
     pub label: u32,
@@ -35,12 +41,13 @@ impl Problem {
         Problem {
             features: vec![Default::default(); preferred_attributes],
             kernel_values: SimdOptimized::with_dimension(num_classes, total_sv, Default::default()),
+            pairwise: SimdOptimized::<f64>::with_dimension(num_classes, num_classes, Default::default()),
             decision_values: Triangular::with_dimension(num_classes, Default::default()),
             vote: vec![Default::default(); num_classes],
+            probabilities: vec![Default::default(); num_classes],
             label: 0,
         }
     }
-
 }
 
 

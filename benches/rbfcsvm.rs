@@ -28,7 +28,7 @@ mod benchmarks {
 
     #[bench]
     fn csvm_predict_aaa_t(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 3000, 8, 40));
+        b.iter(produce_testcase(2, 1500, 8, 30));
     }
 
     #[bench]

@@ -14,6 +14,13 @@ use kernel::{Kernel, RbfKernel};
 pub type RbfCSVM = SVM<RbfKernel>;
 
 
+#[derive(Debug)]
+pub struct Probabilities {
+    a: Triangular<f64>,
+    
+    b: Triangular<f64>,
+}
+
 /// Core support vector machine
 #[derive(Debug)]
 pub struct SVM<T> where
@@ -26,7 +33,9 @@ T : Kernel
     pub num_attributes: usize,
 
     pub rho: Triangular<f64>,
-
+    
+    pub probabilities: Option<Probabilities>,
+    
     /// SVM specific data needed for classification
     pub kernel: T,
 
@@ -41,8 +50,12 @@ pub trait PredictProblem where Self : Sync
 {
     /// Predict a single value for a problem.
     fn predict_value(&self, &mut Problem);
-
     
+
+    // TODO
+    fn predict_probability(&self, &mut Problem);
+
+
     /// Predicts all values for a set of problems.
     fn predict_values(&self, problems: &mut [Problem]) {
 
@@ -52,6 +65,8 @@ pub trait PredictProblem where Self : Sync
         );
     }
 }
+
+
 
 
 
