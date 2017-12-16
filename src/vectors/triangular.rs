@@ -21,15 +21,15 @@ pub struct Triangular<T>
     /// Width and height of the matrix 
     pub dimension: usize,
     
-    /// Actual data
+    /// Actual data, see comment above for how indices are stored.
     pub data: Vec<T>,
 }
 
 
 
-
 impl <T> Triangular<T> where T: Copy + Sized,
 {
+    
     /// Creates a triangular with the given dimension.
     pub fn with_dimension(dimension: usize, default: T) -> Triangular<T> {
         let len = (dimension * (dimension - 1)) / 2;
@@ -45,9 +45,9 @@ impl <T> Triangular<T> where T: Copy + Sized,
         debug_assert!(i < j);
         debug_assert!(i < self.dimension);
         debug_assert!(j < self.dimension);
-
+        
         //    j --->
-        //       0   1   2   3   4
+        //       0   1   2   3   4  // n = 5
         //  i 0      x   x   x   x
         //  | 1          x   x   x
         //  v 2              x   x
@@ -58,19 +58,26 @@ impl <T> Triangular<T> where T: Copy + Sized,
         // 0,3 -> 2
         // 2,3 -> 5
 
-        // base i:2 ==  (n-1) + (n-2) + ... + (n - j)
-        //          ==  i*n + (-1 + -2 + ... + -j)
+        // base i:2 ==  (n-1) + (n-2) + ... + (n - i)
+        //          ==  i*n + (-1 + -2 + ... + -i)
         //          ==  i*n - 1/2i (i+1)
-
-        // for j = 2 ... 1 2       == 3
-        // for j = 3 ... 1 2 3     == 6
-        // for j = 4 ... 1 2 3 4   == 10
-        // for j = 5 ... 1 2 3 4 5 == 15
-        // x = 1/2 j (j+1)
         
+        // i*2
+        // for i = 2 ... 1 2       == 3
+        // for i = 3 ... 1 2 3     == 6
+        // for i = 4 ... 1 2 3 4   == 10
+        // for i = 5 ... 1 2 3 4 5 == 15
+        // x = (i * i + i) / 2
         
+        // i:1, j:4
+        // (n - 1) 
+        
+        // The vast majority of calculations we do will be i == 0. Fast pass.
         if i == 0 { return j - 1; }
-        let last_index = i * self.dimension - (i / 2) * (i + 1);
+        
+        // We're doing (i*i+i)/2 instead of i/2*(i+1) to prevent math errors.
+        // Pro tip: don't write a function like this in the middle of the night ...
+        let last_index = (i * self.dimension ) - (i*i+i)/2;
 
         last_index + (j - i - 1)
     }
@@ -79,22 +86,22 @@ impl <T> Triangular<T> where T: Copy + Sized,
 
 
 
-impl <T> Index<usize> for Triangular<T> where T: Copy + Sized,
+impl <T> Index<(usize, usize)> for Triangular<T> where T: Copy + Sized,
 {
     type Output = T;
 
-    fn index(&self, index: usize) -> &T {
-        let offset = self.offset(index, 0);
+    fn index(&self, index: (usize, usize)) -> &T {
+        let offset = self.offset(index.0, index.1);
         &self.data[offset]
     }
 }
 
 
 
-impl <T> IndexMut<usize> for Triangular<T> where T: Copy + Sized,
+impl <T> IndexMut<(usize, usize)> for Triangular<T> where T: Copy + Sized,
 {
-    fn index_mut(&mut self, index: usize) -> &mut T {
-        let offset = self.offset(index, 0);
+    fn index_mut(&mut self, index: (usize, usize)) -> &mut T {
+        let offset = self.offset(index.0, index.1);
         &mut self.data[offset]
     }
 }
@@ -106,11 +113,31 @@ mod tests {
     use vectors::triangular::Triangular;
 
     #[test]
-    fn test_index() {
+    fn test_offset() {
         let matrix = Triangular::with_dimension(4, 0);
 
         assert_eq!(matrix.offset(0,1), 0);
         assert_eq!(matrix.offset(0,3), 2);
         assert_eq!(matrix.offset(2,3), 5);
+
+        
+        let matrix = Triangular::with_dimension(5, 0);
+
+        assert_eq!(matrix.offset(0,1), 0);
+        assert_eq!(matrix.offset(1,4), 6);
+        assert_eq!(matrix.offset(2,3), 7);
+        assert_eq!(matrix.offset(3,4), 9);
+        
     }
+
+
+    #[test]
+    fn test_index() {
+        let mut matrix = Triangular::with_dimension(5, 0);
+
+        matrix[(2,3)] = 667;
+        
+        assert_eq!(matrix.data[7], 667);
+    }
+    
 }
