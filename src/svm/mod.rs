@@ -48,17 +48,17 @@ T : Kernel
 /// Predict a problem. 
 pub trait PredictProblem where Self : Sync
 {
+    
     /// Predict a single value for a problem.
     fn predict_value(&self, &mut Problem);
     
-
-    // TODO
+    
+    /// Predict a probability value for a problem.
     fn predict_probability(&self, &mut Problem);
 
 
     /// Predicts all values for a set of problems.
     fn predict_values(&self, problems: &mut [Problem]) {
-
         // Compute all problems ...
         problems.par_iter_mut().for_each(|problem|
             self.predict_value(problem)

@@ -4,7 +4,7 @@ use std::slice;
 use std::ptr::{null_mut};
 use std::convert::TryFrom;
 
-use svm::{RbfCSVM, Problem};
+use svm::{RbfCSVM, Problem, PredictProblem};
 use parser::ModelFile;
 
 
@@ -12,11 +12,14 @@ use parser::ModelFile;
 enum Errors {
     Ok = 0,
     NullPointerPassed = -1,
-    NoValidUTF8 = -10,
+    NoValidUTF8 = -2,
     ModelParseError = -20,
     SVMCreationError = -30,
     SVMNoModel = -31,
+    SVMModelAlreadyLoaded = -32,
     ProblemPoolTooSmall = -40,
+    ProblemLengthNotMultipleOfAttributes = -41,
+    LabelLengthDoesNotEqualProblems = -42,
 }
 
 
@@ -97,7 +100,7 @@ pub extern fn ffsvm_load_model(context_ptr: *mut Context, model_c_ptr: *const c_
 
 
 #[no_mangle]
-pub extern fn ffsvm_set_max_problems(context_ptr: *mut Context, max_problems: usize) -> i32 {
+pub extern fn ffsvm_set_max_problems(context_ptr: *mut Context, max_problems: u32) -> i32 {
     if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
 
 
@@ -106,12 +109,8 @@ pub extern fn ffsvm_set_max_problems(context_ptr: *mut Context, max_problems: us
     };
     
     match &context.model {
-        &None => { return Errors::SVMNoModel as i32; }
-        &Some(ref model) => {
-            let svm = model.as_ref();
-            context.max_problems = max_problems;
-            context.problems = (0 .. max_problems).map(|_| Problem::from(svm)).collect();
-        }
+        &None => { context.max_problems = max_problems as usize; }
+        &Some(_) => { return Errors::SVMModelAlreadyLoaded as i32; }
     }
 
     Errors::Ok as i32
@@ -120,7 +119,7 @@ pub extern fn ffsvm_set_max_problems(context_ptr: *mut Context, max_problems: us
 
 
 #[no_mangle]
-pub extern fn ffsvm_predict_values(context_ptr: *mut Context, features_ptr: *mut f32, features_len: usize, labels_ptr: *mut u32, labels_len: u32) -> i32 {
+pub extern fn ffsvm_predict_values(context_ptr: *mut Context, features_ptr: *mut f32, features_len: u32, labels_ptr: *mut u32, labels_len: u32) -> i32 {
     if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
     if features_ptr.is_null() { return Errors::NullPointerPassed as i32; }
     if labels_ptr.is_null() { return Errors::NullPointerPassed as i32; }
@@ -131,20 +130,52 @@ pub extern fn ffsvm_predict_values(context_ptr: *mut Context, features_ptr: *mut
     };
     
     let features = unsafe {
-        slice::from_raw_parts(features_ptr, features_len)
+        slice::from_raw_parts(features_ptr, features_len as usize)
+    };
+
+    let labels = unsafe {
+        slice::from_raw_parts_mut(labels_ptr, labels_len as usize)
     };
     
-
-    match &context.model {
+    let svm = match &context.model {
         &None => { return Errors::SVMNoModel as i32; }
-        &Some(ref model) => {
-            let svm = model.as_ref();
-            
-//            let ptr_size = num_problems * svm.num_attributes; 
-        }
+        &Some(ref model) => { model.as_ref() }
+    };
+    
+    // Make sure the pointers have the right length
+    let num_problems = match features.len() % svm.num_attributes {
+        0 => { features.len() / svm.num_attributes }
+        _ => { return Errors::ProblemLengthNotMultipleOfAttributes as i32; }
+    };
+    
+    if num_problems > context.max_problems {
+        return Errors::ProblemPoolTooSmall as i32;
     }
 
+    if num_problems != labels_len as usize {
+        return Errors::LabelLengthDoesNotEqualProblems as i32;
+    }
 
+    let problems = &mut context.problems;
+    let num_attributes = svm.num_attributes;
+    
+    // Copy features to respective problems 
+    for i in 0 .. num_problems {
+        let this_problem = &features[i*num_attributes .. (i+1)*num_attributes];
+        
+        // Internal problem length can be longer than given one due to SIMD alignment.  
+        for p in 0 .. num_attributes {
+            problems[i].features[p] = this_problem[p];    
+        }
+    }
+    
+    // Predict values for given slice of actually used real problems.
+    svm.predict_values(&mut problems[0..num_problems]);
+    
+    // And store the results
+    for i in 0 .. num_problems {
+        labels[i] = problems[i].label
+    }
 
     Errors::Ok as i32
 }
