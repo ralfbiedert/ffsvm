@@ -1,5 +1,7 @@
 :ext-relative: {outfilesuffix}
 
+image:https://travis-ci.org/TobiiTechnology/SkylinkJS.svg?branch=master["Build Status", link="https://travis-ci.org/TobiiTechnology/SkylinkJS"]
+
 = Highlights
 
 * can load trained https://github.com/cjlin1/libsvm[libSVM] models (currently binary RBF-CSVM without sparse attributes)
