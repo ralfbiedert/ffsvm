@@ -69,9 +69,9 @@ impl<T> SimdOptimized<T>
     /// Sets a vector with the given data.
     pub fn set_vector(&mut self, index_vector: usize, vector: &[T]) {
         let start_index = self.offset(index_vector, 0);
-        for i in 0..self.attributes {
-            self.data[start_index + i] = vector[i];
-        }
+        let src = &vector[..self.attributes];
+        
+        self.data[start_index..(self.attributes + start_index)].clone_from_slice(src);
     }
 
     /// Computes an offset for a vector and attribute. 
