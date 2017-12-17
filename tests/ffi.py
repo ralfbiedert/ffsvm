@@ -44,7 +44,8 @@ features = [
 # Load the lib
 C = ffi.dlopen("../target/release/libffsvm.dylib");
 
-# Some test calls
+# Some test calls ... All functions return 0 if
+# successful, or <0 if not. Error checking skipped here.
 C.ffsvm_test(667);
 C.ffsvm_context_create(ptr);
 C.ffsvm_set_max_problems(ptr[0], 100);
