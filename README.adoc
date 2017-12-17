@@ -10,10 +10,10 @@ image:https://img.shields.io/badge/fancy%20badges-all%20of%20them-ff69b4.svg["SI
 
 = Highlights
 
-* [x] can load trained https://github.com/cjlin1/libsvm[libSVM] models (currently binary RBF-CSVM without sparse attributes)
-* [x] optimized for SIMD (using https://github.com/AdamNiederer/faster[Faster]) and threading (using https://github.com/rayon-rs/rayon[Rayon])
-* [x] allocation-free during classification
-* [x] much faster than `libsvm`
+* can load trained https://github.com/cjlin1/libsvm[libSVM] models (currently binary RBF-CSVM without sparse attributes)
+* optimized for SIMD (using https://github.com/AdamNiederer/faster[Faster]) and threading (using https://github.com/rayon-rs/rayon[Rayon])
+* allocation-free during classification
+* much faster than `libsvm`
 
 
 = Principal Usage
