@@ -20,16 +20,12 @@ From Rust:
 [source,rust]
 ----
 
-// Get your libSVM model string from wherever ...
+// Get your libSVM model string from wherever and parse it.
 let model_str: &str = include_str!("model.libsvm");
-
-// Parse the string into a 'raw model' in memory.
 let model = ModelFile::try_from(model_str).unwrap();
 
-// Produce actual SVM from raw model
+// Produce actual SVM from raw model, and a problem
 let csvm = RbfCSVM::try_from(&model).unwrap();
-
-// Create 'problem' for this SVM
 let mut problem = Problem::from(&csvm);
 
 // Set the features of this problem we want to classify
