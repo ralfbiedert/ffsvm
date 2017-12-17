@@ -1,7 +1,7 @@
-use libc::{c_char, uint32_t};
+use libc::{c_char};
 use std::ffi::CStr;
 use std::slice;
-use std::ptr::{null_mut};
+use std::ptr::null_mut;
 use std::convert::TryFrom;
 
 use svm::{RbfCSVM, Problem, PredictProblem};
@@ -31,6 +31,7 @@ pub struct Context {
     problems: Vec<Problem>,
 }
 
+/// Tests if FFI works. 
 #[no_mangle]
 pub extern fn ffsvm_test(value: i32) -> i32 {
     println!("Function ffsvm_test({}); called. If you can read this, it works.", value);
@@ -38,6 +39,10 @@ pub extern fn ffsvm_test(value: i32) -> i32 {
 }
 
 
+/// Creates a context we need for operations. 
+/// 
+/// Although FFSVM uses threading internally, this context may only be used
+/// from a single thread by yourself!
 #[no_mangle]
 pub extern fn ffsvm_context_create(context_ptr: *mut *mut Context) -> i32 {
     if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
@@ -58,6 +63,10 @@ pub extern fn ffsvm_context_create(context_ptr: *mut *mut Context) -> i32 {
     Errors::Ok as i32
 }
 
+
+/// Loads a model into the given context.
+///
+/// The model must be passed as a `0x0` terminated C-string.   
 #[no_mangle]
 pub extern fn ffsvm_load_model(context_ptr: *mut Context, model_c_ptr: *const c_char) -> i32 {
     if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
@@ -98,7 +107,16 @@ pub extern fn ffsvm_load_model(context_ptr: *mut Context, model_c_ptr: *const c_
 
 
 
-
+/// Sets the maximum number of problems we process at the same time. 
+/// 
+/// Must be called [b]before[/b] the model is loaded.  
+///
+/// If you set this very low, you may not classify many problems at the same time and might
+/// have to make multiple classification calls, increasing overhead.
+///
+/// If you set this too high, this lib will allocate unused resources. Each [i]problem slot[/i] 
+/// roughly consumes `n*(m+1) + m*m` floats, where `n` is the number of total support vectors of 
+/// the loaded model and `m` is the number of classes.         
 #[no_mangle]
 pub extern fn ffsvm_set_max_problems(context_ptr: *mut Context, max_problems: u32) -> i32 {
     if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
@@ -117,7 +135,7 @@ pub extern fn ffsvm_set_max_problems(context_ptr: *mut Context, max_problems: u3
 }
 
 
-
+/// Given a number of problems (features), predict their classes with the current model.   
 #[no_mangle]
 pub extern fn ffsvm_predict_values(context_ptr: *mut Context, features_ptr: *mut f32, features_len: u32, labels_ptr: *mut u32, labels_len: u32) -> i32 {
     if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
@@ -181,13 +199,24 @@ pub extern fn ffsvm_predict_values(context_ptr: *mut Context, features_ptr: *mut
 }
 
 
+
+/// Destroy the given context. 
 #[no_mangle]
 pub extern fn ffsvm_context_destroy(context_ptr: *mut *mut Context) -> i32 {
     if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
 
-    let context = unsafe {
-        Box::from_raw(*context_ptr)
+    
+    // This claims ownership of the context box, and once the scope {} ends,
+    // destroys it.
+    unsafe {
+        Box::from_raw(*context_ptr);
     };
+    
+    // We put this in a separate block to be sure the Box above is actually
+    // destroyed when it leaves the unsafe { } scope above. Might be supersition.
+    unsafe {
+        *context_ptr = null_mut();
+    }
     
     Errors::Ok as i32
 }
