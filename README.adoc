@@ -1,6 +1,7 @@
 :ext-relative: {outfilesuffix}
 
 image:https://travis-ci.org/ralfbiedert/ffsvm-rust.svg?branch=master["Build Status", link="https://travis-ci.org/ralfbiedert/ffsvm-rust"]
+image:https://img.shields.io/badge/license-BSD-blue.svg["License", link="LICENSE"]
 
 = Highlights
 
