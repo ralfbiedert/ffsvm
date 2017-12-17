@@ -15,6 +15,57 @@ image:https://img.shields.io/badge/license-MIT-blue.svg["License", link="LICENSE
 
 Train with https://github.com/cjlin1/libsvm[libSVM] (e.g., using the tool `svm-train`), then classify with `ffsvm-rust`.
 
+From Rust:
+
+[source,rust]
+----
+
+// Get your libSVM model string from wherever ...
+let model_str: &str = include_str!("model.libsvm");
+
+// Parse the string into a 'raw model' in memory.
+let model = ModelFile::try_from(model_str).unwrap();
+
+// Produce actual SVM from raw model
+let csvm = RbfCSVM::try_from(&model).unwrap();
+
+// Create 'problem' for this SVM
+let mut problem = Problem::from(&csvm);
+
+// Set the features of this problem we want to classify
+problem.features = vec![ 0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.0, 0.0, 1.0, 0.1137485, 0f32, 0f32, 0f32, 0f32, 0f32, 0f32 ];
+
+// Classify the problem
+// (We also have methods to classify multiple at once w. Rayon ...)
+csvm.predict_value(&mut problem);
+
+// Results should match libSVM
+assert_eq!(0, problem.label);
+----
+
+From C / FFI:
+
+[source,c]
+----
+// Create a context (which holds our SVM)
+ffsvm_context_create(&context);
+
+// Set how many problems we will classify at most in parallel
+ffsvm_set_max_problems(context, 100);
+
+// Load the model from a string (model is char[])
+ffsvm_load_model(context, model);
+
+// Classify (features is float[], problem_labels is int[])
+ffsvm_predict_values(context, features, total_features, problem_labels, num_problems);
+
+// Clean up once done
+ffsvm_context_destroy(&context);
+
+----
+
+link:tests/ffi.py[Also see the Python FFI example.]
+
 
 = Status
 
