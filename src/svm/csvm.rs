@@ -185,7 +185,7 @@ impl <'a, 'b, Knl> TryFrom<&'a ModelFile<'b>> for SVM<Knl> where Knl: Kernel + F
 
                 // Set coefficients
                 for (i_coefficient, coefficient) in vector.coefs.iter().enumerate() {
-                    svm.classes[i].coefficients[(i_coefficient, i_vector)] = *coefficient as f64;
+                    svm.classes[i].coefficients[(i_coefficient, i_vector)] = f64::from(*coefficient);
                 }
             }
 
@@ -194,7 +194,7 @@ impl <'a, 'b, Knl> TryFrom<&'a ModelFile<'b>> for SVM<Knl> where Knl: Kernel + F
         }
 
         // Return what we have
-        return Result::Ok(svm);
+        Result::Ok(svm)
     }
 
 }
