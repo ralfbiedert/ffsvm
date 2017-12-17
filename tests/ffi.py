@@ -25,15 +25,15 @@ ffi.cdef("""
 """);
 
 num_features = 10
-num_labels = 2
+num_problems = 2
 
-total_features = num_labels * num_features
+total_features = num_problems * num_features
 
 # Will hold our context
 ptr = ffi.new("void**");
 model = ffi.new("char[]", raw_model);
 features = ffi.new("float[]", [0] * total_features);
-labels = ffi.new("int[]", [667] * num_labels);
+problem_labels = ffi.new("int[]", [667] * num_problems);
 
 # Features is flat array, just set data vector by vector
 features = [
@@ -49,11 +49,11 @@ C.ffsvm_test(667);
 C.ffsvm_context_create(ptr);
 C.ffsvm_set_max_problems(ptr[0], 100);
 C.ffsvm_load_model(ptr[0], model);
-C.ffsvm_predict_values(ptr[0], features, total_features, labels, num_labels);
+C.ffsvm_predict_values(ptr[0], features, total_features, problem_labels, num_problems);
 C.ffsvm_context_destroy(ptr);
 
 # This is how things should be classified
-assert labels[0] == 0
-assert labels[1] == 1
+assert problem_labels[0] == 0
+assert problem_labels[1] == 1
 
 print("FFI used successfully!")
