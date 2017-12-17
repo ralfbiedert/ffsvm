@@ -6,6 +6,9 @@ publish = false
 readme = "README.md"
 categories = ["science", "algorithms"]
 license = "BSD-2-Clause"
+exclude = [
+    "docs/*",
+]
 
 
 [dependencies]
