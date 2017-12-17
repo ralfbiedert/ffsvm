@@ -2,6 +2,8 @@
 
 image:https://travis-ci.org/ralfbiedert/ffsvm-rust.svg?branch=master["Build Status", link="https://travis-ci.org/ralfbiedert/ffsvm-rust"]
 image:https://img.shields.io/badge/license-MIT-blue.svg["License", link="LICENSE"]
+image:https://img.shields.io/badge/SIMD-enabled-brightgreen.svg["SIMD enabled", link="docs/performance{ext-relative}"]
+
 
 = Highlights
 
