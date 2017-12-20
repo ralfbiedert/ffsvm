@@ -21,6 +21,7 @@ enum Errors {
     ProblemLengthNotMultipleOfAttributes = -41,
     LabelLengthDoesNotEqualProblems = -42,
     ProbabilitiesDoesNotEqualProblemsXAttributes = -43,
+    LabelLengthDoesNotMatchClassesLength = -50,
 }
 
 
@@ -67,7 +68,7 @@ pub unsafe extern fn ffsvm_context_create(context_ptr: *mut *mut Context) -> i32
 ///
 /// The model must be passed as a `0x0` terminated C-string.   
 #[no_mangle]
-pub unsafe extern fn ffsvm_load_model(context_ptr: *mut Context, model_c_ptr: *const c_char) -> i32 {
+pub unsafe extern fn ffsvm_model_load(context_ptr: *mut Context, model_c_ptr: *const c_char) -> i32 {
     if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
     if model_c_ptr.is_null() { return Errors::NullPointerPassed as i32; }
 
@@ -246,6 +247,38 @@ pub unsafe extern fn ffsvm_predict_probabilities(context_ptr: *mut Context, feat
 
     Errors::Ok as i32
 }
+
+
+
+
+/// Given a number of problems (features), predict their classes with the current model.   
+#[no_mangle]
+pub unsafe extern fn ffsvm_model_get_labels(context_ptr: *mut Context, labels_ptr: *mut u32, labels_len: u32) -> i32 {
+    if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
+    if labels_ptr.is_null() { return Errors::NullPointerPassed as i32; }
+
+    let context = &mut *context_ptr;
+    let labels = slice::from_raw_parts_mut(labels_ptr, labels_len as usize);
+
+
+    let svm = match context.model {
+        None => { return Errors::SVMNoModel as i32; }
+        Some(ref model) => { model.as_ref() }
+    };
+
+ 
+    if labels_len != svm.classes.len() as u32 {
+        return Errors::LabelLengthDoesNotMatchClassesLength as i32;
+    }
+
+    for i in 0 .. svm.classes.len() {
+        labels[i] = svm.classes[i].label;
+    }
+
+    Errors::Ok as i32
+}
+
+
 
 
 /// Destroy the given context. 
