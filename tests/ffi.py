@@ -19,7 +19,8 @@ ffi.cdef("""
 
     int ffsvm_context_create(void**);
     int ffsvm_set_max_problems(void*, unsigned int);
-    int ffsvm_load_model(void*, char*);
+    int ffsvm_model_load(void*, char*);
+    int ffsvm_model_get_labels(void*, int*, unsigned int);
     int ffsvm_predict_values(void*, float*, unsigned int, int*, unsigned int);
     int ffsvm_predict_probabilities(void*, float*, unsigned int, float*, unsigned int);
     int ffsvm_context_destroy(void**);
@@ -38,6 +39,7 @@ model = ffi.new("char[]", raw_model);
 features = ffi.new("float[]", [0] * total_features);
 problem_labels = ffi.new("int[]", [667] * num_problems);
 problem_probs = ffi.new("float[]", [667] * total_probs);
+labels = ffi.new("int[]", [667] * num_classes);
 
 
 # Features is flat array, just set data vector by vector
@@ -54,7 +56,8 @@ C = ffi.dlopen("../target/release/libffsvm.dylib");
 C.ffsvm_test(667);
 C.ffsvm_context_create(ptr);
 C.ffsvm_set_max_problems(ptr[0], 100);
-C.ffsvm_load_model(ptr[0], model);
+C.ffsvm_model_load(ptr[0], model);
+C.ffsvm_model_get_labels(ptr[0], labels, num_classes);
 C.ffsvm_predict_values(ptr[0], features, total_features, problem_labels, num_problems);
 C.ffsvm_predict_probabilities(ptr[0], features, total_features, problem_probs, total_probs);
 C.ffsvm_context_destroy(ptr);
@@ -65,6 +68,10 @@ assert problem_labels[1] == 1
 
 # Technically all of them will be 0 since the actual model didn't have probabilities baked in
 assert problem_probs[0] == 0
+
+# Labels in array should match model labels as indices
+assert labels[0] == 0
+assert labels[1] == 1
 
 
 print("FFI used successfully!")
