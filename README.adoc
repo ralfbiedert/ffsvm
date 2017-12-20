@@ -33,11 +33,10 @@ let model = ModelFile::try_from(model_str).unwrap();
 let csvm = RbfCSVM::try_from(&model).unwrap();
 let mut problem = Problem::from(&csvm);
 
-// Set the features of this problem we want to classify
-problem.features = vec![ 0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.0, 0.0, 1.0, 0.1137485, 0f32, 0f32, 0f32, 0f32, 0f32, 0f32 ];
+// Set the features of this problem we want to classify.
+problem.features = vec![ 0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.1137485 ];
 
-// Classify the problem
-// (We also have methods to classify multiple at once w. Rayon ...)
+// (We also have methods to classify multiple in parallel w. Rayon ...)
 csvm.predict_value(&mut problem);
 
 // Results should match libSVM
