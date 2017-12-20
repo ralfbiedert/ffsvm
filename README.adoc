@@ -48,6 +48,7 @@ From C / FFI:
 
 [source,c]
 ----
+
 // Create a context (which holds our SVM)
 ffsvm_context_create(&context);
 
@@ -55,10 +56,16 @@ ffsvm_context_create(&context);
 ffsvm_set_max_problems(context, 100);
 
 // Load the model from a string (model is char[])
-ffsvm_load_model(context, model);
+ffsvm_model_load(context, model);
+
+// Get the labels of the SVM model (useful for predicting probabilities that don't return labels)
+ffsvm_model_get_labels(void*, int*, unsigned int);
 
 // Classify (features is float[], problem_labels is int[])
 ffsvm_predict_values(context, features, total_features, problem_labels, num_problems);
+
+// Classify and predict probabilities.
+ffsvm_predict_probabilities(void*, float*, unsigned int, float*, unsigned int);
 
 // Clean up once done
 ffsvm_context_destroy(&context);
