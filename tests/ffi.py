@@ -21,19 +21,24 @@ ffi.cdef("""
     int ffsvm_set_max_problems(void*, unsigned int);
     int ffsvm_load_model(void*, char*);
     int ffsvm_predict_values(void*, float*, unsigned int, int*, unsigned int);
+    int ffsvm_predict_probabilities(void*, float*, unsigned int, float*, unsigned int);
     int ffsvm_context_destroy(void**);
 """);
 
 num_features = 10
 num_problems = 2
+num_classes = 2
 
 total_features = num_problems * num_features
+total_probs = num_problems * num_classes
 
 # Will hold our context
 ptr = ffi.new("void**");
 model = ffi.new("char[]", raw_model);
 features = ffi.new("float[]", [0] * total_features);
 problem_labels = ffi.new("int[]", [667] * num_problems);
+problem_probs = ffi.new("float[]", [667] * total_probs);
+
 
 # Features is flat array, just set data vector by vector
 features = [
@@ -51,10 +56,15 @@ C.ffsvm_context_create(ptr);
 C.ffsvm_set_max_problems(ptr[0], 100);
 C.ffsvm_load_model(ptr[0], model);
 C.ffsvm_predict_values(ptr[0], features, total_features, problem_labels, num_problems);
+C.ffsvm_predict_probabilities(ptr[0], features, total_features, problem_probs, total_probs);
 C.ffsvm_context_destroy(ptr);
 
 # This is how things should be classified
 assert problem_labels[0] == 0
 assert problem_labels[1] == 1
+
+# Technically all of them will be 0 since the actual model didn't have probabilities baked in
+assert problem_probs[0] == 0
+
 
 print("FFI used successfully!")

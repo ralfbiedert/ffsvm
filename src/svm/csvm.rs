@@ -205,8 +205,11 @@ impl <Knl> PredictProblem for SVM<Knl> where Knl: Kernel + Random + Sync
     fn predict_probability(&self, problem: &mut Problem) {
         const MIN_PROB : f64 = 1e-7;
 
-        // Ensure we have probabilities set. If not, there is nothing to do
-        if self.probabilities.is_none() { return; }
+        // Ensure we have probabilities set. If not, somebody used us the wrong way
+        if self.probabilities.is_none() {
+            // TODO: Better error handling since this occurred a few times for me.  
+            return;
+        }
         
         let num_classes = self.classes.len();
         let probabilities = self.probabilities.as_ref().unwrap();
@@ -229,14 +232,13 @@ impl <Knl> PredictProblem for SVM<Knl> where Knl: Kernel + Random + Sync
             }
         }
         
-        
         if num_classes == 2 {
             problem.probabilities[0] = problem.pairwise[(0, 1)];
             problem.probabilities[1] = problem.pairwise[(1, 0)];
         } else {
             unimplemented!("Only supporting 2 classes right now.")
         }
-        
+
         let max_index = find_max_index(problem.probabilities.as_slice());
         problem.label = self.classes[max_index].label;
     }

@@ -20,6 +20,7 @@ enum Errors {
     ProblemPoolTooSmall = -40,
     ProblemLengthNotMultipleOfAttributes = -41,
     LabelLengthDoesNotEqualProblems = -42,
+    ProbabilitiesDoesNotEqualProblemsXAttributes = -43,
 }
 
 
@@ -181,6 +182,70 @@ pub unsafe extern fn ffsvm_predict_values(context_ptr: *mut Context, features_pt
     Errors::Ok as i32
 }
 
+
+
+
+/// Given a number of problems (features), predict their classes with the current model.   
+#[no_mangle]
+pub unsafe extern fn ffsvm_predict_probabilities(context_ptr: *mut Context, features_ptr: *mut f32, features_len: u32, probabilities_ptr: *mut f32, probabilities_len: u32) -> i32 {
+    if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
+    if features_ptr.is_null() { return Errors::NullPointerPassed as i32; }
+    if probabilities_ptr.is_null() { return Errors::NullPointerPassed as i32; }
+
+
+    let context = &mut *context_ptr;
+    let features = slice::from_raw_parts(features_ptr, features_len as usize);
+    let probabilities = slice::from_raw_parts_mut(probabilities_ptr, probabilities_len as usize);
+
+
+    let svm = match context.model {
+        None => { return Errors::SVMNoModel as i32; }
+        Some(ref model) => { model.as_ref() }
+    };
+
+    // Make sure the pointers have the right length
+    let num_problems = match features.len() % svm.num_attributes {
+        0 => { features.len() / svm.num_attributes }
+        _ => { return Errors::ProblemLengthNotMultipleOfAttributes as i32; }
+    };
+
+    if num_problems > context.max_problems {
+        return Errors::ProblemPoolTooSmall as i32;
+    }
+    
+    
+    if probabilities_len != (num_problems * svm.classes.len()) as u32 {
+        return Errors::ProbabilitiesDoesNotEqualProblemsXAttributes as i32;
+    }
+    
+    let problems = &mut context.problems;
+    let num_attributes = svm.num_attributes;
+
+    // Copy features to respective problems 
+    for i in 0 .. num_problems {
+        let this_problem = &features[i*num_attributes .. (i+1)*num_attributes];
+        let src = &this_problem[..num_attributes];
+
+        // Internal problem length can be longer than given one due to SIMD alignment.
+        problems[i].features[..num_attributes].clone_from_slice(src);
+    }
+
+    
+    // Predict values for given slice of actually used real problems.
+    svm.predict_probabilities(&mut problems[0..num_problems]);
+    
+    let mut ptr = 0;
+    
+    // And store the results
+    for i in 0 .. num_problems {
+        for j in 0 .. svm.classes.len() {
+            probabilities[ptr] = problems[i].probabilities[j] as f32;
+            ptr += 1;
+        }
+    }
+
+    Errors::Ok as i32
+}
 
 
 /// Destroy the given context. 
