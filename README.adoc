@@ -7,6 +7,11 @@ image:https://img.shields.io/badge/threading-rayon-orange.svg["SIMD enabled", li
 image:https://img.shields.io/badge/fancy%20badges-all%20of%20them-ff69b4.svg["SIMD enabled", link="https://shields.io"]
 
 
+= In One Sentence
+
+You trained a non-sparse RBF-C-SVM using https://github.com/cjlin1/libsvm[libSVM], now you want the highest possible performance during (real-time) classification, like games or VR.
+
+
 
 = Highlights
 
@@ -14,6 +19,7 @@ image:https://img.shields.io/badge/fancy%20badges-all%20of%20them-ff69b4.svg["SI
 * optimized for SIMD (using https://github.com/AdamNiederer/faster[Faster]) and threading (using https://github.com/rayon-rs/rayon[Rayon])
 * allocation-free during classification
 * much faster than `libsvm`
+
 
 
 = Principal Usage
