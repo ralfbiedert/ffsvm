@@ -1,13 +1,11 @@
 use std::convert::From;
 use faster::{IntoPackedRefIterator, f32s, IntoPackedZip, PackedZippedIterator, PackedIterator, Packed};
-use itertools::zip;
 
 use kernel::Kernel;
 use parser::ModelFile;
 use vectors::SimdOptimized;
 use random::Random;
 use rand::random;
-use util;
 
 
 pub struct RbfKernel {
@@ -23,27 +21,16 @@ impl Kernel for RbfKernel {
         // CPU time is spent in this loop.
         for (i, sv) in vectors.into_iter().enumerate() {
 
-            let ss1 = (sv.simd_iter(), feature.simd_iter()).zip()
+            let sum = (sv.simd_iter(), feature.simd_iter()).zip()
                 .simd_map(|(a,b)| (a - b) * (a - b))
                 .simd_reduce(f32s::splat(0.0), f32s::splat(0.0), |a, v| a + v)
                 .sum();
 
-            
           
-//            .simd_map(|(a, b)| {
-//                (a - b) * (a - b)  
-//            });
-            
-//            // SIMD computation of values
-//            for (x, y) in zip() {
-//                let d = x - y;
-//                simd_sum = simd_sum + d * d;
-//            }
-
             // This seems to be the single-biggest CPU spike: saving back kernel_values,
             // and computing exp() (saving back seems to have 3x time impact over exp(),
             // but I might misread "Instruments" for that particular one).
-            kernel_values[i] = f64::from((-self.gamma * ss1).exp());
+            kernel_values[i] = f64::from((-self.gamma * sum).exp());
         }
     }
 }

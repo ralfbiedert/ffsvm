@@ -1,6 +1,5 @@
 use vectors::{SimdOptimized, Triangular};
 use svm::SVM;
-use util;
 use kernel::Kernel;
 use random::{Randomize, random_vec};
 
@@ -36,10 +35,9 @@ pub struct Problem {
 impl Problem {
     /// Creates a new problem with the given parameters.
     pub fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem {
-        let preferred_attributes = util::prefered_simd_size(num_attributes);
 
         Problem {
-            features: vec![Default::default(); preferred_attributes],
+            features: vec![Default::default(); num_attributes],
             kernel_values: SimdOptimized::with_dimension(num_classes, total_sv, Default::default()),
             pairwise: SimdOptimized::<f64>::with_dimension(num_classes, num_classes, Default::default()),
             decision_values: Triangular::with_dimension(num_classes, Default::default()),

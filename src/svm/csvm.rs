@@ -2,10 +2,9 @@ use std::convert::TryFrom;
 use std::marker::Sync;
 
 use faster::{IntoPackedRefIterator, f64s, IntoPackedZip, PackedZippedIterator, PackedIterator, Packed};
-use itertools::zip;
 
 use random::{Randomize, Random};
-use util::{find_max_index, set_all, sum_f64s, prefered_simd_size, sigmoid_predict};
+use util::{find_max_index, set_all, sigmoid_predict};
 use vectors::{Triangular};
 use svm::{SVM, Class,PredictProblem, Probabilities};
 use svm::problem::Problem;
@@ -88,21 +87,19 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
                 let kvalues0 = &problem.kernel_values[i];
                 let kvalues1 = &problem.kernel_values[j];
 
-                let mut simd_sum = f64s::splat(0.0);
-
-                let ss1 = (sv_coef0.simd_iter(), kvalues0.simd_iter()).zip()
+                let sum0 = (sv_coef0.simd_iter(), kvalues0.simd_iter()).zip()
                     .simd_map(|(a,b)| a * b)
                     .simd_reduce(f64s::splat(0.0), f64s::splat(0.0), |a, v| a + v)
                     .sum();
 
-                let ss2 = (sv_coef1.simd_iter(), kvalues1.simd_iter()).zip()
+                let sum1 = (sv_coef1.simd_iter(), kvalues1.simd_iter()).zip()
                     .simd_map(|(a,b)| a * b)
                     .simd_reduce(f64s::splat(0.0), f64s::splat(0.0), |a, v| a + v)
                     .sum();
 
                 
                 // TODO: Double check the index for RHO if it makes sense how we traverse the classes
-                let sum = ss1 + ss2 - self.rho[(i, j)];
+                let sum = sum0 + sum1 - self.rho[(i, j)];
                 let index_to_vote = if sum > 0.0 { i } else { j };
 
                 problem.decision_values[(i,j)] = sum;
@@ -248,8 +245,6 @@ impl <Knl> PredictProblem for SVM<Knl> where Knl: Kernel + Random + Sync
     
     // Predict the value for one problem.
     fn predict_value(&self, problem: &mut Problem) {
-        // TODO: Dirty hack until faster allows us to operate on zipped, non-aligned arrays.
-        assert_eq!(problem.features.len() % prefered_simd_size(3), 0);
 
         // Compute kernel, decision values and eventually the label
         self.compute_kernel_values(problem);

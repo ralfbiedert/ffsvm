@@ -33,26 +33,26 @@ mod benchmarks {
 
     #[bench]
     fn csvm_predict_sv128_attr16_problems1(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 64, 16, 1));
+        b.iter(produce_testcase(2, 64, 15, 1));
     }
 
     #[bench]
     fn csvm_predict_sv1024_attr16_problems1(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 512, 16, 1));
+        b.iter(produce_testcase(2, 512, 15, 1));
     }
 
     #[bench]
     fn csvm_predict_sv128_attr16_problems1024(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 64, 16, 1024));
+        b.iter(produce_testcase(2, 64, 15, 1024));
     }
 
     #[bench]
     fn csvm_predict_sv1024_attr16_problems128(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 512, 16, 128));
+        b.iter(produce_testcase(2, 512, 15, 128));
     }
 
     #[bench]
     fn csvm_predict_sv1024_attr1024_problems1(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 512, 1024, 1));
+        b.iter(produce_testcase(2, 512, 1023, 1));
     }
 }

@@ -4,7 +4,6 @@ use std::marker::{Copy, Sized};
 use std::ops::{Index, IndexMut};
 use rand::{ChaChaRng, Rand, Rng};
 
-use util;
 use random::{Randomize};
 
 
@@ -55,7 +54,8 @@ impl<T> SimdOptimized<T>
 {
     /// Creates a new empty Matrix.
     pub fn with_dimension(vectors: usize, attributes: usize, default: T) -> SimdOptimized<T> {
-        let preferred_length = util::prefered_simd_size(attributes);
+        // TODO: Remove this. Was used to pad arrays to SIMD lenghts, but `faster` handles this now.
+        let preferred_length = attributes;
 
         SimdOptimized::<T> {
             vectors,
