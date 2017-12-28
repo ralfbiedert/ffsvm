@@ -87,11 +87,13 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
                 let kvalues0 = &problem.kernel_values[i];
                 let kvalues1 = &problem.kernel_values[j];
 
+                // TODO: This allocates a Vec internally, doesn't it?
                 let sum0 = (sv_coef0.simd_iter(), kvalues0.simd_iter()).zip()
                     .simd_map(|(a,b)| a * b)
                     .simd_reduce(f64s::splat(0.0), f64s::splat(0.0), |a, v| a + v)
                     .sum();
 
+                // TODO: This allocates a Vec internally, doesn't it?
                 let sum1 = (sv_coef1.simd_iter(), kvalues1.simd_iter()).zip()
                     .simd_map(|(a,b)| a * b)
                     .simd_reduce(f64s::splat(0.0), f64s::splat(0.0), |a, v| a + v)

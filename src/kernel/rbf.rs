@@ -21,6 +21,7 @@ impl Kernel for RbfKernel {
         // CPU time is spent in this loop.
         for (i, sv) in vectors.into_iter().enumerate() {
 
+            // TODO: This allocates a Vec internally, doesn't it?
             let sum = (sv.simd_iter(), feature.simd_iter()).zip()
                 .simd_map(|(a,b)| (a - b) * (a - b))
                 .simd_reduce(f32s::splat(0.0), f32s::splat(0.0), |a, v| a + v)
