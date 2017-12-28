@@ -93,6 +93,8 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
                 let mut simd_sum2 = f64s::splat(0.0);
 
                 for (x, y) in zip(sv_coef0.simd_iter(), kvalues0.simd_iter()) {
+                    println!("{:?}, {:?}", x, y);
+
                     simd_sum1 = simd_sum1 + x * y;
                 }
 
@@ -101,7 +103,6 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
                 }
 
                 let ssuumm = sum_f64s(simd_sum1) + sum_f64s(simd_sum2);
-                println!("{:?}: {:?}", sum_f64s(simd_sum1), sum_f64s(simd_sum2));
 
 
                 // TODO: Double check the index for RHO if it makes sense how we traverse the classes
