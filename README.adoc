@@ -18,7 +18,6 @@ You trained a non-sparse RBF-C-SVM using https://github.com/cjlin1/libsvm[libSVM
 * can load trained https://github.com/cjlin1/libsvm[libSVM] models (currently binary RBF-CSVM without sparse attributes)
 * optimized for SIMD (using https://github.com/AdamNiederer/faster[Faster]) and threading (using https://github.com/rayon-rs/rayon[Rayon])
 * allocation-free during classification
-* much faster than `libsvm`
 
 
 
