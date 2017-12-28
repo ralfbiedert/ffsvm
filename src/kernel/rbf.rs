@@ -32,7 +32,6 @@ impl Kernel for RbfKernel {
             }
 
             let sum = util::sum_f32s(simd_sum);
-            println!("{:?}: {:?}", i, sum);
             // This seems to be the single-biggest CPU spike: saving back kernel_values,
             // and computing exp() (saving back seems to have 3x time impact over exp(),
             // but I might misread "Instruments" for that particular one).

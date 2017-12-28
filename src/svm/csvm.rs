@@ -89,18 +89,23 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
                 let kvalues0 = &problem.kernel_values[i];
                 let kvalues1 = &problem.kernel_values[j];
 
-                let mut simd_sum = f64s::splat(0.0);
+                let mut simd_sum1 = f64s::splat(0.0);
+                let mut simd_sum2 = f64s::splat(0.0);
 
                 for (x, y) in zip(sv_coef0.simd_iter(), kvalues0.simd_iter()) {
-                    simd_sum = simd_sum + x * y;
+                    simd_sum1 = simd_sum1 + x * y;
                 }
 
                 for (x, y) in zip(sv_coef1.simd_iter(), kvalues1.simd_iter()) {
-                    simd_sum = simd_sum + x * y;
+                    simd_sum2 = simd_sum2 + x * y;
                 }
 
+                let ssuumm = sum_f64s(simd_sum1) + sum_f64s(simd_sum2);
+                println!("{:?}: {:?}", sum_f64s(simd_sum1), sum_f64s(simd_sum2));
+
+
                 // TODO: Double check the index for RHO if it makes sense how we traverse the classes
-                let sum = sum_f64s(simd_sum) - self.rho[(i, j)];
+                let sum = ssuumm - self.rho[(i, j)];
                 let index_to_vote = if sum > 0.0 { i } else { j };
 
                 problem.decision_values[(i,j)] = sum;
