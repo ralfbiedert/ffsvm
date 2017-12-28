@@ -88,7 +88,7 @@ link:tests/ffi.py[Also see the Python FFI example.]
 
 = Performance History
 
-image::docs/benchmarks.png[]
+image::https://i.imgur.com/yQWstOV.png[]
 
 
 link:docs/performance{ext-relative}[See here for details.]
