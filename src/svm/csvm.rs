@@ -51,6 +51,8 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
             let kvalues = &mut problem.kernel_values[i];
 
             self.kernel.compute(&class.support_vectors, problem_features, kvalues);
+            println!("{:?}: {:?}", i, kvalues);
+
         }
     }
 
@@ -93,7 +95,6 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
                 let mut simd_sum2 = f64s::splat(0.0);
 
                 for (x, y) in zip(sv_coef0.simd_iter(), kvalues0.simd_iter()) {
-                    println!("{:?}, {:?}", x, y);
 
                     simd_sum1 = simd_sum1 + x * y;
                 }
