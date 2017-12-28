@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 use std::marker::Sync;
 
-use faster::{IntoPackedRefIterator, f64s};
+use faster::{IntoPackedRefIterator, f64s, IntoPackedZip, PackedZippedIterator, PackedIterator, Packed};
 use itertools::zip;
 
 use random::{Randomize, Random};
@@ -43,7 +43,6 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
     fn compute_kernel_values(&self, problem: &mut Problem) {
         // Get current problem and decision values array
         let problem_features = &problem.features[..];
-
 
         // Compute kernel values per class
         for (i, class) in self.classes.iter().enumerate() {
@@ -91,16 +90,19 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
 
                 let mut simd_sum = f64s::splat(0.0);
 
-                for (x, y) in zip(sv_coef0.simd_iter(), kvalues0.simd_iter()) {
-                    simd_sum = simd_sum + x * y;
-                }
+                let ss1 = (sv_coef0.simd_iter(), kvalues0.simd_iter()).zip()
+                    .simd_map(|(a,b)| a * b)
+                    .simd_reduce(f64s::splat(0.0), f64s::splat(0.0), |a, v| a + v)
+                    .sum();
 
-                for (x, y) in zip(sv_coef1.simd_iter(), kvalues1.simd_iter()) {
-                    simd_sum = simd_sum + x * y;
-                }
+                let ss2 = (sv_coef1.simd_iter(), kvalues1.simd_iter()).zip()
+                    .simd_map(|(a,b)| a * b)
+                    .simd_reduce(f64s::splat(0.0), f64s::splat(0.0), |a, v| a + v)
+                    .sum();
 
+                
                 // TODO: Double check the index for RHO if it makes sense how we traverse the classes
-                let sum = sum_f64s(simd_sum) - self.rho[(i, j)];
+                let sum = ss1 + ss2 - self.rho[(i, j)];
                 let index_to_vote = if sum > 0.0 { i } else { j };
 
                 problem.decision_values[(i,j)] = sum;

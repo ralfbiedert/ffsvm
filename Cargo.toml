@@ -12,7 +12,7 @@ exclude = [
 
 
 [dependencies]
-faster = "^0.2"
+faster = { git = "https://github.com/AdamNiederer/faster" }
 rand = "^0.3"
 itertools = "^0.7"
 rayon = "0.9"
