@@ -9,7 +9,7 @@ image:https://img.shields.io/badge/fancy%20badges-all%20of%20them-ff69b4.svg["SI
 
 = In One Sentence
 
-You trained a non-sparse RBF-C-SVM using https://github.com/cjlin1/libsvm[libSVM], now you want the highest possible performance during (real-time) classification, like games or VR.
+You trained a binary non-sparse RBF-C-SVM using https://github.com/cjlin1/libsvm[libSVM], now you want the highest possible performance during (real-time) classification, like games or VR.
 
 
 
@@ -18,7 +18,7 @@ You trained a non-sparse RBF-C-SVM using https://github.com/cjlin1/libsvm[libSVM
 * can load trained https://github.com/cjlin1/libsvm[libSVM] models (currently binary RBF-CSVM without sparse attributes)
 * optimized for SIMD (using https://github.com/AdamNiederer/faster[Faster]) and threading (using https://github.com/rayon-rs/rayon[Rayon])
 * allocation-free during classification
-
+* 2x - 10x faster than libSVM
 
 
 = Principal Usage
@@ -85,10 +85,16 @@ link:tests/ffi.py[Also see the Python FFI example.]
 **December 16, 2017**: We're in **PRE-ALPHA**. It will probably not even work on your machine.
 
 
-= Performance History
+= Performance
 
-image::https://i.imgur.com/yQWstOV.png[]
+image::docs/performance_relative.png[]
 
+Classification time vs. libSVM.
+
+
+image::docs/performance_history.png[]
+
+Performance milestones during development.
 
 link:docs/performance{ext-relative}[See here for details.]
 
