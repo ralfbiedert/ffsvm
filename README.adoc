@@ -4,7 +4,6 @@ image:https://travis-ci.org/ralfbiedert/ffsvm-rust.svg?branch=master["Build Stat
 image:https://img.shields.io/badge/license-MIT-blue.svg["License", link="LICENSE"]
 image:https://img.shields.io/badge/SIMD-faster-orange.svg["SIMD enabled", link="https://github.com/AdamNiederer/faster"]
 image:https://img.shields.io/badge/threading-rayon-orange.svg["SIMD enabled", link="https://github.com/rayon-rs/rayon"]
-image:https://img.shields.io/badge/fancy%20badges-all%20of%20them-ff69b4.svg["SIMD enabled", link="https://shields.io"]
 
 
 = In One Sentence
