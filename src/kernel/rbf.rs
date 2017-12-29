@@ -1,5 +1,5 @@
 use std::convert::From;
-use faster::{IntoPackedRefIterator, f32s, IntoPackedZip, PackedZippedIterator, PackedIterator, Packed};
+use faster::{IntoPackedRefIterator, IntoPackedZip, PackedZippedIterator};
 
 use kernel::Kernel;
 use parser::ModelFile;
@@ -23,13 +23,8 @@ impl Kernel for RbfKernel {
 
             // TODO: This allocates a Vec internally, doesn't it?
             let sum: f32 = (sv.simd_iter(), feature.simd_iter()).zip()
-                .simd_map(|(a,b)| {
-                    let d = a - b;
-                    
-                    (a - b) * (a - b)
-                })
+                .simd_map(|(a,b)| (a - b) * (a - b))
                 .sum();
-
           
             // This seems to be the single-biggest CPU spike: saving back kernel_values,
             // and computing exp() (saving back seems to have 3x time impact over exp(),

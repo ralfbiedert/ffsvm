@@ -59,12 +59,11 @@ mod tests {
         // 0 0.809408 0.190592
         // 0 0.700839 0.299161
         // 1 0.0904989 0.909501
-        println!("{:?}", problem0);
         assert_eq!(0, problem0.label);
         assert_eq!(0, problem1.label);
         assert_eq!(1, problem2.label);
         
-        const DECIMALS: i32 = 1;
+        const DECIMALS: i32 = 2;
 
         assert!(approx_equal(problem0.probabilities[0], 0.809408, DECIMALS) );
         assert!(approx_equal(problem0.probabilities[1], 0.190592, DECIMALS) );

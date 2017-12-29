@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 use std::marker::Sync;
 
-use faster::{IntoPackedRefIterator, f64s, IntoPackedZip, PackedZippedIterator, PackedIterator, Packed};
+use faster::{IntoPackedRefIterator, IntoPackedZip, PackedZippedIterator};
 
 use random::{Randomize, Random};
 use util::{find_max_index, set_all, sigmoid_predict};
