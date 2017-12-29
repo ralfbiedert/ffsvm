@@ -14,7 +14,6 @@ exclude = [
 [dependencies]
 faster = { git = "https://github.com/AdamNiederer/faster" }
 rand = "^0.3"
-itertools = "^0.7"
 rayon = "0.9"
 nom = { git = "https://github.com/Geal/nom" }
 #clippy = {version = "*", optional = true}

@@ -13,7 +13,6 @@
 //#![cfg_attr(feature="clippy", plugin(clippy))]
 
 extern crate faster;
-extern crate itertools;
 #[macro_use] extern crate nom;
 extern crate rand;
 extern crate rayon;
