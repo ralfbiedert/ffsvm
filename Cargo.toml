@@ -1,11 +1,10 @@
 [package]
 name = "ffsvm"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Ralf Biedert <rb@xr.io>"]
-publish = false
 readme = "README.adoc"
 categories = ["science", "algorithms"]
-license = "BSD-2-Clause"
+license = "MIT"
 exclude = [
     "docs/*",
 ]
