@@ -22,9 +22,12 @@ impl Kernel for RbfKernel {
         for (i, sv) in vectors.into_iter().enumerate() {
 
             // TODO: This allocates a Vec internally, doesn't it?
-            let sum = (sv.simd_iter(), feature.simd_iter()).zip()
-                .simd_map(|(a,b)| (a - b) * (a - b))
-                .simd_reduce(f32s::splat(0.0), f32s::splat(0.0), |a, v| a + v)
+            let sum: f32 = (sv.simd_iter(), feature.simd_iter()).zip()
+                .simd_map(|(a,b)| {
+                    let d = a - b;
+                    
+                    (a - b) * (a - b)
+                })
                 .sum();
 
           
