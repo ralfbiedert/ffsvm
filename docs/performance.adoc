@@ -4,9 +4,9 @@
 
 Benchmarks are a tricky thing, but for classifying binary non-sparse RBF-C-SVMs `ffsvm` should be between 2x and 10x faster than `libSVM` on reasonably modern x86 CPUs (supporting AVX2).
 
-image::performance_absolute.v2.png[]
+image::performance_absolute.v3.png[]
 
-image::performance_relative.v2.png[]
+image::performance_relative.v3.png[]
 
 (See _Benchmark Notes_ below)
 
@@ -54,7 +54,7 @@ FFSVM has been, from day one, optimized for performance:
 
 = Performance History
 
-image::performance_history.v2.png[]
+image::performance_history.v3.png[]
 
 Some of the more significant performance milestones in ffsvm's development.
 
