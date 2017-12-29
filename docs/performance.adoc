@@ -76,7 +76,7 @@ Numbers measured on MBP'15 i7, manually ensuring no background activity took pla
 
 LibSVM 3.22 compiled with `g++ -O3 -fPIC` (as enabled in original `Makefile`). Timings measured with `gettimeofday()` around the `svm_predict_probability()` function inside patched `svm-predict`, classifying the same problem 1k - 100k times (after 1k cache warmup rounds), and taking the average.
 
-FFSVM compiled with `target-feature=+avx2`. Timings measured with `#bench` (see code).
+FFSVM compiled with `target-feature=+avx2`. Timings measured with `#[bench]` (see code).
 
 All benchmarks run on synthetic binary models / data as specified (e.g., `sv16_attr4` means a total of 16 support vectors and 4 attributes / features).
 
