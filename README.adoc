@@ -87,12 +87,12 @@ link:tests/ffi.py[Also see the Python FFI example.]
 
 = Performance
 
-image::docs/performance_relative.png[]
+image::docs/performance_relative.v2.png[]
 
 Classification time vs. libSVM.
 
 
-image::docs/performance_history.png[]
+image::docs/performance_history.v2.png[]
 
 Performance milestones during development.
 
