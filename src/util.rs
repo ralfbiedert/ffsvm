@@ -2,6 +2,22 @@ use std::marker::Copy;
 use std::cmp::PartialOrd;
 
 
+////// TODO: REMOVE ME WHEN FASTER HAS WORKING PackedZipMap::next_partial!!!!!11
+
+const SIMD_F32_WIDTH: usize = 8;
+
+/// Computes our prefered SIMD size for vectors.
+pub fn prefered_simd_size(size: usize) -> usize {
+    if size % SIMD_F32_WIDTH == 0 {
+        size
+    } else {
+        ((size / SIMD_F32_WIDTH) + 1) * SIMD_F32_WIDTH
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+
+
 /// Sets all items of a mutable vector to the given value.
 pub fn set_all<T>(vector: &mut [T], value: T)
     where

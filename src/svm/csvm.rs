@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 use std::marker::Sync;
 
-use faster::{IntoPackedRefIterator, IntoPackedZip, PackedZippedIterator};
+use faster::{IntoPackedRefIterator, IntoPackedZip, PackedZippedIterator, PackedIterator, Packed, f64s};
 
 use random::{Randomize, Random};
 use util::{find_max_index, set_all, sigmoid_predict};
@@ -86,18 +86,19 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
 
                 let kvalues0 = &problem.kernel_values[i];
                 let kvalues1 = &problem.kernel_values[j];
-
+                
                 // TODO: This allocates a Vec internally, doesn't it?
                 let sum0: f64 = (sv_coef0.simd_iter(), kvalues0.simd_iter()).zip()
                     .simd_map(|(a,b)| a * b)
+                    .simd_reduce(f64s::splat(0.0), f64s::splat(0.0), |a, v| a + v)
                     .sum();
 
                 // TODO: This allocates a Vec internally, doesn't it?
                 let sum1: f64 = (sv_coef1.simd_iter(), kvalues1.simd_iter()).zip()
                     .simd_map(|(a,b)| a * b)
+                    .simd_reduce(f64s::splat(0.0), f64s::splat(0.0), |a, v| a + v)
                     .sum();
 
-                
                 // TODO: Double check the index for RHO if it makes sense how we traverse the classes
                 let sum = sum0 + sum1 - self.rho[(i, j)];
                 let index_to_vote = if sum > 0.0 { i } else { j };
