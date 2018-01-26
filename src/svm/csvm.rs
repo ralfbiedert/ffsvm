@@ -84,18 +84,20 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
                 let sv_coef0 = &self.classes[i].coefficients[j - 1];
                 let sv_coef1 = &self.classes[j].coefficients[i];
 
-                let kvalues0 = &problem.kernel_values[i];
-                let kvalues1 = &problem.kernel_values[j];
+                // For `faster` we have to limit the length of our kvalues slice to the length of
+                // our (shorter) sv_coef slice. 
+                let kvalues0 = &problem.kernel_values[i][0..sv_coef0.len()];
+                let kvalues1 = &problem.kernel_values[j][0..sv_coef1.len()];
                 
                 // TODO: This allocates a Vec internally, doesn't it?
                 let sum0: f64 = (sv_coef0.simd_iter(), kvalues0.simd_iter()).zip()
-                    .simd_map((f64s::splat(0f64), f64s::splat(0f64)), |(a,b)| a * b)
+                    .simd_map((f64s::splat(0.0), f64s::splat(0.0)), |(a,b)| a * b)
                     .simd_reduce(f64s::splat(0.0), f64s::splat(0.0), |a, v| a + v)
                     .sum();
 
                 // TODO: This allocates a Vec internally, doesn't it?
                 let sum1: f64 = (sv_coef1.simd_iter(), kvalues1.simd_iter()).zip()
-                    .simd_map((f64s::splat(0f64), f64s::splat(0f64)), |(a,b)| a * b)
+                    .simd_map((f64s::splat(0.0), f64s::splat(0.0)), |(a,b)| a * b)
                     .simd_reduce(f64s::splat(0.0), f64s::splat(0.0), |a, v| a + v)
                     .sum();
 
