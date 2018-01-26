@@ -55,7 +55,7 @@ impl<T> SimdOptimized<T>
     /// Creates a new empty Matrix.
     pub fn with_dimension(vectors: usize, attributes: usize, default: T) -> SimdOptimized<T> {
         // TODO: Remove this. Was used to pad arrays to SIMD lenghts, but `faster` handles this now.
-        let preferred_length = util::prefered_simd_size(attributes);
+        let preferred_length = attributes; // util::prefered_simd_size(attributes);
 
         SimdOptimized::<T> {
             vectors,
