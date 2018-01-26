@@ -4,3 +4,4 @@ node_modules
 Cargo.lock
 *.iml
 .idea
+clion-log.txt
