@@ -1,6 +1,6 @@
 [package]
 name = "ffsvm"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Ralf Biedert <rb@xr.io>"]
 readme = "README.adoc"
 categories = ["science", "algorithms"]
@@ -14,7 +14,8 @@ exclude = [
 faster = "^0.4.1"
 rand = "^0.3"
 rayon = "0.9"
-nom = "4.0.0-alpha1"
+#nom = "4.0.0-alpha2"
+nom = { git="https://github.com/Geal/nom", rev="9c44bd9790dce9d7c282e4cc692ecc1fddcd5590" }  
 #clippy = {version = "*", optional = true}
 
 [lib]
