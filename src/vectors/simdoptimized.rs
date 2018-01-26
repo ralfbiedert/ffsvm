@@ -5,7 +5,6 @@ use std::ops::{Index, IndexMut};
 use rand::{ChaChaRng, Rand, Rng};
 
 use random::{Randomize};
-use util;
 
 
 /// Basic "matrix' we use for fast SIMD and parallel operations.
