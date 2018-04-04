@@ -6,7 +6,6 @@ pub use self::problem::Problem;
 pub use self::class::Class;
 
 use rayon::prelude::*;
-use std::marker::Sync;
 use vectors::Triangular;
 use kernel::{Kernel, RbfKernel};
 

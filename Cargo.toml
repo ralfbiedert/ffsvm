@@ -11,7 +11,9 @@ exclude = [
 
 
 [dependencies]
-faster = "^0.4.1"
+#faster = "^0.4.3"
+faster = { git="https://github.com/ralfbiedert/faster", rev="bf4b40bbc55c04a9d2c8481d7b3307cffe3ea4a5" }  
+#faster = { path="../faster" }  
 rand = "^0.3"
 rayon = "0.9"
 #nom = "4.0.0-alpha2"

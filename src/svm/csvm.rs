@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 use std::marker::Sync;
 
-use faster::{IntoPackedRefIterator, IntoPackedZip, PackedZippedIterator, PackedIterator, Packed, f64s};
+use faster::{IntoSIMDRefIterator, SIMDZippedIterator, IntoSIMDZip, SIMDIterator, Packed, Sum, f64s};
 
 use random::{Randomize, Random};
 use util::{find_max_index, set_all, sigmoid_predict};
@@ -90,15 +90,15 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
                 let kvalues1 = &problem.kernel_values[j][0..sv_coef1.len()];
                 
                 // TODO: This allocates a Vec internally, doesn't it?
-                let sum0: f64 = (sv_coef0.simd_iter(), kvalues0.simd_iter()).zip()
-                    .simd_map((f64s::splat(0.0), f64s::splat(0.0)), |(a,b)| a * b)
-                    .simd_reduce(f64s::splat(0.0), f64s::splat(0.0), |a, v| a + v)
+                let sum0: f64 = (sv_coef0.simd_iter(f64s(0.0f64)), kvalues0.simd_iter(f64s(0.0f64))).zip()
+                    .simd_map(|(a,b)| a * b)
+                    .simd_reduce(f64s::splat(0.0), |a, v| a + v)
                     .sum();
 
                 // TODO: This allocates a Vec internally, doesn't it?
-                let sum1: f64 = (sv_coef1.simd_iter(), kvalues1.simd_iter()).zip()
-                    .simd_map((f64s::splat(0.0), f64s::splat(0.0)), |(a,b)| a * b)
-                    .simd_reduce(f64s::splat(0.0), f64s::splat(0.0), |a, v| a + v)
+                let sum1: f64 = (sv_coef1.simd_iter(f64s(0.0f64)), kvalues1.simd_iter(f64s(0.0f64))).zip()
+                    .simd_map(|(a,b)| a * b)
+                    .simd_reduce(f64s::splat(0.0), |a, v| a + v)
                     .sum();
 
                 // TODO: Double check the index for RHO if it makes sense how we traverse the classes
