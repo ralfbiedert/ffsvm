@@ -1,5 +1,5 @@
 use std::convert::From;
-use faster::{IntoSIMDRefIterator, SIMDZippedIterator, IntoSIMDZip, SIMDIterator, Packed, Sum, f32s};
+use faster::{IntoSIMDRefIterator, SIMDZippedIterator, IntoSIMDZip, SIMDIterator, Sum, f32s};
 
 use kernel::Kernel;
 use parser::ModelFile;

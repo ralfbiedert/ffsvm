@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 use std::marker::Sync;
 
-use faster::{IntoSIMDRefIterator, SIMDZippedIterator, IntoSIMDZip, SIMDIterator, Packed, Sum, f64s};
+use faster::{IntoSIMDRefIterator, SIMDZippedIterator, IntoSIMDZip, SIMDIterator, Sum, f64s};
 
 use random::{Randomize, Random};
 use util::{find_max_index, set_all, sigmoid_predict};
