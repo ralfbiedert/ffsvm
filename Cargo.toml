@@ -1,6 +1,6 @@
 [package]
 name = "ffsvm"
-version = "0.2.1"
+version = "0.2.3"
 authors = ["Ralf Biedert <rb@xr.io>"]
 readme = "README.adoc"
 categories = ["science", "algorithms"]
