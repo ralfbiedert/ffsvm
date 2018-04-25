@@ -1,6 +1,7 @@
 use std::convert::TryFrom;
 use std::marker::Sync;
 
+use profiling::ProfilerTrace;
 use faster::{IntoSIMDRefIterator, SIMDZippedIterator, IntoSIMDZip, SIMDIterator, Sum, f64s};
 
 use random::{Randomize, Random};
@@ -39,9 +40,12 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
 
 
     /// Computes the kernel values for this problem
-    fn compute_kernel_values(&self, problem: &mut Problem) {
+    fn compute_kernel_values(&self, problem: &mut Problem, profiler: &mut ProfilerTrace) {
+        profiler.snapshot(5131);
+
         // Get current problem and decision values array
         let problem_features = &problem.features[..];
+        profiler.snapshot(5132);
 
         // Compute kernel values per class
         for (i, class) in self.classes.iter().enumerate() {
@@ -50,11 +54,15 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
 
             self.kernel.compute(&class.support_vectors, problem_features, kvalues);
         }
+        profiler.snapshot(5133);
+        
     }
+    
 
 
     /// Based on kernel values, computes the decision values for this problem.
-    fn compute_decision_values(&self, problem: &mut Problem) {
+    fn compute_decision_values(&self, problem: &mut Problem, profiler: &mut ProfilerTrace) {
+        profiler.snapshot(5134);
 
         // Reset all votes
         set_all(&mut problem.vote, 0);
@@ -77,6 +85,7 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
         //
         // Both a) and b) are multiplied with the computed kernel values and summed,
         // and eventually used to compute on which side we are.
+        profiler.snapshot(5135);
 
         for i in 0..self.classes.len() {
             for j in (i + 1)..self.classes.len() {
@@ -109,6 +118,8 @@ impl <Knl> SVM<Knl> where Knl: Kernel + Random
                 problem.vote[index_to_vote] += 1;
             }
         }
+        profiler.snapshot(5136);
+
     }
 }
 
@@ -204,21 +215,28 @@ impl <'a, 'b, Knl> TryFrom<&'a ModelFile<'b>> for SVM<Knl> where Knl: Kernel + F
 
 impl <Knl> PredictProblem for SVM<Knl> where Knl: Kernel + Random + Sync
 {
-    fn predict_probability(&self, problem: &mut Problem) {
+    fn predict_probability(&self, problem: &mut Problem, profiler: &mut ProfilerTrace) {
+        profiler.snapshot(5110);
         const MIN_PROB : f64 = 1e-7;
 
+        
         // Ensure we have probabilities set. If not, somebody used us the wrong way
         if self.probabilities.is_none() {
             // TODO: Better error handling since this occurred a few times for me.  
             return;
         }
+        profiler.snapshot(5120);
         
         let num_classes = self.classes.len();
         let probabilities = self.probabilities.as_ref().unwrap();
-        
+
+        profiler.snapshot(5130);
+
         // First we need to predict the problem for our decision values
-        self.predict_value(problem);    
-        
+        self.predict_value(problem, profiler);
+
+        profiler.snapshot(5140);
+
         // Now compute probability values
         for i in 0 .. num_classes {
             for j in i + 1 .. num_classes {
@@ -233,7 +251,9 @@ impl <Knl> PredictProblem for SVM<Knl> where Knl: Kernel + Random + Sync
                 problem.pairwise[(j, i)] = 1f64 - sigmoid;
             }
         }
-        
+
+        profiler.snapshot(5150);
+
         if num_classes == 2 {
             problem.probabilities[0] = problem.pairwise[(0, 1)];
             problem.probabilities[1] = problem.pairwise[(1, 0)];
@@ -241,17 +261,24 @@ impl <Knl> PredictProblem for SVM<Knl> where Knl: Kernel + Random + Sync
             unimplemented!("Only supporting 2 classes right now.")
         }
 
+        profiler.snapshot(5160);
+
         let max_index = find_max_index(problem.probabilities.as_slice());
+        profiler.snapshot(5160);
+
         problem.label = self.classes[max_index].label;
+        profiler.snapshot(5170);
+
     }
 
     
     // Predict the value for one problem.
-    fn predict_value(&self, problem: &mut Problem) {
-
+    fn predict_value(&self, problem: &mut Problem, profiler: &mut ProfilerTrace) {
+        
         // Compute kernel, decision values and eventually the label
-        self.compute_kernel_values(problem);
-        self.compute_decision_values(problem);
+        self.compute_kernel_values(problem, profiler);
+
+        self.compute_decision_values(problem, profiler);
 
         // Compute highest vote
         let highest_vote = find_max_index(&problem.vote);

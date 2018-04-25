@@ -26,6 +26,7 @@ mod svm;
 mod random;
 pub mod ffi;
 pub mod util;
+pub mod profiling;
 
 pub use kernel::RbfKernel;
 pub use svm::{SVM, Class, Problem, RbfCSVM, PredictProblem};

@@ -4,6 +4,7 @@ mod class;
 
 pub use self::problem::Problem;
 pub use self::class::Class;
+use profiling::ProfilerTrace;
 
 use rayon::prelude::*;
 use vectors::Triangular;
@@ -49,27 +50,30 @@ pub trait PredictProblem where Self : Sync
 {
     
     /// Predict a single value for a problem.
-    fn predict_value(&self, &mut Problem);
+    fn predict_value(&self, &mut Problem, profiler: &mut ProfilerTrace );
     
     
     /// Predict a probability value for a problem.
-    fn predict_probability(&self, &mut Problem);
+    fn predict_probability(&self, &mut Problem, profiler: &mut ProfilerTrace);
 
 
     /// Predicts all values for a set of problems.
     fn predict_values(&self, problems: &mut [Problem]) {
         // Compute all problems ...
-        problems.par_iter_mut().for_each(|problem|
-            self.predict_value(problem)
-        );
+//        problems.par_iter_mut().for_each(|problem|{}
+//            //self.predict_value(problem)
+//        );
     }
     
     /// Predicts all probabilities for a set of problems.
-    fn predict_probabilities(&self, problems: &mut [Problem]) {
+    fn predict_probabilities(&self, problems: &mut [Problem], profiler: &mut ProfilerTrace) {
         // Compute all problems ...
-        problems.par_iter_mut().for_each(|problem|
-            self.predict_probability(problem)
+        
+        profiler.snapshot(5100);
+        problems.iter_mut().for_each(|problem|
+            self.predict_probability(problem, profiler)
         );
+        profiler.snapshot(5200);
     }
 }
 

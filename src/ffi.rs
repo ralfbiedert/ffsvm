@@ -6,6 +6,7 @@ use std::convert::TryFrom;
 
 use svm::{RbfCSVM, Problem, PredictProblem};
 use parser::ModelFile;
+use profiling::ProfilerTrace;
 
 
 /// Possible error conditions we can return.
@@ -31,6 +32,7 @@ pub struct Context {
     max_problems: usize,
     model: Option<Box<RbfCSVM>>,
     problems: Vec<Problem>,
+    pub profiling: ProfilerTrace,
 }
 
 /// Tests if FFI works. 
@@ -52,7 +54,8 @@ pub unsafe extern fn ffsvm_context_create(context_ptr: *mut *mut Context) -> i32
     let context = Context {
         max_problems: 1,
         model: None,
-        problems: Vec::new()
+        problems: Vec::new(),
+        profiling: ProfilerTrace::new(),
     };
     
     let boxed = Box::from(context);
@@ -192,23 +195,30 @@ pub unsafe extern fn ffsvm_predict_probabilities(context_ptr: *mut Context, feat
     if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
     if features_ptr.is_null() { return Errors::NullPointerPassed as i32; }
     if probabilities_ptr.is_null() { return Errors::NullPointerPassed as i32; }
-
-
+    
     let context = &mut *context_ptr;
+    
+    context.profiling.restart();
+    
     let features = slice::from_raw_parts(features_ptr, features_len as usize);
     let probabilities = slice::from_raw_parts_mut(probabilities_ptr, probabilities_len as usize);
 
-
+    context.profiling.snapshot(1000);
+    
     let svm = match context.model {
         None => { return Errors::SVMNoModel as i32; }
         Some(ref model) => { model.as_ref() }
     };
+
+    context.profiling.snapshot(2000);
 
     // Make sure the pointers have the right length
     let num_problems = match features.len() % svm.num_attributes {
         0 => { features.len() / svm.num_attributes }
         _ => { return Errors::ProblemLengthNotMultipleOfAttributes as i32; }
     };
+
+    context.profiling.snapshot(3000);
 
     if num_problems > context.max_problems {
         return Errors::ProblemPoolTooSmall as i32;
@@ -222,6 +232,8 @@ pub unsafe extern fn ffsvm_predict_probabilities(context_ptr: *mut Context, feat
     let problems = &mut context.problems;
     let num_attributes = svm.num_attributes;
 
+    context.profiling.snapshot(4000);
+
     // Copy features to respective problems 
     for i in 0 .. num_problems {
         let this_problem = &features[i*num_attributes .. (i+1)*num_attributes];
@@ -231,12 +243,17 @@ pub unsafe extern fn ffsvm_predict_probabilities(context_ptr: *mut Context, feat
         problems[i].features[..num_attributes].clone_from_slice(src);
     }
 
-    
+    context.profiling.snapshot(5000);
+
+
     // Predict values for given slice of actually used real problems.
-    svm.predict_probabilities(&mut problems[0..num_problems]);
+    svm.predict_probabilities(&mut problems[0..num_problems], &mut context.profiling);
     
     let mut ptr = 0;
-    
+
+    context.profiling.snapshot(6000);
+
+
     // And store the results
     for i in 0 .. num_problems {
         for j in 0 .. svm.classes.len() {
@@ -244,6 +261,8 @@ pub unsafe extern fn ffsvm_predict_probabilities(context_ptr: *mut Context, feat
             ptr += 1;
         }
     }
+
+    context.profiling.snapshot(7000);
 
     Errors::Ok as i32
 }
@@ -278,6 +297,28 @@ pub unsafe extern fn ffsvm_model_get_labels(context_ptr: *mut Context, labels_pt
     Errors::Ok as i32
 }
 
+
+/// Given a number of problems (features), predict their classes with the current model.   
+#[no_mangle]
+pub unsafe extern fn ffsvm_model_get_profiling_data(context_ptr: *mut Context, profiling_data: *mut u32, profiling_len: u32) -> i32 {
+    if context_ptr.is_null() { return Errors::NullPointerPassed as i32; }
+    if profiling_data.is_null() { return Errors::NullPointerPassed as i32; }
+
+    let context = &mut *context_ptr;
+    let profiling = slice::from_raw_parts_mut(profiling_data, profiling_len as usize);
+
+
+    let svm = match context.model {
+        None => { return Errors::SVMNoModel as i32; }
+        Some(ref model) => { model.as_ref() }
+    };
+    
+    for i in 0 .. context.profiling.performance_numbers.len() {
+        profiling[i] = context.profiling.performance_numbers[i];
+    }
+
+    Errors::Ok as i32
+}
 
 
 
