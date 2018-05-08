@@ -13,6 +13,7 @@ use std::fmt;
 
 
 /// Square triangular matrix.
+#[derive(Clone)]
 pub struct Triangular<T>
     where
         T: Copy + Sized,

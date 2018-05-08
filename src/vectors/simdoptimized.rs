@@ -11,6 +11,7 @@ use random::{Randomize};
 ///
 /// Note: Right now we use a Matrix mostly as a vector of vectors and is mostly
 /// intended for read operations.
+#[derive(Clone)]
 pub struct SimdOptimized<T>
     where
         T: Copy + Sized,

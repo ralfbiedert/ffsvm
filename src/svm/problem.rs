@@ -5,7 +5,7 @@ use random::{Randomize, random_vec};
 
 
 /// A single problem we should classify.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Problem {
     /// A vector of `num_attributes` features.
     pub features: Vec<f32>,
