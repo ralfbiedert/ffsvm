@@ -11,14 +11,11 @@ exclude = [
 
 
 [dependencies]
-#faster = "^0.4.3"
-faster = { git="https://github.com/ralfbiedert/faster", rev="194ad1f4e19ca9835eab259778f934a85e6b8ff6" }  
-#faster = { path="../faster" }  
+faster = { git="https://github.com/ralfbiedert/faster", rev="8a86e1b7f75065b44bd9caab643468d9a5794579" }  
 rand = "^0.3"
 rayon = "0.9"
-#nom = "4.0.0-alpha2"
 nom = { git="https://github.com/Geal/nom", rev="9c44bd9790dce9d7c282e4cc692ecc1fddcd5590" }  
-#clippy = {version = "*", optional = true}
+
 
 [lib]
 name = "ffsvm"
@@ -32,5 +29,4 @@ path = "src/bin.rs"
 
 [profile.release]
 opt-level = 3
-debug = false
 lto = true
