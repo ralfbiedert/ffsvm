@@ -43,6 +43,23 @@ T : Kernel
 }
 
 
+impl <T> SVM<T> where
+    T : Kernel
+{
+    /// Finds the class index for a given label. 
+    pub fn class_index_for_label(&self, label: u32) -> Option<usize> {
+        
+        for (i, class) in self.classes.iter().enumerate() {
+            if class.label != label { continue; }
+
+            return Some(i);
+        }
+        
+        None
+    } 
+}
+
+
 
 /// Predict a problem. 
 pub trait PredictProblem where Self : Sync

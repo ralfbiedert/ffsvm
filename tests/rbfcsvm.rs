@@ -42,6 +42,10 @@ mod tests {
         let mut problem1 = Problem::from(&csvm);
         let mut problem2 = Problem::from(&csvm);
 
+        assert_eq!( csvm.class_index_for_label(0), Some(0) );
+        assert_eq!( csvm.class_index_for_label(1), Some(1) );
+        assert_eq!( csvm.class_index_for_label(2), None );
+
         //256 0:0.5106233 1:0.1584117 2:0.1689098 3:0.1664358 4:0.2327561 5:0 6:0 7:0 8:1 9:0.1989241
         //256 0:0.5018305 1:0.0945542 2:0.09242307 3:0.09439687 4:0.1398575 5:0 6:0 7:0 8:1 9:1
         //256 0:0.5020829 1:0 2:0 3:0 4:0.1393665 5:1 6:0 7:0 8:1 9:0
