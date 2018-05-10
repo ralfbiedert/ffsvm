@@ -2,6 +2,7 @@ use std::str;
 use std::str::FromStr;
 use std::convert::TryFrom;
 use nom::{is_alphanumeric, line_ending};
+use nom::types::CompleteStr;
 
 #[derive(Debug)]
 pub struct ModelFile<'a> {
@@ -44,8 +45,10 @@ impl <'a> TryFrom<&'a str> for ModelFile<'a> {
     fn try_from(model: &str) -> Result<ModelFile, &'static str> {
 
         // Parse string to struct
-        let res = svm_file(model);
-
+        // I fucking regret using `nom` for this ...
+        let complete_string = CompleteStr(model);
+        let res = svm_file(complete_string);
+        
         match res {
             Ok(m) => Result::Ok(m.1),
             Err(_) => Result::Err("Error parsing file."),
@@ -60,35 +63,39 @@ fn svm_non_whitespace(chr: char) -> bool {
     is_alphanumeric(chr as u8) || chr == '_' || chr == '.' || chr == '-'
 }
 
-named!(svm_string <&str, &str>, take_while_s!(svm_non_whitespace));
 
 
-named!(svm_line_string <&str, (&str)>,
+named!(svm_string <CompleteStr, &str>, 
+    do_parse! ( x: take_while_s!(svm_non_whitespace) >> (x.0)) 
+);
+
+
+named!(svm_line_string <CompleteStr, (&str)>,
     do_parse!( svm_string >> tag!(" ") >> value: svm_string >> line_ending >> (value) )
 );
 
-named!(svm_line_f32 <&str, (f32)>,
+named!(svm_line_f32 <CompleteStr, (f32)>,
     do_parse!( svm_string >> tag!(" ") >> value: map_res!(svm_string, FromStr::from_str) >> line_ending >> (value) )
 );
 
-named!(svm_line_u32 <&str, (u32)>,
+named!(svm_line_u32 <CompleteStr, (u32)>,
     do_parse!( svm_string >> tag!(" ") >> value: map_res!(svm_string, FromStr::from_str) >> line_ending >> (value) )
 );
 
-named!(svm_line_vec_f64 <&str, (Vec<f64>)>,
+named!(svm_line_vec_f64 <CompleteStr, (Vec<f64>)>,
     do_parse!( svm_string >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
 );
 
-named!(svm_line_prob_vec_f64 <&str, (Vec<f64>)>,
+named!(svm_line_prob_vec_f64 <CompleteStr, (Vec<f64>)>,
     do_parse!( alt!(tag!("probA") | tag!("probB")) >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
 );
 
-named!(svm_line_vec_u32 <&str, (Vec<u32>)>,
+named!(svm_line_vec_u32 <CompleteStr, (Vec<u32>)>,
     do_parse!( svm_string >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
 );
 
 
-named!(svm_attribute <&str, (Attribute)>,
+named!(svm_attribute <CompleteStr, (Attribute)>,
     do_parse!(
         index: map_res!(svm_string, FromStr::from_str) >>
         tag!(":") >>
@@ -100,7 +107,7 @@ named!(svm_attribute <&str, (Attribute)>,
     )
 );
 
-named!(svm_header <&str, Header>,
+named!(pub svm_header <CompleteStr, Header>,
     do_parse!(
         svm_type: svm_line_string >>
         kernel_type: svm_line_string >>
@@ -129,16 +136,16 @@ named!(svm_header <&str, Header>,
     )
 );
 
-named_args!(svm_coef(n: u32) <&str,Vec<f32>>,
+named_args!(svm_coef(n: u32) <CompleteStr, Vec<f32>>,
     do_parse!(
-        opt!(tag!(" ")) >>
+        opt!(complete!(tag!(" "))) >>
         rval: count!(map_res!(svm_string, FromStr::from_str), n as usize) >>
         (rval)
     )
 );
 
 
-named_args!(svm_line_sv(num_coef: u32) <&str, (SupportVector)>,
+named_args!(svm_line_sv(num_coef: u32) <CompleteStr, (SupportVector)>,
     do_parse!(
         // label: map_res!(svm_string, FromStr::from_str) >>
         coefs: call!(svm_coef, num_coef) >>
@@ -152,7 +159,7 @@ named_args!(svm_line_sv(num_coef: u32) <&str, (SupportVector)>,
     )
 );
 
-named_args!(svm_svs(num_coef: u32) <&str, (Vec<SupportVector>)>,
+named_args!(svm_svs(num_coef: u32) <CompleteStr, (Vec<SupportVector>)>,
     do_parse!(
         vectors: many0!(call!(svm_line_sv, num_coef)) >>
         (vectors)
@@ -160,7 +167,7 @@ named_args!(svm_svs(num_coef: u32) <&str, (Vec<SupportVector>)>,
 );
 
 
-named!(svm_file <&str, ModelFile>,
+named!(svm_file <CompleteStr, ModelFile>,
     do_parse!(
         header: svm_header >>
         svm_string >> line_ending >>
@@ -173,3 +180,4 @@ named!(svm_file <&str, ModelFile>,
         )
     )
 );
+

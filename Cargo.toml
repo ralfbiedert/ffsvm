@@ -1,6 +1,6 @@
 [package]
 name = "ffsvm"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["Ralf Biedert <rb@xr.io>"]
 readme = "README.adoc"
 categories = ["science", "algorithms"]
@@ -12,9 +12,9 @@ exclude = [
 
 [dependencies]
 faster = { git="https://github.com/ralfbiedert/faster", rev="8a86e1b7f75065b44bd9caab643468d9a5794579" }  
-rand = "^0.3"
-rayon = "0.9"
-nom = { git="https://github.com/Geal/nom", rev="9c44bd9790dce9d7c282e4cc692ecc1fddcd5590" }  
+rand = "0.4"
+rayon = "1.0"
+nom = "4.0.0-beta3"  
 
 
 [lib]

@@ -5,7 +5,6 @@ extern crate test;
 extern crate ffsvm;
 
 
-#[cfg(test)]
 mod benchmarks {
     
     use test::Bencher;
