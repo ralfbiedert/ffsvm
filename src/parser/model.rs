@@ -1,8 +1,7 @@
-use std::str;
-use std::str::FromStr;
-use std::convert::TryFrom;
-use nom::{is_alphanumeric, line_ending};
-use nom::types::CompleteStr;
+use nom::{is_alphanumeric, line_ending, types::CompleteStr};
+use std::{
+    convert::TryFrom, str::{self, FromStr},
+};
 
 #[derive(Debug)]
 pub struct ModelFile<'a> {
@@ -36,39 +35,31 @@ pub struct SupportVector {
     pub features: Vec<Attribute>,
 }
 
-
-
-impl <'a> TryFrom<&'a str> for ModelFile<'a> {
+impl<'a> TryFrom<&'a str> for ModelFile<'a> {
     type Error = &'static str;
 
     /// Parses a string into a SVM model
     fn try_from(model: &str) -> Result<ModelFile, &'static str> {
-
         // Parse string to struct
         // I fucking regret using `nom` for this ...
         let complete_string = CompleteStr(model);
         let res = svm_file(complete_string);
-        
+
         match res {
             Ok(m) => Result::Ok(m.1),
             Err(_) => Result::Err("Error parsing file."),
         }
-    }    
+    }
 }
-
-
 
 /// Accepts an alphanumeric identifier or '_'.
 fn svm_non_whitespace(chr: char) -> bool {
     is_alphanumeric(chr as u8) || chr == '_' || chr == '.' || chr == '-'
 }
 
-
-
 named!(svm_string <CompleteStr, &str>, 
     do_parse! ( x: take_while_s!(svm_non_whitespace) >> (x.0)) 
 );
-
 
 named!(svm_line_string <CompleteStr, (&str)>,
     do_parse!( svm_string >> tag!(" ") >> value: svm_string >> line_ending >> (value) )
@@ -93,7 +84,6 @@ named!(svm_line_prob_vec_f64 <CompleteStr, (Vec<f64>)>,
 named!(svm_line_vec_u32 <CompleteStr, (Vec<u32>)>,
     do_parse!( svm_string >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
 );
-
 
 named!(svm_attribute <CompleteStr, (Attribute)>,
     do_parse!(
@@ -144,7 +134,6 @@ named_args!(svm_coef(n: u32) <CompleteStr, Vec<f32>>,
     )
 );
 
-
 named_args!(svm_line_sv(num_coef: u32) <CompleteStr, (SupportVector)>,
     do_parse!(
         // label: map_res!(svm_string, FromStr::from_str) >>
@@ -166,7 +155,6 @@ named_args!(svm_svs(num_coef: u32) <CompleteStr, (Vec<SupportVector>)>,
     )
 );
 
-
 named!(svm_file <CompleteStr, ModelFile>,
     do_parse!(
         header: svm_header >>
@@ -180,4 +168,3 @@ named!(svm_file <CompleteStr, ModelFile>,
         )
     )
 );
-

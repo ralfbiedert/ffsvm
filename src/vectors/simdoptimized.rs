@@ -1,11 +1,9 @@
-use std::fmt;
-use std::iter::IntoIterator;
-use std::marker::{Copy, Sized};
-use std::ops::{Index, IndexMut};
 use rand::{ChaChaRng, Rand, Rng};
+use std::{
+    fmt, iter::IntoIterator, marker::{Copy, Sized}, ops::{Index, IndexMut},
+};
 
-use random::{Randomize};
-
+use random::Randomize;
 
 /// Basic "matrix' we use for fast SIMD and parallel operations.
 ///
@@ -13,8 +11,8 @@ use random::{Randomize};
 /// intended for read operations.
 #[derive(Clone)]
 pub struct SimdOptimized<T>
-    where
-        T: Copy + Sized,
+where
+    T: Copy + Sized,
 {
     /// Number of vectors this matrix has
     pub vectors: usize,
@@ -29,14 +27,10 @@ pub struct SimdOptimized<T>
     pub data: Vec<T>,
 }
 
-
-
-
-
 /// Basic iterator struct to go over matrix
 pub struct IterManyVectors<'a, T: 'a>
-    where
-        T: Copy + Sized,
+where
+    T: Copy + Sized,
 {
     /// Reference to the matrix we iterate over.
     pub matrix: &'a SimdOptimized<T>,
@@ -45,12 +39,9 @@ pub struct IterManyVectors<'a, T: 'a>
     pub index: usize,
 }
 
-
-
-
 impl<T> SimdOptimized<T>
-    where
-        T: Copy + Sized,
+where
+    T: Copy + Sized,
 {
     /// Creates a new empty Matrix.
     pub fn with_dimension(vectors: usize, attributes: usize, default: T) -> SimdOptimized<T> {
@@ -65,25 +56,24 @@ impl<T> SimdOptimized<T>
         }
     }
 
-    
     /// Sets a vector with the given data.
     pub fn set_vector(&mut self, index_vector: usize, vector: &[T]) {
         let start_index = self.offset(index_vector, 0);
-        let src = &vector[..self.attributes];
-        
-        self.data[start_index..(self.attributes + start_index)].clone_from_slice(src);
+        let src = &vector[.. self.attributes];
+
+        self.data[start_index .. (self.attributes + start_index)].clone_from_slice(src);
     }
 
-    /// Computes an offset for a vector and attribute. 
+    /// Computes an offset for a vector and attribute.
     #[inline]
     pub fn offset(&self, vector: usize, attribute: usize) -> usize {
         (vector * self.vector_length + attribute)
     }
 }
 
-
-
-impl <T> Index<(usize, usize)> for SimdOptimized<T> where T: Copy + Sized,
+impl<T> Index<(usize, usize)> for SimdOptimized<T>
+where
+    T: Copy + Sized,
 {
     type Output = T;
 
@@ -93,9 +83,9 @@ impl <T> Index<(usize, usize)> for SimdOptimized<T> where T: Copy + Sized,
     }
 }
 
-
-
-impl <T> IndexMut<(usize, usize)> for SimdOptimized<T> where T: Copy + Sized,
+impl<T> IndexMut<(usize, usize)> for SimdOptimized<T>
+where
+    T: Copy + Sized,
 {
     fn index_mut(&mut self, index: (usize, usize)) -> &mut T {
         let index = self.offset(index.0, index.1);
@@ -103,43 +93,44 @@ impl <T> IndexMut<(usize, usize)> for SimdOptimized<T> where T: Copy + Sized,
     }
 }
 
-
-
-impl <T> Index<usize> for SimdOptimized<T> where T: Copy + Sized,
+impl<T> Index<usize> for SimdOptimized<T>
+where
+    T: Copy + Sized,
 {
     type Output = [T];
 
     fn index(&self, index: usize) -> &[T] {
         let start_index = self.offset(index, 0);
-        &self.data[start_index..start_index + self.vector_length]
+        &self.data[start_index .. start_index + self.vector_length]
     }
 }
 
-
-
-impl <T> IndexMut<usize> for SimdOptimized<T> where T: Copy + Sized,
+impl<T> IndexMut<usize> for SimdOptimized<T>
+where
+    T: Copy + Sized,
 {
     fn index_mut(&mut self, index: usize) -> &mut [T] {
         let start_index = self.offset(index, 0);
-        &mut self.data[start_index..start_index + self.vector_length]
+        &mut self.data[start_index .. start_index + self.vector_length]
     }
 }
-
 
 impl<T> fmt::Debug for SimdOptimized<T>
-    where
-        T: Copy + Sized,
+where
+    T: Copy + Sized,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "(SimdOptimized {}, {}, [data])", self.vectors, self.attributes)
+        write!(
+            f,
+            "(SimdOptimized {}, {}, [data])",
+            self.vectors, self.attributes
+        )
     }
 }
 
-
-
 impl<'a, T> IntoIterator for &'a SimdOptimized<T>
-    where
-        T: Copy + Sized,
+where
+    T: Copy + Sized,
 {
     type Item = &'a [T];
     type IntoIter = IterManyVectors<'a, T>;
@@ -152,9 +143,9 @@ impl<'a, T> IntoIterator for &'a SimdOptimized<T>
     }
 }
 
-
-
-impl<'a, T> Iterator for IterManyVectors<'a, T> where T: Copy + Sized,
+impl<'a, T> Iterator for IterManyVectors<'a, T>
+where
+    T: Copy + Sized,
 {
     type Item = &'a [T];
 
@@ -168,16 +159,14 @@ impl<'a, T> Iterator for IterManyVectors<'a, T> where T: Copy + Sized,
     }
 }
 
-
-
 impl<T> Randomize for SimdOptimized<T>
-    where
-        T: Sized + Copy + Rand,
+where
+    T: Sized + Copy + Rand,
 {
     fn randomize(mut self) -> Self {
         let mut rng = ChaChaRng::new_unseeded();
 
-        for i in 0..self.vectors {
+        for i in 0 .. self.vectors {
             let gen = rng.gen_iter::<T>();
             let vector = gen.take(self.attributes).collect::<Vec<T>>();
 
@@ -187,10 +176,6 @@ impl<T> Randomize for SimdOptimized<T>
         self
     }
 }
-
-
-
-
 
 #[cfg(test)]
 mod tests {
@@ -204,5 +189,3 @@ mod tests {
         }
     }
 }
-
-

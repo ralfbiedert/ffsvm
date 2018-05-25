@@ -2,7 +2,6 @@
 // when process an array, take iterable trait, not slice type
 // Problem: Introduce option for label, features and probabilites
 
-
 #![feature(toowned_clone_into)]
 #![feature(test)]
 #![feature(repr_simd)]
@@ -13,22 +12,23 @@
 //#![cfg_attr(feature="clippy", plugin(clippy))]
 
 extern crate faster;
-#[macro_use] extern crate nom;
+#[macro_use]
+extern crate nom;
+extern crate libc;
 extern crate rand;
 extern crate rayon;
 extern crate test;
-extern crate libc;
 
-mod vectors;
+pub mod ffi;
 mod kernel;
 mod parser;
-mod svm;
 mod random;
-pub mod ffi;
+mod svm;
 pub mod util;
+mod vectors;
 
 pub use kernel::RbfKernel;
-pub use svm::{SVM, Class, Problem, RbfCSVM, PredictProblem};
-pub use parser::{ModelFile};
+pub use parser::ModelFile;
+pub use random::{Random, Randomize};
+pub use svm::{Class, PredictProblem, Problem, RbfCSVM, SVM};
 pub use vectors::SimdOptimized;
-pub use random::{Randomize, Random};

@@ -1,6 +1,5 @@
-use std::iter::Iterator;
 use rand::{ChaChaRng, Rand, Rng};
-
+use std::iter::Iterator;
 
 /// Randomizes a data structure
 pub trait Randomize {
@@ -8,14 +7,10 @@ pub trait Randomize {
     fn randomize(self) -> Self;
 }
 
-
 pub trait Random {
     /// Creates a new random thing.
     fn new_random() -> Self;
-    
 }
-
-
 
 /// Creates a vector of random
 pub fn random_vec<T>(size: usize) -> Vec<T>
@@ -25,4 +20,3 @@ where
     let mut rng = ChaChaRng::new_unseeded();
     rng.gen_iter().take(size).collect()
 }
-
