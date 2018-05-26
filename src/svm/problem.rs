@@ -5,6 +5,7 @@ use vectors::{SimdOptimized, Triangular};
 
 /// A single problem we should classify.
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Problem {
     /// A vector of `num_attributes` features.
     pub features: Vec<f32>,

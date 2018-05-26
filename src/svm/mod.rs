@@ -10,7 +10,8 @@ use vectors::Triangular;
 
 pub type RbfCSVM = SVM<RbfKernel>;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Probabilities {
     a: Triangular<f64>,
 
@@ -18,7 +19,8 @@ pub struct Probabilities {
 }
 
 /// Core support vector machine
-#[derive(Debug)]
+#[derive(Clone, Debug, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SVM<T>
 where
     T: Kernel,

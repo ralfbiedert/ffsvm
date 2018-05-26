@@ -14,6 +14,7 @@ use std::{
 
 /// Square triangular matrix.
 #[derive(Clone, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Triangular<T>
 where
     T: Copy + Sized,

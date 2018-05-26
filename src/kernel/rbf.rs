@@ -8,6 +8,7 @@ use random::Random;
 use vectors::SimdOptimized;
 
 #[derive(Copy, Clone, Debug, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct RbfKernel {
     pub gamma: f32,
 }
