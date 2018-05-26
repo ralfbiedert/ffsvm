@@ -87,3 +87,10 @@ where
             .for_each(|problem| self.predict_probability(problem));
     }
 }
+
+#[derive(Debug)]
+pub enum InstantiationError {
+    /// All attributes must be in order 0, 1, 2, ..., n. If they are not, this 
+    /// error will be emitted. 
+    SvmAttributesUnordered,
+}

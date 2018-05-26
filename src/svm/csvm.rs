@@ -8,6 +8,7 @@ use random::{Random, Randomize};
 use svm::{problem::Problem, Class, PredictProblem, Probabilities, SVM};
 use util::{find_max_index, set_all, sigmoid_predict};
 use vectors::Triangular;
+use super::InstantiationError;
 
 impl<Knl> SVM<Knl>
 where
@@ -112,10 +113,10 @@ impl<'a, 'b, Knl> TryFrom<&'a ModelFile<'b>> for SVM<Knl>
 where
     Knl: Kernel + From<&'a ModelFile<'b>>,
 {
-    type Error = &'static str;
+    type Error = InstantiationError;
 
     /// Creates a SVM from the given raw model.
-    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<SVM<Knl>, &'static str> {
+    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<SVM<Knl>, InstantiationError> {
         let header = &raw_model.header;
         let vectors = &raw_model.vectors;
 
@@ -168,7 +169,7 @@ where
                 for (i_attribute, attribute) in vector.features.iter().enumerate() {
                     // Make sure we have a "sane" file.
                     if attribute.index as usize != i_attribute {
-                        return Result::Err("SVM support vector indices MUST range from [0 ... #(num_attributes - 1)].");
+                        return Result::Err(InstantiationError::SvmAttributesUnordered);
                     }
 
                     svm.classes[i].support_vectors[(i_vector, attribute.index as usize)] =

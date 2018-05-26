@@ -35,11 +35,14 @@ pub struct SupportVector {
     pub features: Vec<Attribute>,
 }
 
+#[derive(Debug)]
+pub struct LoadError;
+
 impl<'a> TryFrom<&'a str> for ModelFile<'a> {
-    type Error = &'static str;
+    type Error = LoadError;
 
     /// Parses a string into a SVM model
-    fn try_from(model: &str) -> Result<ModelFile, &'static str> {
+    fn try_from(model: &str) -> Result<ModelFile, LoadError> {
         // Parse string to struct
         // I fucking regret using `nom` for this ...
         let complete_string = CompleteStr(model);
@@ -47,7 +50,7 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
 
         match res {
             Ok(m) => Result::Ok(m.1),
-            Err(_) => Result::Err("Error parsing file."),
+            Err(_) => Result::Err(LoadError{}),
         }
     }
 }
