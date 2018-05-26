@@ -10,6 +10,17 @@ use vectors::Triangular;
 
 pub type RbfCSVM = SVM<RbfKernel>;
 
+#[derive(Debug)]
+pub enum SVMError {
+    /// All attributes must be in order 0, 1, 2, ..., n. If they are not, this
+    /// error will be emitted.
+    SvmAttributesUnordered {
+        index: u32,
+        value: f32,
+        last_index: u32,
+    },
+}
+
 #[derive(Clone, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Probabilities {
@@ -86,11 +97,4 @@ where
             .par_iter_mut()
             .for_each(|problem| self.predict_probability(problem));
     }
-}
-
-#[derive(Debug)]
-pub enum InstantiationError {
-    /// All attributes must be in order 0, 1, 2, ..., n. If they are not, this 
-    /// error will be emitted. 
-    SvmAttributesUnordered,
 }

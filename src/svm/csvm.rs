@@ -2,13 +2,14 @@ use std::{convert::TryFrom, marker::Sync};
 
 use faster::{f64s, IntoSIMDRefIterator, IntoSIMDZip, SIMDIterator, SIMDZippedIterator, Sum};
 
+use super::SVMError;
 use kernel::Kernel;
 use parser::ModelFile;
 use random::{Random, Randomize};
+use std::option::Option;
 use svm::{problem::Problem, Class, PredictProblem, Probabilities, SVM};
 use util::{find_max_index, set_all, sigmoid_predict};
 use vectors::Triangular;
-use super::InstantiationError;
 
 impl<Knl> SVM<Knl>
 where
@@ -113,10 +114,10 @@ impl<'a, 'b, Knl> TryFrom<&'a ModelFile<'b>> for SVM<Knl>
 where
     Knl: Kernel + From<&'a ModelFile<'b>>,
 {
-    type Error = InstantiationError;
+    type Error = SVMError;
 
     /// Creates a SVM from the given raw model.
-    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<SVM<Knl>, InstantiationError> {
+    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<SVM<Knl>, SVMError> {
         let header = &raw_model.header;
         let vectors = &raw_model.vectors;
 
@@ -165,15 +166,25 @@ where
 
             // Set support vector and coefficients
             for (i_vector, vector) in vectors[start_offset .. stop_offset].iter().enumerate() {
+                let mut last_attribute = None;
+
                 // Set support vectors
                 for (i_attribute, attribute) in vector.features.iter().enumerate() {
-                    // Make sure we have a "sane" file.
-                    if attribute.index as usize != i_attribute {
-                        return Result::Err(InstantiationError::SvmAttributesUnordered);
+                    if let Some(last) = last_attribute {
+                        // In case we have seen an attribute already, this one must be strictly
+                        // the successor attribute
+                        if attribute.index != last + 1 {
+                            return Result::Err(SVMError::SvmAttributesUnordered {
+                                index: attribute.index,
+                                value: attribute.value,
+                                last_index: last,
+                            });
+                        }
                     }
 
-                    svm.classes[i].support_vectors[(i_vector, attribute.index as usize)] =
-                        attribute.value;
+                    svm.classes[i].support_vectors[(i_vector, i_attribute)] = attribute.value;
+
+                    last_attribute = Some(attribute.index);
                 }
 
                 // Set coefficients
@@ -201,8 +212,7 @@ where
 
         // Ensure we have probabilities set. If not, somebody used us the wrong way
         if self.probabilities.is_none() {
-            // TODO: Better error handling since this occurred a few times for me.
-            return;
+            panic!("Cannot predict probabilities if the model does not support it.");
         }
 
         let num_classes = self.classes.len();

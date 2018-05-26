@@ -10,6 +10,26 @@ mod tests {
     use std::convert::TryFrom;
 
     #[test]
+    fn rbfcsvm_multiclass() {
+        let model_str: &str = include_str!("test.multiclass.model");
+        let model = ModelFile::try_from(model_str).unwrap();
+        let csvm = RbfCSVM::try_from(&model).unwrap();
+
+        let mut problem0 = Problem::from(&csvm);
+        let mut problem1 = Problem::from(&csvm);
+
+        //        problem0.features = vec![
+        //            0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.0, 0.0, 1.0, 0.1137485,
+        //        ];
+        //        problem1.features = vec![
+        //            0.3332312, 0.0, 0.0, 0.0, 0.09657142, 1.0, 0.0, 0.0, 1.0, 0.09917226,
+        //        ];
+
+        // csvm.predict_value(&mut problem0);
+        // csvm.predict_value(&mut problem1);
+    }
+
+    #[test]
     fn rbfcsvm_small() {
         let model_str: &str = include_str!("test.small.model");
         let model = ModelFile::try_from(model_str).unwrap();

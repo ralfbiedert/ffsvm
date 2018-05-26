@@ -134,8 +134,8 @@ impl<'a, T> IntoIterator for &'a SimdOptimized<T>
 where
     T: Copy + Sized,
 {
-    type IntoIter = IterManyVectors<'a, T>;
     type Item = &'a [T];
+    type IntoIter = IterManyVectors<'a, T>;
 
     fn into_iter(self) -> Self::IntoIter {
         IterManyVectors {

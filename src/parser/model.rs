@@ -50,7 +50,7 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
 
         match res {
             Ok(m) => Result::Ok(m.1),
-            Err(_) => Result::Err(LoadError{}),
+            Err(_) => Result::Err(LoadError {}),
         }
     }
 }
