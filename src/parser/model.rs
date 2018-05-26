@@ -91,8 +91,8 @@ named!(svm_attribute <CompleteStr, (Attribute)>,
         tag!(":") >>
         value: map_res!(svm_string, FromStr::from_str)  >>
         (Attribute{
-            index: index,
-            value: value
+            index,
+            value
         })
     )
 );

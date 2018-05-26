@@ -4,6 +4,15 @@ use std::{convert::TryFrom, ffi::CStr, ptr::null_mut, slice};
 use parser::ModelFile;
 use svm::{PredictProblem, Problem, RbfCSVM};
 
+/// Make sure the given parameter is not null, or return an error.
+macro_rules! ensure_not_null {
+    ($param:expr) => {
+        if $param.is_null() {
+            return Errors::NullPointerPassed as i32;
+        }
+    };
+}
+
 /// Possible error conditions we can return.
 enum Errors {
     Ok = 0,
@@ -44,9 +53,7 @@ pub extern "C" fn ffsvm_test(value: i32) -> i32 {
 /// from a single thread by yourself!
 #[no_mangle]
 pub unsafe extern "C" fn ffsvm_context_create(context_ptr: *mut *mut Context) -> i32 {
-    if context_ptr.is_null() {
-        return Errors::NullPointerPassed as i32;
-    }
+    ensure_not_null!(context_ptr);
 
     let context = Context {
         max_problems: 1,
@@ -70,37 +77,27 @@ pub unsafe extern "C" fn ffsvm_model_load(
     context_ptr: *mut Context,
     model_c_ptr: *const c_char,
 ) -> i32 {
-    if context_ptr.is_null() {
-        return Errors::NullPointerPassed as i32;
-    }
-    if model_c_ptr.is_null() {
-        return Errors::NullPointerPassed as i32;
-    }
+    ensure_not_null!(context_ptr);
+    ensure_not_null!(model_c_ptr);
 
     let context = &mut *context_ptr;
     let c_str = CStr::from_ptr(model_c_ptr);
 
     // Create UTF8 string
     let model_str = match c_str.to_str() {
-        Err(_) => {
-            return Errors::NoValidUTF8 as i32;
-        }
+        Err(_) => return Errors::NoValidUTF8 as i32,
         Ok(s) => s,
     };
 
     // Parse model
     let model = match ModelFile::try_from(model_str) {
-        Err(_) => {
-            return Errors::ModelParseError as i32;
-        }
+        Err(_) => return Errors::ModelParseError as i32,
         Ok(m) => m,
     };
 
     // Convert into SVM
     let svm = match RbfCSVM::try_from(&model) {
-        Err(_) => {
-            return Errors::SVMCreationError as i32;
-        }
+        Err(_) => return Errors::SVMCreationError as i32,
         Ok(m) => m,
     };
 
@@ -127,19 +124,13 @@ pub unsafe extern "C" fn ffsvm_set_max_problems(
     context_ptr: *mut Context,
     max_problems: u32,
 ) -> i32 {
-    if context_ptr.is_null() {
-        return Errors::NullPointerPassed as i32;
-    }
+    ensure_not_null!(context_ptr);
 
     let context = &mut *context_ptr;
 
     match context.model {
-        None => {
-            context.max_problems = max_problems as usize;
-        }
-        Some(_) => {
-            return Errors::SVMModelAlreadyLoaded as i32;
-        }
+        None => context.max_problems = max_problems as usize,
+        Some(_) => return Errors::SVMModelAlreadyLoaded as i32,
     }
 
     Errors::Ok as i32
@@ -154,33 +145,23 @@ pub unsafe extern "C" fn ffsvm_predict_values(
     labels_ptr: *mut u32,
     labels_len: u32,
 ) -> i32 {
-    if context_ptr.is_null() {
-        return Errors::NullPointerPassed as i32;
-    }
-    if features_ptr.is_null() {
-        return Errors::NullPointerPassed as i32;
-    }
-    if labels_ptr.is_null() {
-        return Errors::NullPointerPassed as i32;
-    }
+    ensure_not_null!(context_ptr);
+    ensure_not_null!(features_ptr);
+    ensure_not_null!(labels_ptr);
 
     let context = &mut *context_ptr;
     let features = slice::from_raw_parts(features_ptr, features_len as usize);
     let labels = slice::from_raw_parts_mut(labels_ptr, labels_len as usize);
 
     let svm = match context.model {
-        None => {
-            return Errors::SVMNoModel as i32;
-        }
+        None => return Errors::SVMNoModel as i32,
         Some(ref model) => model.as_ref(),
     };
 
     // Make sure the pointers have the right length
     let num_problems = match features.len() % svm.num_attributes {
         0 => features.len() / svm.num_attributes,
-        _ => {
-            return Errors::ProblemLengthNotMultipleOfAttributes as i32;
-        }
+        _ => return Errors::ProblemLengthNotMultipleOfAttributes as i32,
     };
 
     if num_problems > context.max_problems {
@@ -223,15 +204,9 @@ pub unsafe extern "C" fn ffsvm_predict_probabilities(
     probabilities_ptr: *mut f32,
     probabilities_len: u32,
 ) -> i32 {
-    if context_ptr.is_null() {
-        return Errors::NullPointerPassed as i32;
-    }
-    if features_ptr.is_null() {
-        return Errors::NullPointerPassed as i32;
-    }
-    if probabilities_ptr.is_null() {
-        return Errors::NullPointerPassed as i32;
-    }
+    ensure_not_null!(context_ptr);
+    ensure_not_null!(features_ptr);
+    ensure_not_null!(probabilities_ptr);
 
     let context = &mut *context_ptr;
     let features = slice::from_raw_parts(features_ptr, features_len as usize);
@@ -274,9 +249,9 @@ pub unsafe extern "C" fn ffsvm_predict_probabilities(
     let mut ptr = 0;
 
     // And store the results
-    for i in 0 .. num_problems {
+    for problem in problems.iter().take(num_problems) {
         for j in 0 .. svm.classes.len() {
-            probabilities[ptr] = problems[i].probabilities[j] as f32;
+            probabilities[ptr] = problem.probabilities[j] as f32;
             ptr += 1;
         }
     }
@@ -291,20 +266,14 @@ pub unsafe extern "C" fn ffsvm_model_get_labels(
     labels_ptr: *mut u32,
     labels_len: u32,
 ) -> i32 {
-    if context_ptr.is_null() {
-        return Errors::NullPointerPassed as i32;
-    }
-    if labels_ptr.is_null() {
-        return Errors::NullPointerPassed as i32;
-    }
+    ensure_not_null!(context_ptr);
+    ensure_not_null!(labels_ptr);
 
     let context = &mut *context_ptr;
     let labels = slice::from_raw_parts_mut(labels_ptr, labels_len as usize);
 
     let svm = match context.model {
-        None => {
-            return Errors::SVMNoModel as i32;
-        }
+        None => return Errors::SVMNoModel as i32,
         Some(ref model) => model.as_ref(),
     };
 
@@ -312,8 +281,8 @@ pub unsafe extern "C" fn ffsvm_model_get_labels(
         return Errors::LabelLengthDoesNotMatchClassesLength as i32;
     }
 
-    for i in 0 .. svm.classes.len() {
-        labels[i] = svm.classes[i].label;
+    for (i, label) in labels.iter_mut().enumerate().take(svm.classes.len()) {
+        *label = svm.classes[i].label;
     }
 
     Errors::Ok as i32
@@ -322,9 +291,7 @@ pub unsafe extern "C" fn ffsvm_model_get_labels(
 /// Destroy the given context.
 #[no_mangle]
 pub unsafe extern "C" fn ffsvm_context_destroy(context_ptr: *mut *mut Context) -> i32 {
-    if context_ptr.is_null() {
-        return Errors::NullPointerPassed as i32;
-    }
+    ensure_not_null!(context_ptr);
 
     // This claims ownership of the context box, and once the scope {} ends,
     // destroys it.
