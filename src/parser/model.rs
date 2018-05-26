@@ -3,13 +3,13 @@ use std::{
     convert::TryFrom, str::{self, FromStr},
 };
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct ModelFile<'a> {
     pub header: Header<'a>,
     pub vectors: Vec<SupportVector>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Header<'a> {
     pub svm_type: &'a str,
     pub kernel_type: &'a str,
@@ -23,13 +23,13 @@ pub struct Header<'a> {
     pub nr_sv: Vec<u32>,
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Attribute {
     pub index: u32,
     pub value: f32,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct SupportVector {
     pub coefs: Vec<f32>,
     pub features: Vec<Attribute>,

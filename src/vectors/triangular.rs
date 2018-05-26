@@ -13,7 +13,7 @@ use std::{
 //    3
 
 /// Square triangular matrix.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Triangular<T>
 where
     T: Copy + Sized,

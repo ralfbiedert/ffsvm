@@ -2,7 +2,7 @@ use random::Randomize;
 use vectors::SimdOptimized;
 
 /// Represents one class of the SVM model.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Class {
     /// The label of this class
     pub label: u32,

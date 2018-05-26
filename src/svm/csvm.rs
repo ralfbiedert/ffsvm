@@ -164,10 +164,8 @@ where
 
             // Set support vector and coefficients
             for (i_vector, vector) in vectors[start_offset .. stop_offset].iter().enumerate() {
-                
                 // Set support vectors
                 for (i_attribute, attribute) in vector.features.iter().enumerate() {
-                    
                     // Make sure we have a "sane" file.
                     if attribute.index as usize != i_attribute {
                         return Result::Err("SVM support vector indices MUST range from [0 ... #(num_attributes - 1)].");

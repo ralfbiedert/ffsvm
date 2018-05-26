@@ -7,6 +7,7 @@ use rand::random;
 use random::Random;
 use vectors::SimdOptimized;
 
+#[derive(Copy, Clone, Debug, Default)]
 pub struct RbfKernel {
     pub gamma: f32,
 }
@@ -16,7 +17,6 @@ impl Kernel for RbfKernel {
         // According to Instruments, for realistic SVMs and problems, the VAST majority of our
         // CPU time is spent in this loop.
         for (i, sv) in vectors.into_iter().enumerate() {
-            // TODO: This allocates a Vec internally, doesn't it?
             let sum: f32 = (sv.simd_iter(f32s(0.0f32)), feature.simd_iter(f32s(0.0f32)))
                 .zip()
                 .simd_map(|(a, b)| (a - b) * (a - b))

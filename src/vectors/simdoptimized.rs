@@ -28,6 +28,7 @@ where
 }
 
 /// Basic iterator struct to go over matrix
+#[derive(Clone, Debug)]
 pub struct IterManyVectors<'a, T: 'a>
 where
     T: Copy + Sized,
