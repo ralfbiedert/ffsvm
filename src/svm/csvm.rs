@@ -81,7 +81,6 @@ where
                 let kvalues0 = &problem.kernel_values[i][0 .. sv_coef0.len()];
                 let kvalues1 = &problem.kernel_values[j][0 .. sv_coef1.len()];
 
-                // TODO: This allocates a Vec internally, doesn't it?
                 let sum0: f64 = (
                     sv_coef0.simd_iter(f64s(0.0f64)),
                     kvalues0.simd_iter(f64s(0.0f64)),
@@ -90,7 +89,6 @@ where
                     .simd_reduce(f64s::splat(0.0), |a, v| a + v)
                     .sum();
 
-                // TODO: This allocates a Vec internally, doesn't it?
                 let sum1: f64 = (
                     sv_coef1.simd_iter(f64s(0.0f64)),
                     kvalues1.simd_iter(f64s(0.0f64)),
@@ -166,8 +164,10 @@ where
 
             // Set support vector and coefficients
             for (i_vector, vector) in vectors[start_offset .. stop_offset].iter().enumerate() {
+                
                 // Set support vectors
                 for (i_attribute, attribute) in vector.features.iter().enumerate() {
+                    
                     // Make sure we have a "sane" file.
                     if attribute.index as usize != i_attribute {
                         return Result::Err("SVM support vector indices MUST range from [0 ... #(num_attributes - 1)].");
