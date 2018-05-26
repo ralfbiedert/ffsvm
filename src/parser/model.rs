@@ -90,9 +90,11 @@ named!(svm_line_vec_u32 <CompleteStr, (Vec<u32>)>,
 
 named!(svm_attribute <CompleteStr, (Attribute)>,
     do_parse!(
-        index: map_res!(svm_string, FromStr::from_str) >>
+        many0!(tag!(" ")) >>
+        index: map_res!(svm_string, FromStr::from_str) >> 
         tag!(":") >>
         value: map_res!(svm_string, FromStr::from_str)  >>
+        many0!(tag!(" ")) >>
         (Attribute{
             index,
             value
@@ -131,17 +133,15 @@ named!(pub svm_header <CompleteStr, Header>,
 
 named_args!(svm_coef(n: u32) <CompleteStr, Vec<f32>>,
     do_parse!(
-        opt!(complete!(tag!(" "))) >>
-        rval: count!(map_res!(svm_string, FromStr::from_str), n as usize) >>
+        rval: count!(map_res!(ws!(svm_string), FromStr::from_str), n as usize) >>
         (rval)
     )
 );
 
 named_args!(svm_line_sv(num_coef: u32) <CompleteStr, (SupportVector)>,
     do_parse!(
-        // label: map_res!(svm_string, FromStr::from_str) >>
         coefs: call!(svm_coef, num_coef) >>
-        features: many0!(preceded!(tag!(" "), svm_attribute)) >>
+        features: many0!(svm_attribute) >>
         many0!(tag!(" ")) >>
         line_ending >>
         (SupportVector {
@@ -161,7 +161,7 @@ named_args!(svm_svs(num_coef: u32) <CompleteStr, (Vec<SupportVector>)>,
 named!(svm_file <CompleteStr, ModelFile>,
     do_parse!(
         header: svm_header >>
-        svm_string >> line_ending >>
+        tag!("SV") >> line_ending >>
         vectors: call!(svm_svs, header.nr_class - 1) >>
         (
             ModelFile {
