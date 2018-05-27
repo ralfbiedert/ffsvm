@@ -1,5 +1,5 @@
 node_modules
-/target/
+target
 **/*.rs.bk
 Cargo.lock
 *.iml

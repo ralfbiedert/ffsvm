@@ -8,21 +8,16 @@
 #![feature(try_from)]
 #![feature(libc)]
 
-//#![cfg_attr(feature="clippy", feature(plugin))]
-//#![cfg_attr(feature="clippy", plugin(clippy))]
-
 extern crate faster;
 #[macro_use]
 extern crate nom;
 extern crate libc;
 extern crate rand;
-extern crate rayon;
 extern crate test;
 #[cfg(feature = "serde")]
 #[macro_use]
 extern crate serde;
 
-pub mod ffi;
 mod kernel;
 mod parser;
 mod random;

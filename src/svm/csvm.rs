@@ -6,7 +6,11 @@ use super::SVMError;
 use kernel::Kernel;
 use parser::ModelFile;
 use random::{Random, Randomize};
-use svm::{problem::Problem, Class, PredictProblem, Probabilities, SVM};
+use svm::{
+    problem::Problem, Class, PredictProblem, Probabilities,
+    SVMError::{MaxIterationsExceededPredictingProbabilities, ModelDoesNotSupportProbabilities},
+    SVM,
+};
 use util::{find_max_index, set_all, sigmoid_predict};
 use vectors::Triangular;
 
@@ -53,7 +57,7 @@ where
     // based on Method 2 from the paper "Probability Estimates for Multi-class
     // Classification by Pairwise Coupling", Journal of Machine Learning Research 5 (2004) 975-1005,
     // by Ting-Fan Wu, Chih-Jen Lin and Ruby C. Weng.
-    fn compute_multiclass_probabilities(&self, problem: &mut Problem) {
+    fn compute_multiclass_probabilities(&self, problem: &mut Problem) -> Result<(), SVMError> {
         let num_classes = self.classes.len();
         let max_iter = 100.max(num_classes);
         let q = &mut problem.q;
@@ -79,7 +83,7 @@ where
         }
 
         // We now try to satisfy (21), (23) and (24) in the paper above.
-        for _ in 0 .. max_iter {
+        for i in 0 ..= max_iter {
             let mut pqp = 0.0;
 
             for t in 0 .. num_classes {
@@ -107,6 +111,12 @@ where
                 break;
             }
 
+            // In case we are on the last iteration round past the threshold
+            // we know something went wrong. Signal we exceeded the threshold.
+            if i == max_iter {
+                return Err(MaxIterationsExceededPredictingProbabilities);
+            }
+
             // This seems to be the main function performing (23) and (24).
             for t in 0 .. num_classes {
                 let diff = (-qp[t] + pqp) / q[(t, t)];
@@ -120,6 +130,8 @@ where
                 }
             }
         }
+
+        Ok(())
     }
 
     /// Based on kernel values, computes the decision values for this problem.
@@ -279,19 +291,19 @@ impl<Knl> PredictProblem for SVM<Knl>
 where
     Knl: Kernel + Random + Sync,
 {
-    fn predict_probability(&self, problem: &mut Problem) {
+    fn predict_probability(&self, problem: &mut Problem) -> Result<(), SVMError> {
         const MIN_PROB: f64 = 1e-7;
 
         // Ensure we have probabilities set. If not, somebody used us the wrong way
         if self.probabilities.is_none() {
-            panic!("Cannot predict probabilities if the model does not support it.");
+            return Err(ModelDoesNotSupportProbabilities);
         }
 
         let num_classes = self.classes.len();
         let probabilities = self.probabilities.as_ref().unwrap();
 
         // First we need to predict the problem for our decision values
-        self.predict_value(problem);
+        self.predict_value(problem)?;
 
         // Now compute probability values
         for i in 0 .. num_classes {
@@ -313,15 +325,17 @@ where
             problem.probabilities[0] = problem.pairwise[(0, 1)];
             problem.probabilities[1] = problem.pairwise[(1, 0)];
         } else {
-            self.compute_multiclass_probabilities(problem);
+            self.compute_multiclass_probabilities(problem)?;
         }
 
         let max_index = find_max_index(problem.probabilities.as_slice());
         problem.label = self.classes[max_index].label;
+
+        Ok(())
     }
 
     // Predict the value for one problem.
-    fn predict_value(&self, problem: &mut Problem) {
+    fn predict_value(&self, problem: &mut Problem) -> Result<(), SVMError> {
         // Compute kernel, decision values and eventually the label
         self.compute_kernel_values(problem);
         self.compute_decision_values(problem);
@@ -329,5 +343,7 @@ where
         // Compute highest vote
         let highest_vote = find_max_index(&problem.vote);
         problem.label = self.classes[highest_vote].label;
+
+        Ok(())
     }
 }

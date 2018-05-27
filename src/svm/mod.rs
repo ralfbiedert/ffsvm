@@ -5,7 +5,6 @@ mod problem;
 pub use self::{class::Class, problem::Problem};
 
 use kernel::{Kernel, RbfKernel};
-use rayon::prelude::*;
 use vectors::Triangular;
 
 pub type RbfCSVM = SVM<RbfKernel>;
@@ -19,6 +18,10 @@ pub enum SVMError {
         value: f32,
         last_index: u32,
     },
+
+    ModelDoesNotSupportProbabilities,
+
+    MaxIterationsExceededPredictingProbabilities,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -77,24 +80,8 @@ where
     Self: Sync,
 {
     /// Predict a single value for a problem.
-    fn predict_value(&self, &mut Problem);
+    fn predict_value(&self, &mut Problem) -> Result<(), SVMError>;
 
     /// Predict a probability value for a problem.
-    fn predict_probability(&self, &mut Problem);
-
-    /// Predicts all values for a set of problems.
-    fn predict_values(&self, problems: &mut [Problem]) {
-        // Compute all problems ...
-        problems
-            .par_iter_mut()
-            .for_each(|problem| self.predict_value(problem));
-    }
-
-    /// Predicts all probabilities for a set of problems.
-    fn predict_probabilities(&self, problems: &mut [Problem]) {
-        // Compute all problems ...
-        problems
-            .par_iter_mut()
-            .for_each(|problem| self.predict_probability(problem));
-    }
+    fn predict_probability(&self, &mut Problem) -> Result<(), SVMError>;
 }
