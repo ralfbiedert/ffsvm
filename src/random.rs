@@ -14,8 +14,7 @@ pub trait Random {
 }
 
 /// Creates a vector of random
-#[doc(hidden)]
-pub fn random_vec<T>(size: usize) -> Vec<T>
+pub (crate) fn random_vec<T>(size: usize) -> Vec<T>
 where
     T: Default + Clone,
     distributions::Standard: distributions::Distribution<T>,
