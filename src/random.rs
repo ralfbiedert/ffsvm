@@ -1,4 +1,3 @@
-
 use rand::{distributions, random};
 
 /// Randomizes a data structure

@@ -4,28 +4,28 @@ use std::{
 };
 
 /// (Start here) Parsing result of a model file used to instantiate a [SVM].
-/// 
+///
 /// # Obtaining a model
 /// A model file is produced by [libSVM](https://github.com/cjlin1/libsvm). For details
-/// how to produce a model see the top-level [FFSVM](index.html#creating-a-libsvm-model) 
+/// how to produce a model see the top-level [FFSVM](index.html#creating-a-libsvm-model)
 /// documentation.
 ///
 /// # Loading a model
 ///
 /// Model are generally produced by parsing a `&str` using the `ModelFile::try_from` function:
-/// 
+///
 /// ```ignore
 /// let model = ModelFile::try_from(model_str)!
 /// ```
-/// 
+///
 /// Should anything be wrong with the model format, a [ModelError] will be returned. Once you have
 /// your model, you can use it to create a [SVM] (in particular an [RbfCSVM]).
-/// 
+///
 /// # Model format
-/// 
+///
 /// For FFSVM to load a model, it needs to approximately look like below. Note that you cannot
 /// reasonably create this model by hand, it needs to come from [libSVM](https://github.com/cjlin1/libsvm).   
-/// 
+///
 /// ```ignore
 /// svm_type c_svc
 /// kernel_type rbf
@@ -43,38 +43,38 @@ use std::{
 /// 256 0:0.5020829 1:0 2:0 3:0 4:0.1393665 5:1 6:0 7:0 8:1 9:0
 /// 256 0:0.4933203 1:0.1098869 2:0.1048947 3:0.1069601 4:0.2152338 5:0 6:0 7:0 8:1 9:1
 /// ```
-/// 
+///
 /// In particular:
-/// 
+///
 /// * `svm_type` must be `c_svc`.
 /// * `kernel_type` must be `rbf`
-/// * All support vectors (past the `SV` line) must have **strictly** increasing attribute 
+/// * All support vectors (past the `SV` line) must have **strictly** increasing attribute
 /// identifiers, without skipping an attribute.  
-/// 
+///
 #[derive(Clone, Debug, Default)]
 pub struct ModelFile<'a> {
-    pub (crate) header: Header<'a>,
-    pub (crate) vectors: Vec<SupportVector>,
+    pub(crate) header: Header<'a>,
+    pub(crate) vectors: Vec<SupportVector>,
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct Header<'a> {
-    pub (crate) svm_type: &'a str,
-    pub (crate) kernel_type: &'a str,
-    pub (crate) gamma: f32,
-    pub (crate) nr_class: u32,
-    pub (crate) total_sv: u32,
-    pub (crate) rho: Vec<f64>,
-    pub (crate) label: Vec<u32>,
-    pub (crate) prob_a: Option<Vec<f64>>,
-    pub (crate) prob_b: Option<Vec<f64>>,
-    pub (crate) nr_sv: Vec<u32>,
+    pub(crate) svm_type: &'a str,
+    pub(crate) kernel_type: &'a str,
+    pub(crate) gamma: f32,
+    pub(crate) nr_class: u32,
+    pub(crate) total_sv: u32,
+    pub(crate) rho: Vec<f64>,
+    pub(crate) label: Vec<u32>,
+    pub(crate) prob_a: Option<Vec<f64>>,
+    pub(crate) prob_b: Option<Vec<f64>>,
+    pub(crate) nr_sv: Vec<u32>,
 }
 
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Attribute {
-    pub (crate) index: u32,
-    pub (crate) value: f32,
+    pub(crate) index: u32,
+    pub(crate) value: f32,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -88,7 +88,7 @@ pub struct SupportVector {
 pub enum ModelError {
     /// This signals there was a general parsing error. For models generated with `svm-train`
     /// this should not happen.
-    ParsingError    
+    ParsingError,
 }
 
 impl<'a> TryFrom<&'a str> for ModelFile<'a> {

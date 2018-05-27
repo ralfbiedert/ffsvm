@@ -4,28 +4,28 @@ use svm::SVM;
 use vectors::{SimdOptimized, Triangular};
 
 /// A single problem a [SVM] should classify.
-/// 
-/// # Creating a problem 
-/// 
+///
+/// # Creating a problem
+///
 /// Problems are created via the `Problem::from` method:
-/// 
+///
 /// ```ignore
 /// let mut problem = Problem::from(&svm);
 /// ```
 ///
-/// # Classifiying a problem 
+/// # Classifiying a problem
 ///   
 /// A problem is an instance of the SVM's problem domain. To be classified, all `features` need
-/// to be set, for example by: 
-/// 
+/// to be set, for example by:
+///
 /// ```ignore
 /// problem.features = vec![
 ///     -0.55838, -0.157895, 0.581292, -0.221184, 0.135713, -0.874396, -0.563197, -1.0, -1.0,
 /// ];
 /// ```
-/// 
-/// It can then be handed over to the [SVM] (via the [PredictProblem] trait). 
-/// 
+///
+/// It can then be handed over to the [SVM] (via the [PredictProblem] trait).
+///
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Problem {
@@ -33,24 +33,24 @@ pub struct Problem {
     pub features: Vec<f32>,
 
     /// Kernel values. A vector for each class.
-    pub (crate) kernel_values: SimdOptimized<f64>,
+    pub(crate) kernel_values: SimdOptimized<f64>,
 
     /// All votes for a given class label.
-    pub (crate) vote: Vec<u32>,
+    pub(crate) vote: Vec<u32>,
 
     /// Decision values.
-    pub (crate) decision_values: Triangular<f64>,
+    pub(crate) decision_values: Triangular<f64>,
 
     /// Pairwise probabilities
-    pub (crate) pairwise: SimdOptimized<f64>,
+    pub(crate) pairwise: SimdOptimized<f64>,
 
     /// Needed for multi-class probability estimates replicating libSVM.
-    pub (crate) q: SimdOptimized<f64>,
+    pub(crate) q: SimdOptimized<f64>,
 
     /// Needed for multi-class probability estimates replicating libSVM.
-    pub (crate) qp: Vec<f64>,
+    pub(crate) qp: Vec<f64>,
 
-    /// Probability estimates that will be updated after this problem was processed 
+    /// Probability estimates that will be updated after this problem was processed
     /// by `predict_probability` in [PredictProblem] if the model supports it.
     pub probabilities: Vec<f64>,
 
@@ -60,7 +60,11 @@ pub struct Problem {
 
 impl Problem {
     /// Creates a new problem with the given parameters.
-    pub (crate) fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem {
+    pub(crate) fn with_dimension(
+        total_sv: usize,
+        num_classes: usize,
+        num_attributes: usize,
+    ) -> Problem {
         Problem {
             features: vec![Default::default(); num_attributes],
             kernel_values: SimdOptimized::with_dimension(num_classes, total_sv, Default::default()),

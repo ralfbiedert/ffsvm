@@ -48,7 +48,6 @@ where
 {
     /// Creates a new empty Matrix.
     pub fn with_dimension(vectors: usize, attributes: usize, default: T) -> SimdOptimized<T> {
-
         SimdOptimized::<T> {
             vectors,
             attributes,
@@ -137,8 +136,8 @@ impl<'a, T> IntoIterator for &'a SimdOptimized<T>
 where
     T: Copy + Sized,
 {
-    type IntoIter = IterManyVectors<'a, T>;
     type Item = &'a [T];
+    type IntoIter = IterManyVectors<'a, T>;
 
     fn into_iter(self) -> Self::IntoIter {
         IterManyVectors {
