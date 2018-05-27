@@ -1,0 +1,3 @@
+* Put FFI + Rayon code into separate crate
+* Convert most problem variables into thread-local variables?
+* Document!!!
