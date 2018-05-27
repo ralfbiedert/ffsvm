@@ -11,24 +11,24 @@ pub struct Problem {
     pub features: Vec<f32>,
 
     /// Kernel values. A vector for each class.
-    pub kernel_values: SimdOptimized<f64>,
+    pub (crate) kernel_values: SimdOptimized<f64>,
 
     /// All votes for a given class label.
-    pub vote: Vec<u32>,
+    pub (crate) vote: Vec<u32>,
 
     /// Decision values.
-    pub decision_values: Triangular<f64>,
+    pub (crate) decision_values: Triangular<f64>,
 
     /// Pairwise probabilities
-    pub pairwise: SimdOptimized<f64>,
+    pub (crate) pairwise: SimdOptimized<f64>,
 
     /// Needed for multi-class probability estimates replicating libSVM.
-    pub q: SimdOptimized<f64>,
+    pub (crate) q: SimdOptimized<f64>,
 
     /// Needed for multi-class probability estimates replicating libSVM.
-    pub qp: Vec<f64>,
+    pub (crate) qp: Vec<f64>,
 
-    /// Pairwise probabilities
+    /// Probability estimates.
     pub probabilities: Vec<f64>,
 
     /// Computed label. This is what we update eventually.
@@ -37,7 +37,7 @@ pub struct Problem {
 
 impl Problem {
     /// Creates a new problem with the given parameters.
-    pub fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem {
+    pub (crate) fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem {
         Problem {
             features: vec![Default::default(); num_attributes],
             kernel_values: SimdOptimized::with_dimension(num_classes, total_sv, Default::default()),

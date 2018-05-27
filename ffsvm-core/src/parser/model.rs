@@ -3,30 +3,32 @@ use std::{
     convert::TryFrom, str::{self, FromStr},
 };
 
+/// Parsing result of a model file (start here).
+/// 
 #[derive(Clone, Debug, Default)]
 pub struct ModelFile<'a> {
-    pub header: Header<'a>,
-    pub vectors: Vec<SupportVector>,
+    pub (crate) header: Header<'a>,
+    pub (crate) vectors: Vec<SupportVector>,
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct Header<'a> {
-    pub svm_type: &'a str,
-    pub kernel_type: &'a str,
-    pub gamma: f32,
-    pub nr_class: u32,
-    pub total_sv: u32,
-    pub rho: Vec<f64>,
-    pub label: Vec<u32>,
-    pub prob_a: Option<Vec<f64>>,
-    pub prob_b: Option<Vec<f64>>,
-    pub nr_sv: Vec<u32>,
+    pub (crate) svm_type: &'a str,
+    pub (crate) kernel_type: &'a str,
+    pub (crate) gamma: f32,
+    pub (crate) nr_class: u32,
+    pub (crate) total_sv: u32,
+    pub (crate) rho: Vec<f64>,
+    pub (crate) label: Vec<u32>,
+    pub (crate) prob_a: Option<Vec<f64>>,
+    pub (crate) prob_b: Option<Vec<f64>>,
+    pub (crate) nr_sv: Vec<u32>,
 }
 
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Attribute {
-    pub index: u32,
-    pub value: f32,
+    pub (crate) index: u32,
+    pub (crate) value: f32,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -36,13 +38,15 @@ pub struct SupportVector {
 }
 
 #[derive(Debug)]
-pub struct LoadError;
+pub enum ModelError {
+    ParsingError    
+}
 
 impl<'a> TryFrom<&'a str> for ModelFile<'a> {
-    type Error = LoadError;
+    type Error = ModelError;
 
     /// Parses a string into a SVM model
-    fn try_from(model: &str) -> Result<ModelFile, LoadError> {
+    fn try_from(model: &str) -> Result<ModelFile, ModelError> {
         // Parse string to struct
         // I fucking regret using `nom` for this ...
         let complete_string = CompleteStr(model);
@@ -50,7 +54,7 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
 
         match res {
             Ok(m) => Result::Ok(m.1),
-            Err(_) => Result::Err(LoadError {}),
+            Err(_) => Result::Err(ModelError::ParsingError),
         }
     }
 }

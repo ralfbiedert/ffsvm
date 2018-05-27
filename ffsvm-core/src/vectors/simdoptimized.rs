@@ -11,6 +11,7 @@ use random::{random_vec, Randomize};
 /// intended for read operations.
 #[derive(Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[doc(hidden)]
 pub struct SimdOptimized<T>
 where
     T: Copy + Sized,

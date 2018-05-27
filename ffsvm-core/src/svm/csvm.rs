@@ -14,6 +14,7 @@ use svm::{
 use util::{find_max_index, set_all, sigmoid_predict};
 use vectors::Triangular;
 
+#[doc(hidden)]
 impl<Knl> SVM<Knl>
 where
     Knl: Kernel + Random,

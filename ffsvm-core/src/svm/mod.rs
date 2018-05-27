@@ -40,20 +40,20 @@ where
     T: Kernel,
 {
     /// Total number of support vectors
-    pub num_total_sv: usize,
+    pub (crate) num_total_sv: usize,
 
     /// Number of attributes per support vector
-    pub num_attributes: usize,
+    pub (crate) num_attributes: usize,
 
-    pub rho: Triangular<f64>,
+    pub (crate) rho: Triangular<f64>,
 
-    pub probabilities: Option<Probabilities>,
+    pub (crate) probabilities: Option<Probabilities>,
 
     /// SVM specific data needed for classification
-    pub kernel: T,
+    pub (crate) kernel: T,
 
     /// All classes
-    pub classes: Vec<Class>,
+    pub (crate) classes: Vec<Class>,
 }
 
 impl<T> SVM<T>
@@ -72,9 +72,32 @@ where
 
         None
     }
+
+    /// TODO
+    pub fn class_label_for_index(&self, index: usize) -> Option<u32> {
+        
+        return if index >= self.classes.len() {
+            None
+        } else {
+            Some(self.classes[index].label)
+        }
+    }
+    
+    /// Returns number of attributes
+    pub fn attributes(&self) -> usize {
+        self.num_attributes        
+    }
+
+    /// Returns number of classes
+    pub fn classes(&self) -> usize {
+        self.classes.len()
+    }
+    
+   
 }
 
 /// Predict a problem.
+#[doc(hidden)]
 pub trait PredictProblem
 where
     Self: Sync,

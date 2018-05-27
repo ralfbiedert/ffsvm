@@ -161,8 +161,8 @@ pub unsafe extern "C" fn ffsvm_predict_values(
     };
 
     // Make sure the pointers have the right length
-    let num_problems = match features.len() % svm.num_attributes {
-        0 => features.len() / svm.num_attributes,
+    let num_problems = match features.len() % svm.attributes() {
+        0 => features.len() / svm.attributes(),
         _ => return Errors::ProblemLengthNotMultipleOfAttributes as i32,
     };
 
@@ -175,7 +175,7 @@ pub unsafe extern "C" fn ffsvm_predict_values(
     }
 
     let problems = &mut context.problems;
-    let num_attributes = svm.num_attributes;
+    let num_attributes = svm.attributes();
 
     // Copy features to respective problems
     for i in 0 .. num_problems {
@@ -220,8 +220,8 @@ pub unsafe extern "C" fn ffsvm_predict_probabilities(
     };
 
     // Make sure the pointers have the right length
-    let num_problems = match features.len() % svm.num_attributes {
-        0 => features.len() / svm.num_attributes,
+    let num_problems = match features.len() % svm.attributes() {
+        0 => features.len() / svm.attributes(),
         _ => return Errors::ProblemLengthNotMultipleOfAttributes as i32,
     };
 
@@ -229,12 +229,12 @@ pub unsafe extern "C" fn ffsvm_predict_probabilities(
         return Errors::ProblemPoolTooSmall as i32;
     }
 
-    if probabilities_len != (num_problems * svm.classes.len()) as u32 {
+    if probabilities_len != (num_problems * svm.classes()) as u32 {
         return Errors::ProbabilitiesDoesNotEqualProblemsXAttributes as i32;
     }
 
     let problems = &mut context.problems;
-    let num_attributes = svm.num_attributes;
+    let num_attributes = svm.attributes();
 
     // Copy features to respective problems
     for i in 0 .. num_problems {
@@ -252,7 +252,7 @@ pub unsafe extern "C" fn ffsvm_predict_probabilities(
 
     // And store the results
     for problem in problems.iter().take(num_problems) {
-        for j in 0 .. svm.classes.len() {
+        for j in 0 .. svm.classes() {
             probabilities[ptr] = problem.probabilities[j] as f32;
             ptr += 1;
         }
@@ -279,12 +279,12 @@ pub unsafe extern "C" fn ffsvm_model_get_labels(
         Some(ref model) => model.as_ref(),
     };
 
-    if labels_len != svm.classes.len() as u32 {
+    if labels_len != svm.classes() as u32 {
         return Errors::LabelLengthDoesNotMatchClassesLength as i32;
     }
 
-    for (i, label) in labels.iter_mut().enumerate().take(svm.classes.len()) {
-        *label = svm.classes[i].label;
+    for (i, label) in labels.iter_mut().enumerate().take(svm.classes()) {
+        *label = svm.class_label_for_index(i).expect("Label must be available.");
     }
 
     Errors::Ok as i32

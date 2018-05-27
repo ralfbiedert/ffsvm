@@ -1,3 +1,4 @@
+
 #![feature(test)]
 #![feature(try_from)]
 
@@ -26,8 +27,8 @@ mod tests {
             -0.371381, 0.100752, -1.0, -0.0467289, 0.0892856, -0.545894, -0.806691, 0.828571, -1.0,
         ];
 
-        csvm.predict_probability(&mut problem0);
-        csvm.predict_probability(&mut problem1);
+        csvm.predict_probability(&mut problem0).expect("Worked");
+        csvm.predict_probability(&mut problem1).expect("Worked");
 
         println!("{:?}", problem0);
         println!("{:?}", problem1);
@@ -53,8 +54,8 @@ mod tests {
             0.3332312, 0.0, 0.0, 0.0, 0.09657142, 1.0, 0.0, 0.0, 1.0, 0.09917226,
         ];
 
-        csvm.predict_value(&mut problem0);
-        csvm.predict_value(&mut problem1);
+        csvm.predict_value(&mut problem0).expect("Worked");
+        csvm.predict_value(&mut problem1).expect("Worked");
 
         // Results as per `libsvm`
         assert_eq!(0, problem0.label);
@@ -87,9 +88,9 @@ mod tests {
         ];
         problem2.features = vec![0.5020829, 0.0, 0.0, 0.0, 0.1393665, 1.0, 0.0, 0.0, 1.0, 0.0];
 
-        csvm.predict_probability(&mut problem0);
-        csvm.predict_probability(&mut problem1);
-        csvm.predict_probability(&mut problem2);
+        csvm.predict_probability(&mut problem0).expect("Worked");
+        csvm.predict_probability(&mut problem1).expect("Worked");
+        csvm.predict_probability(&mut problem2).expect("Worked");
 
         // LibSVM output:
         // 0 0.809408 0.190592

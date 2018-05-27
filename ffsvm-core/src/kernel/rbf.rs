@@ -9,6 +9,7 @@ use vectors::SimdOptimized;
 
 #[derive(Copy, Clone, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[doc(hidden)]
 pub struct RbfKernel {
     pub gamma: f32,
 }

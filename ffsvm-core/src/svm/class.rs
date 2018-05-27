@@ -4,6 +4,7 @@ use vectors::SimdOptimized;
 /// Represents one class of the SVM model.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[doc(hidden)]
 pub struct Class {
     /// The label of this class
     pub label: u32,
