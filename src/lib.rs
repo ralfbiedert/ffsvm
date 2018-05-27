@@ -6,12 +6,10 @@
 #![feature(test)]
 #![feature(repr_simd)]
 #![feature(try_from)]
-#![feature(libc)]
 
 extern crate faster;
 #[macro_use]
 extern crate nom;
-extern crate libc;
 extern crate rand;
 extern crate test;
 #[cfg(feature = "serde")]
