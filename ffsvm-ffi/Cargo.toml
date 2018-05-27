@@ -1,8 +1,0 @@
-[package]
-name = "ffsvm_ffi"
-version = "0.1.0"
-authors = ["Ralf Biedert <rb@xr.io>"]
-
-[dependencies]
-ffsvm = { path="../ffsvm-core" }
-rayon = "1.0"
