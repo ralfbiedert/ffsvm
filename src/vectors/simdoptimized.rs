@@ -1,9 +1,9 @@
-use rand::{ChaChaRng, Rand, Rng};
 use std::{
     fmt, iter::IntoIterator, marker::{Copy, Sized}, ops::{Index, IndexMut},
 };
 
-use random::Randomize;
+use random::{Randomize, random_vec};
+use rand::distributions;
 
 /// Basic "matrix' we use for fast SIMD and parallel operations.
 ///
@@ -168,15 +168,14 @@ where
 
 impl<T> Randomize for SimdOptimized<T>
 where
-    T: Sized + Copy + Rand,
+    T: Sized + Copy + Default,
+    distributions::Standard: distributions::Distribution<T>
 {
     fn randomize(mut self) -> Self {
-        let mut rng = ChaChaRng::new_unseeded();
-
+        
         for i in 0 .. self.vectors {
-            let gen = rng.gen_iter::<T>();
-            let vector = gen.take(self.attributes).collect::<Vec<T>>();
-
+            let vector = random_vec(self.attributes);
+            
             self.set_vector(i, vector.as_slice());
         }
 

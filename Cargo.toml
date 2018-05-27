@@ -12,8 +12,8 @@ exclude = [
 
 [dependencies]
 faster = { git="https://github.com/ralfbiedert/faster", rev="8a86e1b7f75065b44bd9caab643468d9a5794579" }  
-rand = "0.4"
-nom = "4.0.0"  
+rand = "0.5"
+nom = "4.0"  
 serde = { version = "1.0", optional = true, features = ["derive"] }
 
 [lib]

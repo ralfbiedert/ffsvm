@@ -1,5 +1,5 @@
-use rand::{ChaChaRng, Rand, Rng};
-use std::iter::Iterator;
+use rand::random;
+use rand::distributions;
 
 /// Randomizes a data structure
 pub trait Randomize {
@@ -15,8 +15,12 @@ pub trait Random {
 /// Creates a vector of random
 pub fn random_vec<T>(size: usize) -> Vec<T>
 where
-    T: Rand,
+    T: Default + Clone,
+    distributions::Standard: distributions::Distribution<T>
 {
-    let mut rng = ChaChaRng::new_unseeded();
-    rng.gen_iter().take(size).collect()
+    let mut array : Vec<T> = vec![Default::default(); size];
+    for e in &mut array {
+        *e = random()
+    }
+    array
 }
