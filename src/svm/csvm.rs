@@ -172,7 +172,6 @@ where
                     .simd_reduce(f64s::splat(0.0), |a, v| a + v)
                     .sum();
 
-                // TODO: Double check the index for RHO if it makes sense how we traverse the classes
                 let sum = sum0 + sum1 - self.rho[(i, j)];
                 let index_to_vote = if sum > 0.0 { i } else { j };
 
@@ -227,7 +226,7 @@ where
             classes,
         };
 
-        // TODO: Things down here are a bit ugly as the file format is a bit ugly ...
+        // Things down here are a bit ugly as the file format is a bit ugly ...
 
         // Now read all vectors and decode stored information
         let mut start_offset = 0;
