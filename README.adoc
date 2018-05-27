@@ -54,11 +54,10 @@ Please see https://github.com/ralfbiedert/ffsvm-rust[FFSVM-FFI]
 
 = Status
 
-**May 27, 2018**: We're in alpha. Successfully used internally on Windows, Mac, Android and Linux 
+* **May 27, 2018**: We're in alpha. Successfully used internally on Windows, Mac, Android and Linux 
 on various machines and devices. Once SIMD (faster) stabilizes and we can cross-compile to WASM 
 we'll move to beta.  
- 
-**December 16, 2017**: We're in pre-alpha. It will probably not even work on your machine.
+* **December 16, 2017**: We're in pre-alpha. It will probably not even work on your machine.
 
 
 = Performance
