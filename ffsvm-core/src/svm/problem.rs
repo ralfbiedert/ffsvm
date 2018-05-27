@@ -3,11 +3,33 @@ use random::{random_vec, Randomize};
 use svm::SVM;
 use vectors::{SimdOptimized, Triangular};
 
-/// A single problem we should classify.
+/// A single problem a [SVM] should classify.
+/// 
+/// # Creating a problem 
+/// 
+/// Problems are created via the `Problem::from` method:
+/// 
+/// ```ignore
+/// let mut problem = Problem::from(&svm);
+/// ```
+///
+/// # Classifiying a problem 
+///   
+/// A problem is an instance of the SVM's problem domain. To be classified, all `features` need
+/// to be set, for example by: 
+/// 
+/// ```ignore
+/// problem.features = vec![
+///     -0.55838, -0.157895, 0.581292, -0.221184, 0.135713, -0.874396, -0.563197, -1.0, -1.0,
+/// ];
+/// ```
+/// 
+/// It can then be handed over to the [SVM] (via the [PredictProblem] trait). 
+/// 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Problem {
-    /// A vector of `num_attributes` features.
+    /// A vector of all features.
     pub features: Vec<f32>,
 
     /// Kernel values. A vector for each class.
@@ -28,10 +50,11 @@ pub struct Problem {
     /// Needed for multi-class probability estimates replicating libSVM.
     pub (crate) qp: Vec<f64>,
 
-    /// Probability estimates.
+    /// Probability estimates that will be updated after this problem was processed 
+    /// by `predict_probability` in [PredictProblem] if the model supports it.
     pub probabilities: Vec<f64>,
 
-    /// Computed label. This is what we update eventually.
+    /// Computed label that will be updated after this problem was processed by [PredictProblem].
     pub label: u32,
 }
 

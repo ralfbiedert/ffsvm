@@ -2,7 +2,7 @@
 
 = Performance vs. LibSVM
 
-Benchmarks are a tricky thing, but for classifying binary non-sparse RBF-C-SVMs `ffsvm` should be between 2x and 10x faster than `libSVM` on reasonably modern x86 CPUs (supporting AVX2).
+Benchmarks are a tricky thing, but for classifying binary non-sparse RBF-C-SVMs `ffsvm` should be between 2.5x and 14x faster than `libSVM` on reasonably modern x86 CPUs (supporting AVX2).
 
 image::performance_absolute.v3.png[]
 
@@ -12,11 +12,9 @@ image::performance_relative.v3.png[]
 
 There are 3 major factors contributing to this:
 
-* no* allocation during classification
+* no allocation during classification
 * cache-friendly memory layout
 * usage of SIMD / AVX
-
-_(* Alright, in the very latest version we potentially have introduced a small allocation per classification. Under investigation ...)_
 
 *In addition* to the speed up presented above, ffsvm also has an API for _batch classification_, that transparently makes use of all available CPU cores, *possibly providing even higher speed ups* if you classify more than one problem at a time.
 

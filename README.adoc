@@ -3,7 +3,6 @@
 image:https://travis-ci.org/ralfbiedert/ffsvm-rust.svg?branch=master["Build Status", link="https://travis-ci.org/ralfbiedert/ffsvm-rust"]
 image:https://img.shields.io/badge/license-MIT-blue.svg["License", link="LICENSE"]
 image:https://img.shields.io/badge/SIMD-faster-orange.svg["SIMD enabled", link="https://github.com/AdamNiederer/faster"]
-image:https://img.shields.io/badge/threading-rayon-orange.svg["SIMD enabled", link="https://github.com/rayon-rs/rayon"]
 
 
 = In One Sentence
@@ -18,7 +17,7 @@ You trained a binary non-sparse RBF-C-SVM using https://github.com/cjlin1/libsvm
 * optimized for SIMD (using https://github.com/AdamNiederer/faster[Faster]) and threading (using https://github.com/rayon-rs/rayon[Rayon])
 * allocation-free during classification
 * written in 100% Rust, but can be loaded from any language (via FFI)
-* 2x - 10x faster than libSVM
+* 2.5x - 14x faster than libSVM
 
 
 = Principal Usage
