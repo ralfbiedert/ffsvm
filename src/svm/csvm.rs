@@ -102,12 +102,12 @@ where
 
             for item in qp.iter() {
                 let error = (*item - pqp).abs();
-                
+
                 if error > max_error {
                     max_error = error;
                 }
             }
-            
+
             if max_error < eps {
                 break;
             }

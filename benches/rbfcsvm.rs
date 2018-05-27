@@ -18,14 +18,15 @@ mod benchmarks {
         let mut svm = RbfCSVM::random(num_classes, num_sv_per_class, num_attributes);
         let mut problem = Problem::from(&svm).randomize();
 
-        move || (&mut svm).predict_value(&mut problem).expect("This should work")
+        move || {
+            (&mut svm)
+                .predict_value(&mut problem)
+                .expect("This should work")
+        }
     }
-
 
     #[bench]
-    fn csvm_predict_sv128_attr16_problems1(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 64, 16));
-    }
+    fn csvm_predict_sv128_attr16_problems1(b: &mut Bencher) { b.iter(produce_testcase(2, 64, 16)); }
 
     #[bench]
     fn csvm_predict_sv1024_attr16_problems1(b: &mut Bencher) {

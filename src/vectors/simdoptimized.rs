@@ -2,8 +2,8 @@ use std::{
     fmt, iter::IntoIterator, marker::{Copy, Sized}, ops::{Index, IndexMut},
 };
 
-use random::{Randomize, random_vec};
 use rand::distributions;
+use random::{random_vec, Randomize};
 
 /// Basic "matrix' we use for fast SIMD and parallel operations.
 ///
@@ -138,8 +138,8 @@ impl<'a, T> IntoIterator for &'a SimdOptimized<T>
 where
     T: Copy + Sized,
 {
-    type Item = &'a [T];
     type IntoIter = IterManyVectors<'a, T>;
+    type Item = &'a [T];
 
     fn into_iter(self) -> Self::IntoIter {
         IterManyVectors {
@@ -169,13 +169,12 @@ where
 impl<T> Randomize for SimdOptimized<T>
 where
     T: Sized + Copy + Default,
-    distributions::Standard: distributions::Distribution<T>
+    distributions::Standard: distributions::Distribution<T>,
 {
     fn randomize(mut self) -> Self {
-        
         for i in 0 .. self.vectors {
             let vector = random_vec(self.attributes);
-            
+
             self.set_vector(i, vector.as_slice());
         }
 

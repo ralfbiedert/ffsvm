@@ -1,5 +1,4 @@
-use rand::random;
-use rand::distributions;
+use rand::{distributions, random};
 
 /// Randomizes a data structure
 pub trait Randomize {
@@ -16,9 +15,9 @@ pub trait Random {
 pub fn random_vec<T>(size: usize) -> Vec<T>
 where
     T: Default + Clone,
-    distributions::Standard: distributions::Distribution<T>
+    distributions::Standard: distributions::Distribution<T>,
 {
-    let mut array : Vec<T> = vec![Default::default(); size];
+    let mut array: Vec<T> = vec![Default::default(); size];
     for e in &mut array {
         *e = random()
     }
