@@ -103,6 +103,7 @@ where
 {
     type Output = [T];
 
+    #[inline]
     fn index(&self, index: usize) -> &[T] {
         let start_index = self.offset(index, 0);
         &self.data[start_index .. start_index + self.vector_length]
@@ -113,6 +114,7 @@ impl<T> IndexMut<usize> for SimdOptimized<T>
 where
     T: Copy + Sized,
 {
+    #[inline]
     fn index_mut(&mut self, index: usize) -> &mut [T] {
         let start_index = self.offset(index, 0);
         &mut self.data[start_index .. start_index + self.vector_length]
@@ -153,6 +155,7 @@ where
 {
     type Item = &'a [T];
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         if self.index >= self.matrix.vectors {
             None
