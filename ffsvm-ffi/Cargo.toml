@@ -1,0 +1,7 @@
+[package]
+name = "ffsvm-ffi"
+version = "0.1.0"
+authors = ["Ralf Biedert <rb@xr.io>"]
+
+[dependencies]
+ffsvm = { path=".." }
