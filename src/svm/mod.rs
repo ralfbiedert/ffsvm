@@ -132,8 +132,7 @@ where
     /// If the index was found it is returned in the [Option]. Otherwise `None`
     /// is returned.  
     pub fn class_label_for_index(&self, index: usize) -> Option<u32> {
-        
-        return if index >= self.classes.len() {
+        if index >= self.classes.len() {
             None
         } else {
             Some(self.classes[index].label)
