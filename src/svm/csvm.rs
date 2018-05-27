@@ -6,7 +6,6 @@ use super::SVMError;
 use kernel::Kernel;
 use parser::ModelFile;
 use random::{Random, Randomize};
-use std::option::Option;
 use svm::{problem::Problem, Class, PredictProblem, Probabilities, SVM};
 use util::{find_max_index, set_all, sigmoid_predict};
 use vectors::Triangular;
@@ -46,6 +45,80 @@ where
 
             self.kernel
                 .compute(&class.support_vectors, problem_features, kvalues);
+        }
+    }
+
+    // This is pretty much copy-paste of `multiclass_probability` from libSVM which we need
+    // to be compatibly for predicting probability for multiclass SVMs. The method is in turn
+    // based on Method 2 from the paper "Probability Estimates for Multi-class
+    // Classification by Pairwise Coupling", Journal of Machine Learning Research 5 (2004) 975-1005,
+    // by Ting-Fan Wu, Chih-Jen Lin and Ruby C. Weng.
+    fn compute_multiclass_probabilities(&self, problem: &mut Problem) {
+        let num_classes = self.classes.len();
+        let max_iter = 100.max(num_classes);
+        let q = &mut problem.q;
+        let qp = &mut problem.qp;
+        let eps = 0.005 / num_classes as f64; // Magic number .005 comes from libSVM.
+
+        // We first build up matrix Q as defined in (14) in the paper above. Q should have
+        // the property of being a transition matrix for a Markov Chain.
+        for t in 0 .. num_classes {
+            problem.probabilities[t] = 1.0 / num_classes as f64;
+
+            q[(t, t)] = 0.0;
+
+            for j in 0 .. t {
+                q[(t, t)] += problem.pairwise[(j, t)] * problem.pairwise[(j, t)];
+                q[(t, j)] = q[(j, t)];
+            }
+
+            for j in t + 1 .. num_classes {
+                q[(t, t)] += problem.pairwise[(j, t)] * problem.pairwise[(j, t)];
+                q[(t, j)] = -problem.pairwise[(j, t)] * problem.pairwise[(t, j)];
+            }
+        }
+
+        // We now try to satisfy (21), (23) and (24) in the paper above.
+        for _ in 0 .. max_iter {
+            let mut pqp = 0.0;
+
+            for t in 0 .. num_classes {
+                qp[t] = 0.0;
+
+                for j in 0 .. num_classes {
+                    qp[t] += q[(t, j)] * problem.probabilities[j];
+                }
+
+                pqp += problem.probabilities[t] * qp[t];
+            }
+
+            // Check if we fulfilled our abort criteria, which seems to be related
+            // to (21).
+            let mut max_error = 0.0;
+
+            for t in 0 .. num_classes {
+                let error = (qp[t] - pqp).abs();
+                if error > max_error {
+                    max_error = error;
+                }
+            }
+
+            if max_error < eps {
+                break;
+            }
+
+            // This seems to be the main function performing (23) and (24).
+            for t in 0 .. num_classes {
+                let diff = (-qp[t] + pqp) / q[(t, t)];
+
+                problem.probabilities[t] += diff;
+                pqp = (pqp + diff * (diff * q[(t, t)] + 2.0 * qp[t])) / (1.0 + diff) / (1.0 + diff);
+
+                for j in 0 .. num_classes {
+                    qp[j] = (qp[j] + diff * q[(t, j)]) / (1.0 + diff);
+                    problem.probabilities[j] /= 1.0 + diff;
+                }
+            }
         }
     }
 
@@ -241,7 +314,7 @@ where
             problem.probabilities[0] = problem.pairwise[(0, 1)];
             problem.probabilities[1] = problem.pairwise[(1, 0)];
         } else {
-            unimplemented!("Only supporting 2 classes right now.")
+            self.compute_multiclass_probabilities(problem);
         }
 
         let max_index = find_max_index(problem.probabilities.as_slice());

@@ -22,6 +22,12 @@ pub struct Problem {
     /// Pairwise probabilities
     pub pairwise: SimdOptimized<f64>,
 
+    /// Needed for multi-class probability estimates replicating libSVM.
+    pub q: SimdOptimized<f64>,
+
+    /// Needed for multi-class probability estimates replicating libSVM.
+    pub qp: Vec<f64>,
+
     /// Pairwise probabilities
     pub probabilities: Vec<f64>,
 
@@ -40,6 +46,8 @@ impl Problem {
                 num_classes,
                 Default::default(),
             ),
+            q: SimdOptimized::<f64>::with_dimension(num_classes, num_classes, Default::default()),
+            qp: vec![Default::default(); num_classes],
             decision_values: Triangular::with_dimension(num_classes, Default::default()),
             vote: vec![Default::default(); num_classes],
             probabilities: vec![Default::default(); num_classes],

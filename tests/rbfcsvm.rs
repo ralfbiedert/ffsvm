@@ -18,14 +18,22 @@ mod tests {
         let mut problem0 = Problem::from(&csvm);
         let mut problem1 = Problem::from(&csvm);
 
-        //        problem0.features = vec![
-        //            0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.0, 0.0, 1.0, 0.1137485,
-        //        ];
-        //        problem1.features = vec![
-        //            0.3332312, 0.0, 0.0, 0.0, 0.09657142, 1.0, 0.0, 0.0, 1.0, 0.09917226,
-        //        ];
+        problem0.features = vec![
+            -0.55838, -0.157895, 0.581292, -0.221184, 0.135713, -0.874396, -0.563197, -1.0, -1.0,
+        ];
 
-        // csvm.predict_value(&mut problem0);
+        problem1.features = vec![
+            -0.371381, 0.100752, -1.0, -0.0467289, 0.0892856, -0.545894, -0.806691, 0.828571, -1.0,
+        ];
+
+        csvm.predict_probability(&mut problem0);
+        csvm.predict_probability(&mut problem1);
+
+        println!("{:?}", problem0);
+        println!("{:?}", problem1);
+        assert_eq!(2, problem0.label);
+        assert_eq!(7, problem1.label);
+
         // csvm.predict_value(&mut problem1);
     }
 
