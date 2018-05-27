@@ -1,2 +1,1 @@
 * Provide prebuilt libs (based on template for rust + travis / CI infrastructure)
-* Document!!!
