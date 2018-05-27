@@ -79,6 +79,7 @@ where
 {
     type Output = T;
 
+    #[inline]
     fn index(&self, index: (usize, usize)) -> &T {
         let index = self.offset(index.0, index.1);
         &self.data[index]
@@ -89,6 +90,7 @@ impl<T> IndexMut<(usize, usize)> for SimdOptimized<T>
 where
     T: Copy + Sized,
 {
+    #[inline]
     fn index_mut(&mut self, index: (usize, usize)) -> &mut T {
         let index = self.offset(index.0, index.1);
         &mut self.data[index]

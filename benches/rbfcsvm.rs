@@ -1,5 +1,4 @@
 #![feature(test)]
-#![feature(conservative_impl_trait)] // to "return impl FnMut"
 
 extern crate ffsvm;
 extern crate test;
