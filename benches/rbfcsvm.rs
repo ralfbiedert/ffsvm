@@ -14,41 +14,26 @@ mod benchmarks {
         num_classes: usize,
         num_sv_per_class: usize,
         num_attributes: usize,
-        num_problems: usize,
     ) -> impl FnMut() {
         let mut svm = RbfCSVM::random(num_classes, num_sv_per_class, num_attributes);
-        let mut problems = (0 .. num_problems)
-            .map(|_| Problem::from(&svm).randomize())
-            .collect::<Vec<Problem>>();
+        let mut problem = Problem::from(&svm).randomize();
 
-        move || (&mut svm).predict_values(&mut problems)
+        move || (&mut svm).predict_value(&mut problem).expect("This should work")
     }
 
-    #[bench]
-    fn csvm_predict_aaa_t(b: &mut Bencher) { b.iter(produce_testcase(2, 1500, 8, 30)); }
 
     #[bench]
     fn csvm_predict_sv128_attr16_problems1(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 64, 16, 1));
+        b.iter(produce_testcase(2, 64, 16));
     }
 
     #[bench]
     fn csvm_predict_sv1024_attr16_problems1(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 512, 16, 1));
-    }
-
-    #[bench]
-    fn csvm_predict_sv128_attr16_problems1024(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 64, 16, 1024));
-    }
-
-    #[bench]
-    fn csvm_predict_sv1024_attr16_problems128(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 512, 16, 128));
+        b.iter(produce_testcase(2, 512, 16));
     }
 
     #[bench]
     fn csvm_predict_sv1024_attr1024_problems1(b: &mut Bencher) {
-        b.iter(produce_testcase(2, 512, 1024, 1));
+        b.iter(produce_testcase(2, 512, 1024));
     }
 }
