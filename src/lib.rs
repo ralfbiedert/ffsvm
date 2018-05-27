@@ -1,17 +1,9 @@
-// TODO impls:
-// when process an array, take iterable trait, not slice type
-// Problem: Introduce option for label, features and probabilites
-
-#![feature(toowned_clone_into)]
-#![feature(test)]
-#![feature(repr_simd)]
 #![feature(try_from)]
 
 extern crate faster;
 #[macro_use]
 extern crate nom;
 extern crate rand;
-extern crate test;
 #[cfg(feature = "serde")]
 #[macro_use]
 extern crate serde;
