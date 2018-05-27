@@ -9,7 +9,6 @@ exclude = [
     "docs/*",
 ]
 
-
 [dependencies]
 faster = { git="https://github.com/ralfbiedert/faster", rev="8a86e1b7f75065b44bd9caab643468d9a5794579" }  
 rand = "0.5"

@@ -1,8 +1,8 @@
 use libc::c_char;
 use std::{convert::TryFrom, ffi::CStr, ptr::null_mut, slice};
 
-use parser::ModelFile;
-use svm::{PredictProblem, Problem, RbfCSVM};
+use super::{predict_probabilities, predict_values};
+use ffsvm::{Problem, RbfCSVM, ModelFile};
 
 /// Make sure the given parameter is not null, or return an error.
 macro_rules! ensure_not_null {
@@ -36,6 +36,8 @@ pub struct Context {
     model: Option<Box<RbfCSVM>>,
     problems: Vec<Problem>,
 }
+
+
 
 /// Tests if FFI works.
 #[no_mangle]
@@ -185,7 +187,7 @@ pub unsafe extern "C" fn ffsvm_predict_values(
     }
 
     // Predict values for given slice of actually used real problems.
-    svm.predict_values(&mut problems[0 .. num_problems]);
+    predict_values(svm, &mut problems[0 .. num_problems]);
 
     // And store the results
     for i in 0 .. num_problems {
@@ -244,7 +246,7 @@ pub unsafe extern "C" fn ffsvm_predict_probabilities(
     }
 
     // Predict values for given slice of actually used real problems.
-    svm.predict_probabilities(&mut problems[0 .. num_problems]);
+    predict_probabilities(svm, &mut problems[0 .. num_problems]);
 
     let mut ptr = 0;
 
