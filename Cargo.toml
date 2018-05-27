@@ -18,11 +18,7 @@ serde = { version = "1.0", optional = true, features = ["derive"] }
 [lib]
 name = "ffsvm"
 path = "src/lib.rs"
-crate-type = [ "rlib", "dylib" ]
-
-[[bin]]
-name = "ffsvm"
-path = "src/bin.rs"
+crate-type = [ "rlib" ]
 
 [profile.release]
 opt-level = 3
