@@ -100,13 +100,14 @@ where
             // to (21).
             let mut max_error = 0.0;
 
-            for t in 0 .. num_classes {
-                let error = (qp[t] - pqp).abs();
+            for item in qp.iter() {
+                let error = (*item - pqp).abs();
+                
                 if error > max_error {
                     max_error = error;
                 }
             }
-
+            
             if max_error < eps {
                 break;
             }
