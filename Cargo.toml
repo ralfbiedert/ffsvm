@@ -1,6 +1,6 @@
 [package]
 name = "ffsvm"
-version = "0.2.4"
+version = "0.3.0"
 authors = ["Ralf Biedert <rb@xr.io>"]
 readme = "README.adoc"
 categories = ["science", "algorithms"]
@@ -24,7 +24,6 @@ crate-type = [ "rlib", "dylib" ]
 [[bin]]
 name = "ffsvm"
 path = "src/bin.rs"
-
 
 [profile.release]
 opt-level = 3
