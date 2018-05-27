@@ -14,7 +14,7 @@ You trained a binary non-sparse RBF-C-SVM using https://github.com/cjlin1/libsvm
 = Highlights
 
 * can load trained https://github.com/cjlin1/libsvm[libSVM] models (currently binary RBF-CSVM without sparse attributes)
-* optimized for SIMD (using https://github.com/AdamNiederer/faster[Faster]) and threading (using https://github.com/rayon-rs/rayon[Rayon])
+* optimized for SIMD (using https://github.com/AdamNiederer/faster[Faster]) and mixes seamlessly with https://github.com/rayon-rs/rayon[Rayon].
 * allocation-free during classification
 * written in 100% Rust, but can be loaded from any language (via FFI)
 * 2.5x - 14x faster than libSVM
@@ -49,39 +49,16 @@ assert_eq!(0, problem.label);
 
 From C / FFI:
 
-[source,c]
-----
-
-
-// Create a context (which holds our SVM)
-ffsvm_context_create(&context);
-
-// Set how many problems we will classify at most in parallel
-ffsvm_set_max_problems(context, 100);
-
-// Load the model from a string (model is char[])
-ffsvm_model_load(context, model);
-
-// Get the labels of the SVM model (useful for predicting probabilities that don't return labels)
-ffsvm_model_get_labels(context, labels_ptr, labels_len);
-
-// Classify (features is float[], problem_labels is int[])
-ffsvm_predict_values(context, features, total_features, problem_labels, num_problems);
-
-// Classify and predict probabilities.
-ffsvm_predict_probabilities(context, features, total_features, probabilities_ptr, probabilities_len);
-
-// Clean up once done
-ffsvm_context_destroy(&context);
-
-----
-
-link:tests/ffi.py[Also see the Python FFI example.]
+Please see https://github.com/ralfbiedert/ffsvm-rust[FFSVM-FFI] 
 
 
 = Status
 
-**December 16, 2017**: We're in **PRE-ALPHA**. It will probably not even work on your machine.
+**May 27, 2018**: We're in alpha. Successfully used internally on Windows, Mac, Android and Linux 
+on various machines and devices. Once SIMD (faster) stabilizes and we can cross-compile to WASM 
+we'll move to beta.  
+ 
+**December 16, 2017**: We're in pre-alpha. It will probably not even work on your machine.
 
 
 = Performance
