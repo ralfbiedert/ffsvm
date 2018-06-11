@@ -12,7 +12,7 @@ exclude = [
 ]
 
 [dependencies]
-faster = { git="https://github.com/ralfbiedert/faster", rev="5a3302bc4bbb6c24f5e0d99b972b028ccecfa7cc" }  
+faster = { git="https://github.com/ralfbiedert/faster", rev="dd05201291e9f408d6755fdf4bd23ad93dfe7b96" }  
 # faster = { path = "../faster-ralfbiedert" }  
 rand = "0.5"
 nom = "4.0"  
