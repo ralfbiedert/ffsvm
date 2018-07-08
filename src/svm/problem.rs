@@ -1,7 +1,7 @@
-use kernel::Kernel;
-use random::{random_vec, Randomize};
-use svm::SVM;
-use vectors::{SimdOptimized, Triangular};
+use crate::kernel::Kernel;
+use crate::random::{random_vec, Randomize};
+use crate::svm::SVM;
+use crate::vectors::{SimdOptimized, Triangular};
 
 /// A single problem a [SVM] should classify.
 ///

@@ -3,7 +3,7 @@ use std::{
 };
 
 use rand::distributions;
-use random::{random_vec, Randomize};
+use crate::random::{random_vec, Randomize};
 
 /// Basic "matrix' we use for fast SIMD and parallel operations.
 ///
@@ -182,7 +182,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use vectors::simdoptimized::SimdOptimized;
+    use crate::vectors::simdoptimized::SimdOptimized;
 
     #[test]
     fn test_iter() {

@@ -4,8 +4,8 @@ mod problem;
 
 pub use self::{class::Class, problem::Problem};
 
-use kernel::{Kernel, RbfKernel};
-use vectors::Triangular;
+use crate::kernel::{Kernel, RbfKernel};
+use crate::vectors::Triangular;
 
 /// An RBF [SVM] which is the main (and currently only) type of SVM we support.
 ///
@@ -178,12 +178,12 @@ where
     ///
     /// The problem needs to have all `.features` set. Once this method returns,
     /// the [Problem]'s field `.label` will be set.
-    fn predict_value(&self, &mut Problem) -> Result<(), SVMError>;
+    fn predict_value(&self, _: &mut Problem) -> Result<(), SVMError>;
 
     /// Predict a probability value for a problem.
     ///
     /// The problem needs to have all `.features` set. Once this method returns,
     /// both the [Problem]'s field `.label` will be set, and all `.probabilities` will
     /// be set accordingly.
-    fn predict_probability(&self, &mut Problem) -> Result<(), SVMError>;
+    fn predict_probability(&self, _: &mut Problem) -> Result<(), SVMError>;
 }

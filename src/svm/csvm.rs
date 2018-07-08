@@ -3,16 +3,16 @@ use std::{convert::TryFrom, marker::Sync};
 use faster::{f64s, IntoSIMDRefIterator, IntoSIMDZip, SIMDIterator, SIMDZippedIterator, Sum};
 
 use super::SVMError;
-use kernel::Kernel;
-use parser::ModelFile;
-use random::{Random, Randomize};
-use svm::{
+use crate::kernel::Kernel;
+use crate::parser::ModelFile;
+use crate::random::{Random, Randomize};
+use crate::svm::{
     problem::Problem, Class, PredictProblem, Probabilities,
     SVMError::{MaxIterationsExceededPredictingProbabilities, ModelDoesNotSupportProbabilities},
     SVM,
 };
-use util::{find_max_index, set_all, sigmoid_predict};
-use vectors::Triangular;
+use crate::util::{find_max_index, set_all, sigmoid_predict};
+use crate::vectors::Triangular;
 
 #[doc(hidden)]
 impl<Knl> SVM<Knl>
@@ -52,7 +52,7 @@ where
                 .compute(&class.support_vectors, problem_features, kvalues);
         }
     }
-
+ 
     // This is pretty much copy-paste of `multiclass_probability` from libSVM which we need
     // to be compatibly for predicting probability for multiclass SVMs. The method is in turn
     // based on Method 2 from the paper "Probability Estimates for Multi-class

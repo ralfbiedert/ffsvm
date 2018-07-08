@@ -129,14 +129,11 @@
 //!
 
 #![feature(try_from)]
+#![feature(stdsimd)]
 
-extern crate faster;
-#[macro_use]
-extern crate nom;
-extern crate rand;
-#[cfg(feature = "serde")]
-#[macro_use]
-extern crate serde;
+// Opt in to unstable features expected for Rust 2018
+#![feature(rust_2018_preview)]
+#![warn(rust_2018_idioms)]
 
 mod kernel;
 mod parser;
@@ -145,8 +142,9 @@ mod svm;
 mod util;
 mod vectors;
 
-pub use kernel::RbfKernel;
-pub use parser::{ModelError, ModelFile};
-pub use random::{Random, Randomize};
-pub use svm::{Class, PredictProblem, Problem, RbfCSVM, SVMError, SVM};
-pub use vectors::SimdOptimized;
+
+pub use crate::kernel::RbfKernel;
+pub use crate::parser::{ModelError, ModelFile};
+pub use crate::random::{Random, Randomize};
+pub use crate::svm::{Class, PredictProblem, Problem, RbfCSVM, SVMError, SVM};
+pub use crate::vectors::SimdOptimized;

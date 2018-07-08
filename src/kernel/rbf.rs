@@ -1,11 +1,11 @@
-use faster::{f32s, IntoSIMDRefIterator, IntoSIMDZip, SIMDIterator, SIMDZippedIterator, Sum};
+use faster::{f32s, IntoSIMDRefIterator, IntoSIMDZip, SIMDIterator, SIMDZippedIterator};
 use std::convert::From;
 
-use kernel::Kernel;
-use parser::ModelFile;
+use crate::kernel::Kernel;
+use crate::parser::ModelFile;
 use rand::random;
-use random::Random;
-use vectors::SimdOptimized;
+use crate::random::Random;
+use crate::vectors::SimdOptimized;
 
 #[derive(Copy, Clone, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

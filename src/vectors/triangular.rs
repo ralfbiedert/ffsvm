@@ -20,10 +20,10 @@ where
     T: Copy + Sized,
 {
     /// Width and height of the matrix
-    pub dimension: usize,
+    pub(crate) dimension: usize,
 
     /// Actual data, see comment above for how indices are stored.
-    pub data: Vec<T>,
+    pub(crate) data: Vec<T>,
 }
 
 impl<T> Triangular<T>
@@ -139,7 +139,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use vectors::triangular::Triangular;
+    use crate::vectors::triangular::Triangular;
 
     #[test]
     fn test_offset() {

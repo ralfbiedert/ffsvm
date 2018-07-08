@@ -1,6 +1,6 @@
 mod rbf;
 
-use vectors::SimdOptimized;
+use crate::vectors::SimdOptimized;
 
 pub use self::rbf::RbfKernel;
 

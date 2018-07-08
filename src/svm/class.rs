@@ -1,5 +1,5 @@
-use random::Randomize;
-use vectors::SimdOptimized;
+use crate::random::Randomize;
+use crate::vectors::SimdOptimized;
 
 /// Represents one class of the SVM model.
 #[derive(Clone, Debug)]

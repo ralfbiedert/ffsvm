@@ -1,3 +1,5 @@
+cargo-features = ["edition"]
+
 [package]
 name = "ffsvm"
 description="A libSVM compatible support vector machine, but 10x faster, for real-time classification, like games or VR."
@@ -7,12 +9,14 @@ authors = ["Ralf Biedert <rb@xr.io>"]
 readme = "README.adoc"
 categories = ["science", "algorithms"]
 license = "MIT"
+edition = "2018"
 exclude = [
     "docs/*",
 ]
 
+
 [dependencies]
-faster = { git="https://github.com/ralfbiedert/faster", rev="dd05201291e9f408d6755fdf4bd23ad93dfe7b96" }  
+faster = { git="https://github.com/AdamNiederer/faster", rev="2eaa4c9c9b617f170a43a8f6e669fcc77e553e23" }  
 # faster = { path = "../faster-ralfbiedert" }  
 rand = "0.5"
 nom = "4.0"  
