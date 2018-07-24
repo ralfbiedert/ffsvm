@@ -138,10 +138,14 @@ where
     }
 
     /// Returns number of attributes, reflecting the libSVM model.  
-    pub fn attributes(&self) -> usize { self.num_attributes }
+    pub fn attributes(&self) -> usize {
+        self.num_attributes
+    }
 
     /// Returns number of classes, reflecting the libSVM model.
-    pub fn classes(&self) -> usize { self.classes.len() }
+    pub fn classes(&self) -> usize {
+        self.classes.len()
+    }
 }
 
 /// Implemented by [SVM]s to predict a [Problem].

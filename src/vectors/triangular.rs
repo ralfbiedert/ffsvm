@@ -1,5 +1,6 @@
 use std::{
-    fmt, ops::{Index, IndexMut},
+    fmt,
+    ops::{Index, IndexMut},
 };
 
 // Layout of our data in this structure.

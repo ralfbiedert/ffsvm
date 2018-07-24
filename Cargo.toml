@@ -16,8 +16,7 @@ exclude = [
 
 
 [dependencies]
-faster = { git="https://github.com/AdamNiederer/faster", rev="2eaa4c9c9b617f170a43a8f6e669fcc77e553e23" }  
-# faster = { path = "../faster-ralfbiedert" }  
+packed_simd = { path = "../packed_simd" }
 rand = "0.5"
 nom = "4.0"  
 serde = { version = "1.0", optional = true, features = ["derive"] }

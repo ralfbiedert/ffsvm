@@ -1,13 +1,12 @@
 use std::{convert::TryFrom, marker::Sync};
 
-use faster::{f64s, IntoSIMDRefIterator, IntoSIMDZip, SIMDIterator, SIMDZippedIterator, Sum};
-
 use super::SVMError;
 use crate::kernel::Kernel;
 use crate::parser::ModelFile;
 use crate::random::{Random, Randomize};
 use crate::svm::{
-    problem::Problem, Class, PredictProblem, Probabilities,
+    problem::Problem,
+    Class, PredictProblem, Probabilities,
     SVMError::{MaxIterationsExceededPredictingProbabilities, ModelDoesNotSupportProbabilities},
     SVM,
 };
@@ -22,7 +21,7 @@ where
     /// Creates a new random CSVM
     pub fn random(num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self {
         let num_total_sv = num_classes * num_sv_per_class;
-        let classes = (0 .. num_classes)
+        let classes = (0..num_classes)
             .map(|class| {
                 Class::with_parameters(num_classes, num_sv_per_class, num_attributes, class as u32)
                     .randomize()
@@ -52,7 +51,7 @@ where
                 .compute(&class.support_vectors, problem_features, kvalues);
         }
     }
- 
+
     // This is pretty much copy-paste of `multiclass_probability` from libSVM which we need
     // to be compatibly for predicting probability for multiclass SVMs. The method is in turn
     // based on Method 2 from the paper "Probability Estimates for Multi-class
@@ -67,30 +66,30 @@ where
 
         // We first build up matrix Q as defined in (14) in the paper above. Q should have
         // the property of being a transition matrix for a Markov Chain.
-        for t in 0 .. num_classes {
+        for t in 0..num_classes {
             problem.probabilities[t] = 1.0 / num_classes as f64;
 
             q[(t, t)] = 0.0;
 
-            for j in 0 .. t {
+            for j in 0..t {
                 q[(t, t)] += problem.pairwise[(j, t)] * problem.pairwise[(j, t)];
                 q[(t, j)] = q[(j, t)];
             }
 
-            for j in t + 1 .. num_classes {
+            for j in t + 1..num_classes {
                 q[(t, t)] += problem.pairwise[(j, t)] * problem.pairwise[(j, t)];
                 q[(t, j)] = -problem.pairwise[(j, t)] * problem.pairwise[(t, j)];
             }
         }
 
         // We now try to satisfy (21), (23) and (24) in the paper above.
-        for i in 0 ..= max_iter {
+        for i in 0..=max_iter {
             let mut pqp = 0.0;
 
-            for t in 0 .. num_classes {
+            for t in 0..num_classes {
                 qp[t] = 0.0;
 
-                for j in 0 .. num_classes {
+                for j in 0..num_classes {
                     qp[t] += q[(t, j)] * problem.probabilities[j];
                 }
 
@@ -120,13 +119,13 @@ where
             }
 
             // This seems to be the main function performing (23) and (24).
-            for t in 0 .. num_classes {
+            for t in 0..num_classes {
                 let diff = (-qp[t] + pqp) / q[(t, t)];
 
                 problem.probabilities[t] += diff;
                 pqp = (pqp + diff * (diff * q[(t, t)] + 2.0 * qp[t])) / (1.0 + diff) / (1.0 + diff);
 
-                for j in 0 .. num_classes {
+                for j in 0..num_classes {
                     qp[j] = (qp[j] + diff * q[(t, j)]) / (1.0 + diff);
                     problem.probabilities[j] /= 1.0 + diff;
                 }
@@ -160,31 +159,27 @@ where
         // Both a) and b) are multiplied with the computed kernel values and summed,
         // and eventually used to compute on which side we are.
 
-        for i in 0 .. self.classes.len() {
-            for j in (i + 1) .. self.classes.len() {
+        for i in 0..self.classes.len() {
+            for j in (i + 1)..self.classes.len() {
                 let sv_coef0 = &self.classes[i].coefficients[j - 1];
                 let sv_coef1 = &self.classes[j].coefficients[i];
 
                 // For `faster` we have to limit the length of our kvalues slice to the length of
                 // our (shorter) sv_coef slice.
-                let kvalues0 = &problem.kernel_values[i][0 .. sv_coef0.len()];
-                let kvalues1 = &problem.kernel_values[j][0 .. sv_coef1.len()];
+                let kvalues0 = &problem.kernel_values[i][0..sv_coef0.len()];
+                let kvalues1 = &problem.kernel_values[j][0..sv_coef1.len()];
 
-                let sum0: f64 = (
-                    sv_coef0.simd_iter(f64s(0.0f64)),
-                    kvalues0.simd_iter(f64s(0.0f64)),
-                ).zip()
-                    .simd_map(|(a, b)| a * b)
-                    .simd_reduce(f64s::splat(0.0), |a, v| a + v)
-                    .sum();
+                let sum0 = sv_coef0
+                    .iter()
+                    .zip(kvalues0)
+                    .map(|(a, b)| a * b)
+                    .sum::<f64>();
 
-                let sum1: f64 = (
-                    sv_coef1.simd_iter(f64s(0.0f64)),
-                    kvalues1.simd_iter(f64s(0.0f64)),
-                ).zip()
-                    .simd_map(|(a, b)| a * b)
-                    .simd_reduce(f64s::splat(0.0), |a, v| a + v)
-                    .sum();
+                let sum1 = sv_coef1
+                    .iter()
+                    .zip(kvalues1)
+                    .map(|(a, b)| a * b)
+                    .sum::<f64>();
 
                 let sum = sum0 + sum1 - self.rho[(i, j)];
                 let index_to_vote = if sum > 0.0 { i } else { j };
@@ -213,7 +208,7 @@ where
         let num_total_sv = header.total_sv as usize;
 
         // Construct vector of classes
-        let classes = (0 .. num_classes)
+        let classes = (0..num_classes)
             .map(|class| {
                 let label = header.label[class];
                 let num_sv = header.nr_sv[class] as usize;
@@ -246,12 +241,12 @@ where
         let mut start_offset = 0;
 
         // In the raw file, support vectors are grouped by class
-        for i in 0 .. num_classes {
+        for i in 0..num_classes {
             let num_sv_per_class = &header.nr_sv[i];
             let stop_offset = start_offset + *num_sv_per_class as usize;
 
             // Set support vector and coefficients
-            for (i_vector, vector) in vectors[start_offset .. stop_offset].iter().enumerate() {
+            for (i_vector, vector) in vectors[start_offset..stop_offset].iter().enumerate() {
                 let mut last_attribute = None;
 
                 // Set support vectors
@@ -308,8 +303,8 @@ where
         self.predict_value(problem)?;
 
         // Now compute probability values
-        for i in 0 .. num_classes {
-            for j in i + 1 .. num_classes {
+        for i in 0..num_classes {
+            for j in i + 1..num_classes {
                 let decision_value = problem.decision_values[(i, j)];
                 let a = probabilities.a[(i, j)];
                 let b = probabilities.b[(i, j)];

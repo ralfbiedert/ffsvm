@@ -128,11 +128,8 @@
 //! and the [libSVM FAQ](https://www.csie.ntu.edu.tw/%7Ecjlin/libsvm/faq.html).
 //!
 
-#![feature(try_from)]
-#![feature(stdsimd)]
-
 // Opt in to unstable features expected for Rust 2018
-#![feature(rust_2018_preview)]
+#![feature(try_from, stdsimd, rust_2018_preview)]
 #![warn(rust_2018_idioms)]
 
 mod kernel;
@@ -141,7 +138,6 @@ mod random;
 mod svm;
 mod util;
 mod vectors;
-
 
 pub use crate::kernel::RbfKernel;
 pub use crate::parser::{ModelError, ModelFile};

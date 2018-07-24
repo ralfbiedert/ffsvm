@@ -1,9 +1,12 @@
 use std::{
-    fmt, iter::IntoIterator, marker::{Copy, Sized}, ops::{Index, IndexMut},
+    fmt,
+    iter::IntoIterator,
+    marker::{Copy, Sized},
+    ops::{Index, IndexMut},
 };
 
-use rand::distributions;
 use crate::random::{random_vec, Randomize};
+use rand::distributions;
 
 /// Basic "matrix' we use for fast SIMD and parallel operations.
 ///
@@ -59,9 +62,9 @@ where
     /// Sets a vector with the given data.
     pub fn set_vector(&mut self, index_vector: usize, vector: &[T]) {
         let start_index = self.offset(index_vector, 0);
-        let src = &vector[.. self.attributes];
+        let src = &vector[..self.attributes];
 
-        self.data[start_index .. (self.attributes + start_index)].clone_from_slice(src);
+        self.data[start_index..(self.attributes + start_index)].clone_from_slice(src);
     }
 
     /// Computes an offset for a vector and attribute.
@@ -104,7 +107,7 @@ where
     #[inline]
     fn index(&self, index: usize) -> &[T] {
         let start_index = self.offset(index, 0);
-        &self.data[start_index .. start_index + self.vector_length]
+        &self.data[start_index..start_index + self.vector_length]
     }
 }
 
@@ -115,7 +118,7 @@ where
     #[inline]
     fn index_mut(&mut self, index: usize) -> &mut [T] {
         let start_index = self.offset(index, 0);
-        &mut self.data[start_index .. start_index + self.vector_length]
+        &mut self.data[start_index..start_index + self.vector_length]
     }
 }
 
@@ -170,7 +173,7 @@ where
     distributions::Standard: distributions::Distribution<T>,
 {
     fn randomize(mut self) -> Self {
-        for i in 0 .. self.vectors {
+        for i in 0..self.vectors {
             let vector = random_vec(self.attributes);
 
             self.set_vector(i, vector.as_slice());
