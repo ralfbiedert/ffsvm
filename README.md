@@ -44,7 +44,7 @@ assert_eq!(0, problem.label);
 
 From C / FFI:
 
-Please see [FFSVM-FFI](https://github.com/ralfbiedert/ffsvm-rust)
+Please see [FFSVM-FFI](https://github.com/ralfbiedert/ffsvm-ffi)
 
 
 # Status
