@@ -15,6 +15,7 @@ You trained a binary non-sparse RBF-C-SVM using [libSVM](https://github.com/cjli
 * allocation-free during classification
 * written in 100% Rust, but can be loaded from any language (via FFI)
 * 2.5x - 14x faster than libSVM
+* Free of `unsafe` code ;)
 
 
 # Principal Usage
@@ -26,10 +27,10 @@ From Rust:
 ```rust
 // Get your libSVM model string from wherever and parse it.
 let model_str: &str = include_str!("model.libsvm");
-let model = ModelFile::try_from(model_str).unwrap();
+let model = ModelFile::try_from(model_str)!;
 
 // Produce actual SVM from raw model, and a problem
-let csvm = RbfCSVM::try_from(&model).unwrap();
+let csvm = RbfCSVM::try_from(&model)!;
 let mut problem = Problem::from(&csvm);
 
 // Set the features of this problem we want to classify.
