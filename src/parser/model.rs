@@ -100,7 +100,7 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
     type Error = ModelError;
 
     /// Parses a string into a SVM model
-    fn try_from(model: &str) -> Result<ModelFile, ModelError> {
+    fn try_from(model: &str) -> Result<ModelFile<'_>, ModelError> {
         // Parse string to struct
         // I fucking regret using `nom` for this ...
         let complete_string = CompleteStr(model);
@@ -123,31 +123,31 @@ named!(
     do_parse!(x: take_while_s!(svm_non_whitespace) >> (x.0))
 );
 
-named!(svm_line_string <CompleteStr, (&str)>,
+named!(svm_line_string <CompleteStr<'_>, (&str)>,
     do_parse!( svm_string >> tag!(" ") >> value: svm_string >> line_ending >> (value) )
 );
 
-named!(svm_line_f32 <CompleteStr, (f32)>,
+named!(svm_line_f32 <CompleteStr<'_>, (f32)>,
     do_parse!( svm_string >> tag!(" ") >> value: map_res!(svm_string, FromStr::from_str) >> line_ending >> (value) )
 );
 
-named!(svm_line_u32 <CompleteStr, (u32)>,
+named!(svm_line_u32 <CompleteStr<'_>, (u32)>,
     do_parse!( svm_string >> tag!(" ") >> value: map_res!(svm_string, FromStr::from_str) >> line_ending >> (value) )
 );
 
-named!(svm_line_vec_f64 <CompleteStr, (Vec<f64>)>,
+named!(svm_line_vec_f64 <CompleteStr<'_>, (Vec<f64>)>,
     do_parse!( svm_string >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
 );
 
-named!(svm_line_prob_vec_f64 <CompleteStr, (Vec<f64>)>,
+named!(svm_line_prob_vec_f64 <CompleteStr<'_>, (Vec<f64>)>,
     do_parse!( alt!(tag!("probA") | tag!("probB")) >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
 );
 
-named!(svm_line_vec_u32 <CompleteStr, (Vec<u32>)>,
+named!(svm_line_vec_u32 <CompleteStr<'_>, (Vec<u32>)>,
     do_parse!( svm_string >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
 );
 
-named!(svm_attribute <CompleteStr, (Attribute)>,
+named!(svm_attribute <CompleteStr<'_>, (Attribute)>,
     do_parse!(
         many0!(tag!(" ")) >>
         index: map_res!(svm_string, FromStr::from_str) >>
@@ -161,7 +161,7 @@ named!(svm_attribute <CompleteStr, (Attribute)>,
     )
 );
 
-named!(pub svm_header <CompleteStr, Header>,
+named!(pub svm_header <CompleteStr<'_>, Header<'_>>,
     do_parse!(
         svm_type: svm_line_string >>
         kernel_type: svm_line_string >>
@@ -190,14 +190,14 @@ named!(pub svm_header <CompleteStr, Header>,
     )
 );
 
-named_args!(svm_coef(n: u32) <CompleteStr, Vec<f32>>,
+named_args!(svm_coef(n: u32) <CompleteStr<'_>, Vec<f32>>,
     do_parse!(
         rval: count!(map_res!(ws!(svm_string), FromStr::from_str), n as usize) >>
         (rval)
     )
 );
 
-named_args!(svm_line_sv(num_coef: u32) <CompleteStr, (SupportVector)>,
+named_args!(svm_line_sv(num_coef: u32) <CompleteStr<'_>, (SupportVector)>,
     do_parse!(
         coefs: call!(svm_coef, num_coef) >>
         features: many0!(svm_attribute) >>
@@ -210,14 +210,14 @@ named_args!(svm_line_sv(num_coef: u32) <CompleteStr, (SupportVector)>,
     )
 );
 
-named_args!(svm_svs(num_coef: u32) <CompleteStr, (Vec<SupportVector>)>,
+named_args!(svm_svs(num_coef: u32) <CompleteStr<'_>, (Vec<SupportVector>)>,
     do_parse!(
         vectors: many0!(call!(svm_line_sv, num_coef)) >>
         (vectors)
     )
 );
 
-named!(svm_file <CompleteStr, ModelFile>,
+named!(svm_file <CompleteStr<'_>, ModelFile<'_>>,
     do_parse!(
         header: svm_header >>
         tag!("SV") >> line_ending >>

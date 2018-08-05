@@ -136,7 +136,7 @@ impl<T> fmt::Debug for Triangular<T>
 where
     T: Copy + Sized,
 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "(Triangular {}, [data])", self.dimension)
     }
 }
