@@ -71,6 +71,10 @@ Performance milestones during development.
 [See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/performance.adoc)
 
 
+**For optimal performance with larger models, try to use a number of features divisible by `16` (preferred), `8` or `4`.**
+
+
+
 # FAQ
 
 [See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/FAQ.adoc)
