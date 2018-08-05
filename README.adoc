@@ -2,7 +2,6 @@
 
 image:https://travis-ci.org/ralfbiedert/ffsvm-rust.svg?branch=master["Build Status", link="https://travis-ci.org/ralfbiedert/ffsvm-rust"]
 image:https://img.shields.io/badge/license-MIT-blue.svg["License", link="LICENSE"]
-image:https://img.shields.io/badge/SIMD-faster-orange.svg["SIMD enabled", link="https://github.com/AdamNiederer/faster"]
 
 
 = In One Sentence
@@ -14,7 +13,7 @@ You trained a binary non-sparse RBF-C-SVM using https://github.com/cjlin1/libsvm
 = Highlights
 
 * can load trained https://github.com/cjlin1/libsvm[libSVM] models (currently binary RBF-CSVM without sparse attributes)
-* optimized for SIMD (using https://github.com/AdamNiederer/faster[Faster]) and mixes seamlessly with https://github.com/rayon-rs/rayon[Rayon].
+* optimized for SIMD and can be mixed seamlessly with https://github.com/rayon-rs/rayon[Rayon].
 * allocation-free during classification
 * written in 100% Rust, but can be loaded from any language (via FFI)
 * 2.5x - 14x faster than libSVM
@@ -49,14 +48,15 @@ assert_eq!(0, problem.label);
 
 From C / FFI:
 
-Please see https://github.com/ralfbiedert/ffsvm-rust[FFSVM-FFI] 
+Please see https://github.com/ralfbiedert/ffsvm-rust[FFSVM-FFI]
 
 
 = Status
 
-* **May 27, 2018**: We're in alpha. Successfully used internally on Windows, Mac, Android and Linux 
-on various machines and devices. Once SIMD (faster) stabilizes and we can cross-compile to WASM 
-we'll move to beta.  
+* **Aug 5, 2018**: Still in alpha, but finally on crates.io.
+* **May 27, 2018**: We're in alpha. Successfully used internally on Windows, Mac, Android and Linux
+on various machines and devices. Once SIMD stabilizes and we can cross-compile to WASM
+we'll move to beta.
 * **December 16, 2017**: We're in pre-alpha. It will probably not even work on your machine.
 
 
