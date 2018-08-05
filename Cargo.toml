@@ -3,7 +3,7 @@ cargo-features = ["edition"]
 [package]
 name = "ffsvm"
 description="A libSVM compatible support vector machine, but 10x faster, for real-time classification, like games or VR."
-version = "0.4.1"
+version = "0.4.2"
 repository = "https://github.com/ralfbiedert/ffsvm-rust"
 authors = ["Ralf Biedert <rb@xr.io>"]
 readme = "README.md"
@@ -13,6 +13,10 @@ edition = "2018"
 exclude = [
     "docs/*",
 ]
+
+[badges]
+travis-ci = { repository = "ralfbiedert/ffsvm-rust" }
+maintenance = { status = "experimental" }
 
 
 [dependencies]

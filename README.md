@@ -1,6 +1,6 @@
-![travis](https://travis-ci.org/ralfbiedert/ffsvm-rust.svg?branch=master)
+[![Latest Version]][crates.io]
+[![Travis-CI Status]][travis]
 ![license](https://img.shields.io/badge/license-MIT-blue.svg)
-
 
 # In One Sentence
 
