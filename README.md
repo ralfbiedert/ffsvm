@@ -36,7 +36,7 @@ let mut problem = Problem::from(&csvm);
 // Set the features of this problem we want to classify.
 problem.features = vec![ 0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.1137485 ];
 
-// (We also have methods to classify multiple in parallel w. Rayon ...)
+// Multiple problems can be trivially parallelized (e.g., with Rayon)
 csvm.predict_value(&mut problem);
 
 // Results should match libSVM
