@@ -1,4 +1,5 @@
 [![Latest Version]][crates.io]
+[![docs]][docs.rs]
 [![Travis-CI Status]][travis]
 ![MIT]
 
@@ -27,10 +28,10 @@ From Rust:
 ```rust
 // Get your libSVM model string from wherever and parse it.
 let model_str: &str = include_str!("model.libsvm");
-let model = ModelFile::try_from(model_str)!;
+let model = ModelFile::try_from(model_str)?;
 
 // Produce actual SVM from raw model, and a problem
-let csvm = RbfCSVM::try_from(&model)!;
+let csvm = RbfCSVM::try_from(&model)?;
 let mut problem = Problem::from(&csvm);
 
 // Set the features of this problem we want to classify.
@@ -80,3 +81,5 @@ Performance milestones during development.
 [Latest Version]: https://img.shields.io/crates/v/ffsvm.svg
 [crates.io]: https://crates.io/crates/ffsvm
 [MIT]: https://img.shields.io/badge/license-MIT-blue.svg
+[docs]: https://docs.rs/ffsvm/badge.svg
+[docs.rs]: https://docs.rs/ffsvm/

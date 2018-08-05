@@ -15,15 +15,15 @@
 //!
 //! A *dense* SVM does not have any 'empty' features. In other words, for each
 //! problem, you know all of that problems's value during training and classification. An example
-//! could be classifying images, where each pixel value is known.    
+//! could be classifying images, where each pixel value is known.
 //!
 //! [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) is a relatively portable, general purpose
 //! SVM implementation written in C++ that includes tools for training, as well as tools and code
 //! for classification.
 //!
 //! FFSVM is a library that can load such models trained by [libSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/)'s
-//! `svm-train` and offers a number of benefits:     
-//!    
+//! `svm-train` and offers a number of benefits:
+//!
 //! # Features
 //!
 //! FFSVM is:
@@ -51,12 +51,12 @@
 //! // Get this model from somewhere, e.g., a file.
 //! let model_str: &str = include_str!("my.model");
 //!
-//! // Parse the model, and create an actual SVM instance  
+//! // Parse the model, and create an actual SVM instance
 //! let model = ModelFile::try_from(model_str)!;
 //! let svm = RbfCSVM::try_from(&model)!;
 //!
 //! // Create a 'problem'. It will hold your features and, once classified, the label. Problems
-//! // are meant to be reused between calls (e.g., each frame in games).  
+//! // are meant to be reused between calls (e.g., each frame in games).
 //! let mut problem = Problem::from(&svm);
 //!
 //! // Next we set all features, based on your real-world problem.
@@ -99,7 +99,7 @@
 //! ```ignore
 //! svm-train ./my.training-data ./my.model
 //! ```
-//!  
+//!
 //! This will create the file `my.model` you can then include in the example above.
 //!
 //! For more advanced use cases and best classification accuracy, you should consider to run
@@ -114,10 +114,10 @@
 //! [local] -1 -1 0.0 (best c=0.5, g=0.0078125, rate=0.0)
 //! ...
 //! ```
-//!  
+//!
 //! The best parameters (in this case `c=0.5`, `g=0.0078125`) can then be used on `svm-train`. The
 //! optional paramter `-b 1` allows the model to also predict probabilty estimates for its
-//! classification.  
+//! classification.
 //!
 //! ```ignore
 //! > svm-train -c 0.5 -g 0.0078125 -b 1 ./my.training-data ./my.model
