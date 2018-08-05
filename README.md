@@ -1,33 +1,29 @@
-:ext-relative: {outfilesuffix}
-
-image:https://travis-ci.org/ralfbiedert/ffsvm-rust.svg?branch=master["Build Status", link="https://travis-ci.org/ralfbiedert/ffsvm-rust"]
-image:https://img.shields.io/badge/license-MIT-blue.svg["License", link="LICENSE"]
+![travis](https://travis-ci.org/ralfbiedert/ffsvm-rust.svg?branch=master)
+![license](https://img.shields.io/badge/license-MIT-blue.svg)
 
 
-= In One Sentence
+# In One Sentence
 
-You trained a binary non-sparse RBF-C-SVM using https://github.com/cjlin1/libsvm[libSVM], now you want the highest possible performance during (real-time) classification, like games or VR.
+You trained a binary non-sparse RBF-C-SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want the highest possible performance during (real-time) classification, like games or VR.
 
 
 
-= Highlights
+# Highlights
 
-* can load trained https://github.com/cjlin1/libsvm[libSVM] models (currently binary RBF-CSVM without sparse attributes)
-* optimized for SIMD and can be mixed seamlessly with https://github.com/rayon-rs/rayon[Rayon].
+* can load trained [libSVM](https://github.com/cjlin1/libsvm) models (currently binary RBF-CSVM without sparse attributes)
+* optimized for SIMD and can be mixed seamlessly with [Rayon](https://github.com/rayon-rs/rayon).
 * allocation-free during classification
 * written in 100% Rust, but can be loaded from any language (via FFI)
 * 2.5x - 14x faster than libSVM
 
 
-= Principal Usage
+# Principal Usage
 
-Train with https://github.com/cjlin1/libsvm[libSVM] (e.g., using the tool `svm-train`), then classify with `ffsvm-rust`.
+Train with [libSVM](https://github.com/cjlin1/libsvm) (e.g., using the tool `svm-train`), then classify with `ffsvm-rust`.
 
 From Rust:
 
-[source,rust]
-----
-
+```rust
 // Get your libSVM model string from wherever and parse it.
 let model_str: &str = include_str!("model.libsvm");
 let model = ModelFile::try_from(model_str).unwrap();
@@ -44,14 +40,14 @@ csvm.predict_value(&mut problem);
 
 // Results should match libSVM
 assert_eq!(0, problem.label);
-----
+```
 
 From C / FFI:
 
-Please see https://github.com/ralfbiedert/ffsvm-rust[FFSVM-FFI]
+Please see [FFSVM-FFI](https://github.com/ralfbiedert/ffsvm-rust)
 
 
-= Status
+# Status
 
 * **Aug 5, 2018**: Still in alpha, but finally on crates.io.
 * **May 27, 2018**: We're in alpha. Successfully used internally on Windows, Mac, Android and Linux
@@ -60,20 +56,19 @@ we'll move to beta.
 * **December 16, 2017**: We're in pre-alpha. It will probably not even work on your machine.
 
 
-= Performance
+# Performance
 
-image::docs/performance_relative.v3.png[]
+![performance](docs/performance_relative.v3.png)
 
 Classification time vs. libSVM.
 
-
-image::docs/performance_history.v3.png[]
+![performance](docs/performance_history.v3.png)
 
 Performance milestones during development.
 
-link:docs/performance{ext-relative}[See here for details.]
+[See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/performance.adoc)
 
 
-= FAQ
+# FAQ
 
-link:docs/FAQ{ext-relative}[See here for details.]
+[See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/FAQ.adoc)
