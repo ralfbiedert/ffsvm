@@ -1,6 +1,6 @@
 [![Latest Version]][crates.io]
 [![Travis-CI Status]][travis]
-[![MIT]][License]
+![MIT]
 
 # In One Sentence
 
