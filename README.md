@@ -1,6 +1,6 @@
 [![Latest Version]][crates.io]
 [![Travis-CI Status]][travis]
-![license](https://img.shields.io/badge/license-MIT-blue.svg)
+[![License]][mit]
 
 # In One Sentence
 
@@ -73,3 +73,10 @@ Performance milestones during development.
 # FAQ
 
 [See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/FAQ.adoc)
+
+
+[travis]: https://travis-ci.org/ralfbiedert/ffsvm-rust
+[Travis-CI Status]: https://travis-ci.org/ralfbiedert/ffsvm-rust.svg?branch=master
+[Latest Version]: https://img.shields.io/crates/v/ffsvm-rust.svg
+[crates.io]: https://crates.io/crates/ffsvm-rust
+[mit]: https://img.shields.io/badge/license-MIT-blue.svg
