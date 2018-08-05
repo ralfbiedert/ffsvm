@@ -3,6 +3,9 @@ use crate::random::{random_vec, Randomize};
 use crate::svm::SVM;
 use crate::vectors::{SimdOptimized, Triangular};
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// A single problem a [SVM] should classify.
 ///
 /// # Creating a problem
@@ -14,7 +17,7 @@ use crate::vectors::{SimdOptimized, Triangular};
 /// ```
 ///
 /// # Classifiying a problem
-///   
+///
 /// A problem is an instance of the SVM's problem domain. To be classified, all `features` need
 /// to be set, for example by:
 ///

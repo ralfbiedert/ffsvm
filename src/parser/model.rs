@@ -1,10 +1,11 @@
 use nom::{
-    is_alphanumeric, line_ending, types::CompleteStr, named, do_parse, 
-    tag, call, opt, many0, map_res, error_position, alt, preceded, tuple, 
-    tuple_parser, named_args, take_while_s, take_while, count, ws, sep, wrap_sep
+    alt, call, count, do_parse, error_position, is_alphanumeric, line_ending, many0, map_res,
+    named, named_args, opt, preceded, sep, tag, take_while, take_while_s, tuple, tuple_parser,
+    types::CompleteStr, wrap_sep, ws,
 };
 use std::{
-    convert::TryFrom, str::{self, FromStr},
+    convert::TryFrom,
+    str::{self, FromStr},
 };
 
 /// (Start here) Parsing result of a model file used to instantiate a [SVM].
@@ -28,7 +29,7 @@ use std::{
 /// # Model format
 ///
 /// For FFSVM to load a model, it needs to approximately look like below. Note that you cannot
-/// reasonably create this model by hand, it needs to come from [libSVM](https://github.com/cjlin1/libsvm).   
+/// reasonably create this model by hand, it needs to come from [libSVM](https://github.com/cjlin1/libsvm).
 ///
 /// ```ignore
 /// svm_type c_svc
@@ -53,7 +54,7 @@ use std::{
 /// * `svm_type` must be `c_svc`.
 /// * `kernel_type` must be `rbf`
 /// * All support vectors (past the `SV` line) must have **strictly** increasing attribute
-/// identifiers, without skipping an attribute.  
+/// identifiers, without skipping an attribute.
 ///
 #[derive(Clone, Debug, Default)]
 pub struct ModelFile<'a> {
@@ -117,8 +118,9 @@ fn svm_non_whitespace(chr: char) -> bool {
     is_alphanumeric(chr as u8) || chr == '_' || chr == '.' || chr == '-'
 }
 
-named!(svm_string <CompleteStr, &str>, 
-    do_parse! ( x: take_while_s!(svm_non_whitespace) >> (x.0)) 
+named!(
+    svm_string<CompleteStr<'_>, &str>,
+    do_parse!(x: take_while_s!(svm_non_whitespace) >> (x.0))
 );
 
 named!(svm_line_string <CompleteStr, (&str)>,
@@ -148,7 +150,7 @@ named!(svm_line_vec_u32 <CompleteStr, (Vec<u32>)>,
 named!(svm_attribute <CompleteStr, (Attribute)>,
     do_parse!(
         many0!(tag!(" ")) >>
-        index: map_res!(svm_string, FromStr::from_str) >> 
+        index: map_res!(svm_string, FromStr::from_str) >>
         tag!(":") >>
         value: map_res!(svm_string, FromStr::from_str)  >>
         many0!(tag!(" ")) >>
@@ -181,7 +183,7 @@ named!(pub svm_header <CompleteStr, Header>,
                 rho,
                 label,
                 prob_a,
-                prob_b,                
+                prob_b,
                 nr_sv,
             }
         )

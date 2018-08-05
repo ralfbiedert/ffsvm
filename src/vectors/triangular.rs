@@ -1,3 +1,6 @@
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 use std::{
     fmt,
     ops::{Index, IndexMut},

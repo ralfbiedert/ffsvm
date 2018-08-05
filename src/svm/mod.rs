@@ -7,6 +7,9 @@ pub use self::{class::Class, problem::Problem};
 use crate::kernel::{Kernel, RbfKernel};
 use crate::vectors::Triangular;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// An RBF [SVM] which is the main (and currently only) type of SVM we support.
 ///
 /// You can obtain an [RbfCSVM] with the help of a [ModelFile]. Each SVM implements
@@ -22,14 +25,14 @@ pub enum SVMError {
     /// error will be emitted. For more details see the documentation provided in [ModelFile].
     SvmAttributesUnordered {
         /// The index process that was not a direct successor of the previous index. Can be used for
-        /// easier debugging the model file.  
+        /// easier debugging the model file.
         index: u32,
 
         /// The value of the given index. Can be used for debugging in conjunction with `index`.
         value: f32,
 
         /// The last index processed. If everything were alright, then `index` should equal
-        /// `last_index + 1`.  
+        /// `last_index + 1`.
         last_index: u32,
     },
 
@@ -53,7 +56,7 @@ pub struct Probabilities {
 /// Generic support vector machine, template for [RbfCSVM].
 ///
 /// The SVM holds a kernel, class information and all other numerical data read from
-/// the [ModelFile]. It implements [PredictProblem] to predict [Problem] instances.  
+/// the [ModelFile]. It implements [PredictProblem] to predict [Problem] instances.
 ///
 /// # Creating a SVM
 ///
@@ -103,7 +106,7 @@ where
     /// # Returns
     ///
     /// If the label was found its index returned in the [Option]. Otherwise `None`
-    /// is returned.  
+    /// is returned.
     ///
     pub fn class_index_for_label(&self, label: u32) -> Option<usize> {
         for (i, class) in self.classes.iter().enumerate() {
@@ -128,7 +131,7 @@ where
     /// # Returns
     ///
     /// If the index was found it is returned in the [Option]. Otherwise `None`
-    /// is returned.  
+    /// is returned.
     pub fn class_label_for_index(&self, index: usize) -> Option<u32> {
         if index >= self.classes.len() {
             None
@@ -137,7 +140,7 @@ where
         }
     }
 
-    /// Returns number of attributes, reflecting the libSVM model.  
+    /// Returns number of attributes, reflecting the libSVM model.
     pub fn attributes(&self) -> usize {
         self.num_attributes
     }
@@ -162,7 +165,7 @@ where
 ///
 /// If the libSVM model was trained with probability estimates FFSVM can not only predict the
 /// label, but it can also give information about the likelihood distribution of all classes.
-/// This can be helpful if you want to consider alternatives.   
+/// This can be helpful if you want to consider alternatives.
 ///
 /// Probabilities are estimated like this:
 ///

@@ -1,6 +1,9 @@
 use crate::random::Randomize;
 use crate::vectors::SimdOptimized;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// Represents one class of the SVM model.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

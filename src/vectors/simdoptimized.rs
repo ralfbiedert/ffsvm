@@ -8,6 +8,9 @@ use std::{
 use crate::random::{random_vec, Randomize};
 use rand::distributions;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// Basic "matrix' we use for fast SIMD and parallel operations.
 ///
 /// Note: Right now we use a Matrix mostly as a vector of vectors and is mostly
