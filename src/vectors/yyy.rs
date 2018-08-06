@@ -12,6 +12,16 @@ use rand::distributions;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+// NAH, NOT A GOOD IDEA ... DOESN'T THAT MEAN THAT EACH ELEMENT WILL BE ALIGNED,
+// SO INDIVIDUAL ELEMENTS WILL ALSO BE SIZED THAT WAY?
+
+#[repr(align(64))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Copy, Clone, Debug)]
+struct X<T>(T)
+where
+    T: Copy + Sized;
+
 /// Basic "matrix' we use for fast SIMD and parallel operations.
 ///
 /// Note: Right now we use a Matrix mostly as a vector of vectors and is mostly
@@ -33,7 +43,7 @@ where
     vector_length: usize,
 
     /// We store all data in one giant array for performance reasons (caching)
-    data: Vec<T>,
+    data: Vec<X<T>>,
 }
 
 /// Basic iterator struct to go over matrix
@@ -59,7 +69,7 @@ where
             vectors,
             attributes,
             vector_length: attributes,
-            data: vec![default; vectors * attributes],
+            data: vec![X(default); vectors * attributes],
         }
     }
 
@@ -87,7 +97,7 @@ where
     #[inline]
     fn index(&self, index: (usize, usize)) -> &T {
         let index = self.offset(index.0, index.1);
-        &self.data[index]
+        &self.data[index].0
     }
 }
 
@@ -98,7 +108,7 @@ where
     #[inline]
     fn index_mut(&mut self, index: (usize, usize)) -> &mut T {
         let index = self.offset(index.0, index.1);
-        &mut self.data[index]
+        &mut self.data[index].0
     }
 }
 
