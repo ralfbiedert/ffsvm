@@ -25,8 +25,7 @@ where
             .map(|class| {
                 Class::with_parameters(num_classes, num_sv_per_class, num_attributes, class as u32)
                     .randomize()
-            })
-            .collect::<Vec<Class>>();
+            }).collect::<Vec<Class>>();
 
         SVM {
             num_total_sv,
@@ -41,14 +40,14 @@ where
     /// Computes the kernel values for this problem
     fn compute_kernel_values(&self, problem: &mut Problem) {
         // Get current problem and decision values array
-        let problem_features = &problem.features[..];
+        let features = &problem.features[..];
 
         // Compute kernel values per class
         for (i, class) in self.classes.iter().enumerate() {
             let kvalues = &mut problem.kernel_values[i];
 
             self.kernel
-                .compute(&class.support_vectors, problem_features, kvalues);
+                .compute(&class.support_vectors, features, kvalues);
         }
     }
 
@@ -213,8 +212,7 @@ where
                 let label = header.label[class];
                 let num_sv = header.nr_sv[class] as usize;
                 Class::with_parameters(num_classes, num_sv, num_attributes, label)
-            })
-            .collect::<Vec<Class>>();
+            }).collect::<Vec<Class>>();
 
         let probabilities = match (&raw_model.header.prob_a, &raw_model.header.prob_b) {
             (&Some(ref a), &Some(ref b)) => Some(Probabilities {

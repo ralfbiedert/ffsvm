@@ -24,7 +24,7 @@ maintenance = { status = "experimental" }
 packed_simd = "0.1"
 rand = "0.5"
 nom = "4.0"
-serde = { version = "1.0", optional = true, features = ["derive"] }
+# serde = { version = "1.0", optional = true, features = ["derive"] }
 
 [lib]
 name = "ffsvm"

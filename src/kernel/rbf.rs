@@ -3,7 +3,7 @@ use std::convert::From;
 use crate::kernel::Kernel;
 use crate::parser::ModelFile;
 use crate::random::Random;
-use crate::vectors::SimdOptimized;
+use crate::vectors::SimdVectorsf32;
 
 use packed_simd::{f32x16, f32x4, f32x8};
 use rand::random;
@@ -31,8 +31,8 @@ macro_rules! compute_kernel_impl {
             let mut sum = f32s::splat(0.0);
 
             for i in 0..steps {
-                let a = f32s::from_slice_unaligned(&sv[i * width..]);
-                let b = f32s::from_slice_unaligned(&feature[i * width..]);
+                let a = unsafe { f32s::from_slice_aligned_unchecked(&sv[i * width..]) };
+                let b = unsafe { f32s::from_slice_aligned_unchecked(&feature[i * width..]) };
                 sum += (a - b) * (a - b);
             }
 
@@ -60,7 +60,7 @@ compute_kernel_impl!(compute_inner_kernel_simdf32x8, f32x8);
 compute_kernel_impl!(compute_inner_kernel_simdf32x4, f32x4);
 
 impl Kernel for RbfKernel {
-    fn compute(&self, vectors: &SimdOptimized<f32>, feature: &[f32], kernel_values: &mut [f64]) {
+    fn compute(&self, vectors: &SimdVectorsf32, feature: &[f32], kernel_values: &mut [f64]) {
         // According to Instruments, for realistic SVMs and problems, the VAST majority of our
         // CPU time is spent in this loop.
         for (i, sv) in vectors.into_iter().enumerate() {

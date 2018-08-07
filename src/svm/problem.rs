@@ -1,10 +1,7 @@
 use crate::kernel::Kernel;
 use crate::random::{random_vec, Randomize};
 use crate::svm::SVM;
-use crate::vectors::{SimdOptimized, Triangular};
-
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+use crate::vectors::{SimdVectorsf64, Triangular};
 
 /// A single problem a [SVM] should classify.
 ///
@@ -30,13 +27,12 @@ use serde::{Deserialize, Serialize};
 /// It can then be handed over to the [SVM] (via the [PredictProblem] trait).
 ///
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Problem {
     /// A vector of all features.
     pub features: Vec<f32>,
 
     /// Kernel values. A vector for each class.
-    pub(crate) kernel_values: SimdOptimized<f64>,
+    pub(crate) kernel_values: SimdVectorsf64,
 
     /// All votes for a given class label.
     pub(crate) vote: Vec<u32>,
@@ -45,10 +41,10 @@ pub struct Problem {
     pub(crate) decision_values: Triangular<f64>,
 
     /// Pairwise probabilities
-    pub(crate) pairwise: SimdOptimized<f64>,
+    pub(crate) pairwise: SimdVectorsf64,
 
     /// Needed for multi-class probability estimates replicating libSVM.
-    pub(crate) q: SimdOptimized<f64>,
+    pub(crate) q: SimdVectorsf64,
 
     /// Needed for multi-class probability estimates replicating libSVM.
     pub(crate) qp: Vec<f64>,
@@ -70,13 +66,9 @@ impl Problem {
     ) -> Problem {
         Problem {
             features: vec![Default::default(); num_attributes],
-            kernel_values: SimdOptimized::with_dimension(num_classes, total_sv, Default::default()),
-            pairwise: SimdOptimized::<f64>::with_dimension(
-                num_classes,
-                num_classes,
-                Default::default(),
-            ),
-            q: SimdOptimized::<f64>::with_dimension(num_classes, num_classes, Default::default()),
+            kernel_values: SimdVectorsf64::with_dimension(num_classes, total_sv),
+            pairwise: SimdVectorsf64::with_dimension(num_classes, num_classes),
+            q: SimdVectorsf64::with_dimension(num_classes, num_classes),
             qp: vec![Default::default(); num_classes],
             decision_values: Triangular::with_dimension(num_classes, Default::default()),
             vote: vec![Default::default(); num_classes],

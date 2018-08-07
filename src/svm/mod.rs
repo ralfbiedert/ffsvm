@@ -7,9 +7,6 @@ pub use self::{class::Class, problem::Problem};
 use crate::kernel::{Kernel, RbfKernel};
 use crate::vectors::Triangular;
 
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
-
 /// An RBF [SVM] which is the main (and currently only) type of SVM we support.
 ///
 /// You can obtain an [RbfCSVM] with the help of a [ModelFile]. Each SVM implements
@@ -46,7 +43,6 @@ pub enum SVMError {
 }
 
 #[derive(Clone, Debug, Default)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Probabilities {
     a: Triangular<f64>,
 
@@ -68,7 +64,6 @@ pub struct Probabilities {
 /// ```
 ///
 #[derive(Clone, Debug, Default)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SVM<T>
 where
     T: Kernel,

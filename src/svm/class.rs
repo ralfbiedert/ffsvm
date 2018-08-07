@@ -1,12 +1,8 @@
 use crate::random::Randomize;
-use crate::vectors::SimdOptimized;
-
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+use crate::vectors::{SimdVectorsf32, SimdVectorsf64};
 
 /// Represents one class of the SVM model.
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[doc(hidden)]
 pub struct Class {
     /// The label of this class
@@ -16,10 +12,10 @@ pub struct Class {
     pub num_support_vectors: usize,
 
     /// Coefficients between this class and n-1 other classes.
-    pub coefficients: SimdOptimized<f64>,
+    pub coefficients: SimdVectorsf64,
 
     /// All support vectors in this class.
-    pub support_vectors: SimdOptimized<f32>,
+    pub support_vectors: SimdVectorsf32,
 }
 
 impl Class {
@@ -33,16 +29,8 @@ impl Class {
         Class {
             label,
             num_support_vectors: support_vectors,
-            coefficients: SimdOptimized::with_dimension(
-                classes - 1,
-                support_vectors,
-                Default::default(),
-            ),
-            support_vectors: SimdOptimized::with_dimension(
-                support_vectors,
-                attributes,
-                Default::default(),
-            ),
+            coefficients: SimdVectorsf64::with_dimension(classes - 1, support_vectors),
+            support_vectors: SimdVectorsf32::with_dimension(support_vectors, attributes),
         }
     }
 }

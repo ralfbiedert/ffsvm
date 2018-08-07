@@ -1,7 +1,5 @@
-mod simdoptimized;
+mod simdvectors;
 mod triangular;
-mod xxx;
-// mod yyy;
 
-pub use self::simdoptimized::SimdOptimized;
+pub use self::simdvectors::{SimdVectorsf32, SimdVectorsf64};
 pub use self::triangular::Triangular;

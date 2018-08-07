@@ -135,6 +135,7 @@
 mod kernel;
 mod parser;
 mod random;
+mod simd_matrix;
 mod svm;
 mod util;
 mod vectors;
@@ -143,4 +144,4 @@ pub use crate::kernel::RbfKernel;
 pub use crate::parser::{ModelError, ModelFile};
 pub use crate::random::{Random, Randomize};
 pub use crate::svm::{Class, PredictProblem, Problem, RbfCSVM, SVMError, SVM};
-pub use crate::vectors::SimdOptimized;
+pub use crate::vectors::{SimdVectorsf32, SimdVectorsf64};
