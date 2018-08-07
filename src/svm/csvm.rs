@@ -47,6 +47,8 @@ where
         for (i, class) in self.classes.iter().enumerate() {
             let kvalues = kernel_values.row_mut(i);
 
+            println!("{} - {}", class.support_vectors.rows(), kvalues.len());
+
             self.kernel
                 .compute(&class.support_vectors, features, kvalues);
         }

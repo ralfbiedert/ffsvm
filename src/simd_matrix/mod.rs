@@ -52,6 +52,6 @@ mod test {
         let mut m = x.as_matrix_mut();
         m[(0, 1)] = 0.4;
 
-        assert_eq!(x[0][0].sum(), 0.4);
+        assert!((x[0][0].sum() - 0.4).abs() < 0.001);
     }
 }

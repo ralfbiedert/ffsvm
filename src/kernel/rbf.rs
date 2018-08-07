@@ -19,9 +19,13 @@ pub struct RbfKernel {
 
 impl Kernel for RbfKernel {
     fn compute(&self, vectors: &SimdRows<f32s>, feature: &[f32s], output: &mut [f64]) {
+        println!("{}: {}", vectors.rows(), output.len());
+
         // According to Instruments, for realistic SVMs and problems, the VAST majority of our
         // CPU time is spent in this loop.
         for (i, sv) in vectors.into_iter().enumerate() {
+            // println!("{}: {}", sv.len(), feature.len());
+
             let mut sum = f32s::splat(0.0);
 
             for (a, b) in sv.iter().zip(feature) {
@@ -31,7 +35,7 @@ impl Kernel for RbfKernel {
             // This seems to be the single-biggest CPU spike: saving back kernel_values,
             // and computing exp() (saving back seems to have 3x time impact over exp(),
             // but I might misread "Instruments" for that particular one).
-            output[i] = f64::from((-self.gamma * sum.sum()).exp())
+            output[i] = f64::from((-self.gamma * sum.sum()).exp());
         }
     }
 }
