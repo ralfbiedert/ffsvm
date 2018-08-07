@@ -1,5 +1,5 @@
 use crate::kernel::Kernel;
-use crate::random::{random_vec, Randomize};
+use crate::random::Randomize;
 use crate::simd_matrix::{f32s, f64s, SimdRows};
 use crate::svm::SVM;
 use crate::vectors::Triangular;

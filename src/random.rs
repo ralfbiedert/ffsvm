@@ -15,19 +15,6 @@ pub trait Random {
     fn new_random() -> Self;
 }
 
-/// Creates a vector of random
-pub(crate) fn random_vec<T>(size: usize) -> Vec<T>
-where
-    T: Default + Clone,
-    distributions::Standard: distributions::Distribution<T>,
-{
-    let mut array: Vec<T> = vec![Default::default(); size];
-    for e in &mut array {
-        *e = random()
-    }
-    array
-}
-
 impl<T> Randomize for SimdRows<T>
 where
     T: Simd + Sized + Copy + Default,

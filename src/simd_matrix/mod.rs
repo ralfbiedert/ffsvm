@@ -48,10 +48,10 @@ mod test {
 
     #[test]
     fn f32x8() {
-        let mut x = SimdRows::<f32s>::with_dimension(8, 8);
+        let mut x = SimdRows::<f32s>::with_dimension(10, 10);
         let mut m = x.as_matrix_mut();
         m[(0, 1)] = 0.4;
 
-        let mut r = m.row_mut(4);
+        assert_eq!(x[0][0].sum(), 0.4);
     }
 }
