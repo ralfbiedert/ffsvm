@@ -25,8 +25,8 @@ where
         if self.index >= self.simd_rows.rows {
             None
         } else {
-            self.index += 1;
             let range = self.simd_rows.range_for_row(self.index);
+            self.index += 1;
             Some(&self.simd_rows.data[range])
         }
     }
