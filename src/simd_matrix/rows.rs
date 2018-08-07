@@ -49,12 +49,12 @@ where
     }
 
     /// Returns a flat matrix view of this Simd rows collection type
-    pub fn as_matrix(&self) -> SimdMatrix<SimdType> {
+    pub fn as_matrix(&self) -> SimdMatrix<'_, SimdType> {
         SimdMatrix { simd_rows: &self }
     }
 
     /// Returns a mutable matrix view of this Simd rows collection type
-    pub fn as_matrix_mut(&mut self) -> SimdMatrixMut<SimdType> {
+    pub fn as_matrix_mut(&mut self) -> SimdMatrixMut<'_, SimdType> {
         SimdMatrixMut {
             simd_rows: &mut *self,
         }
