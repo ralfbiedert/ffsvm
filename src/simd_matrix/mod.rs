@@ -1,8 +1,10 @@
-pub use packed_simd::{f32x16, f32x4, f32x8, f64x2, f64x4, f64x8};
-
 mod iter;
 mod matrix;
 mod rows;
+
+pub use packed_simd::*;
+
+pub use self::rows::SimdRows;
 
 /// This is copy-paste from `packed_simd`, where this trait is unfortunately
 /// sealed right now. In the future this might come from `std::simd`.

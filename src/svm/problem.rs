@@ -1,7 +1,8 @@
 use crate::kernel::Kernel;
 use crate::random::{random_vec, Randomize};
+use crate::simd_matrix::{f32s, f64s, SimdRows};
 use crate::svm::SVM;
-use crate::vectors::{SimdVectorsf64, Triangular};
+use crate::vectors::Triangular;
 
 /// A single problem a [SVM] should classify.
 ///
@@ -29,10 +30,10 @@ use crate::vectors::{SimdVectorsf64, Triangular};
 #[derive(Debug, Clone)]
 pub struct Problem {
     /// A vector of all features.
-    pub features: Vec<f32>,
+    pub(crate) features: SimdRows<f32s>,
 
     /// Kernel values. A vector for each class.
-    pub(crate) kernel_values: SimdVectorsf64,
+    pub(crate) kernel_values: SimdRows<f64s>,
 
     /// All votes for a given class label.
     pub(crate) vote: Vec<u32>,
@@ -41,20 +42,20 @@ pub struct Problem {
     pub(crate) decision_values: Triangular<f64>,
 
     /// Pairwise probabilities
-    pub(crate) pairwise: SimdVectorsf64,
+    pub(crate) pairwise: SimdRows<f64s>,
 
     /// Needed for multi-class probability estimates replicating libSVM.
-    pub(crate) q: SimdVectorsf64,
+    pub(crate) q: SimdRows<f64s>,
 
     /// Needed for multi-class probability estimates replicating libSVM.
     pub(crate) qp: Vec<f64>,
 
     /// Probability estimates that will be updated after this problem was processed
     /// by `predict_probability` in [PredictProblem] if the model supports it.
-    pub probabilities: Vec<f64>,
+    pub(crate) probabilities: Vec<f64>,
 
     /// Computed label that will be updated after this problem was processed by [PredictProblem].
-    pub label: u32,
+    pub(crate) label: u32,
 }
 
 impl Problem {
@@ -65,10 +66,10 @@ impl Problem {
         num_attributes: usize,
     ) -> Problem {
         Problem {
-            features: vec![Default::default(); num_attributes],
-            kernel_values: SimdVectorsf64::with_dimension(num_classes, total_sv),
-            pairwise: SimdVectorsf64::with_dimension(num_classes, num_classes),
-            q: SimdVectorsf64::with_dimension(num_classes, num_classes),
+            features: SimdRows::with_dimension(1, num_attributes),
+            kernel_values: SimdRows::with_dimension(num_classes, total_sv),
+            pairwise: SimdRows::with_dimension(num_classes, num_classes),
+            q: SimdRows::with_dimension(num_classes, num_classes),
             qp: vec![Default::default(); num_classes],
             decision_values: Triangular::with_dimension(num_classes, Default::default()),
             vote: vec![Default::default(); num_classes],
@@ -89,7 +90,7 @@ where
 
 impl Randomize for Problem {
     fn randomize(mut self) -> Self {
-        self.features = random_vec(self.features.len());
+        self.features = self.features.randomize();
         self
     }
 }

@@ -39,6 +39,14 @@ where
         }
     }
 
+    pub fn rows(&self) -> usize {
+        self.rows
+    }
+
+    pub fn row_length(&self) -> usize {
+        self.row_length
+    }
+
     /// Returns a flat matrix view of this Simd rows collection type
     pub fn as_matrix(&self) -> SimdMatrix<SimdType> {
         SimdMatrix { simd_rows: &self }

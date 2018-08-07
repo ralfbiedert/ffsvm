@@ -40,11 +40,12 @@ where
     /// Computes the kernel values for this problem
     fn compute_kernel_values(&self, problem: &mut Problem) {
         // Get current problem and decision values array
-        let features = &problem.features[..];
+        let features = &problem.features[0];
+        let mut kernel_values = problem.kernel_values.as_matrix_mut();
 
         // Compute kernel values per class
         for (i, class) in self.classes.iter().enumerate() {
-            let kvalues = &mut problem.kernel_values[i];
+            let kvalues = kernel_values.row_mut(i);
 
             self.kernel
                 .compute(&class.support_vectors, features, kvalues);
@@ -59,9 +60,10 @@ where
     fn compute_multiclass_probabilities(&self, problem: &mut Problem) -> Result<(), SVMError> {
         let num_classes = self.classes.len();
         let max_iter = 100.max(num_classes);
-        let q = &mut problem.q;
+        let mut q = problem.q.as_matrix_mut();
         let qp = &mut problem.qp;
         let eps = 0.005 / num_classes as f64; // Magic number .005 comes from libSVM.
+        let pairwise = problem.pairwise.as_matrix();
 
         // We first build up matrix Q as defined in (14) in the paper above. Q should have
         // the property of being a transition matrix for a Markov Chain.
@@ -71,13 +73,13 @@ where
             q[(t, t)] = 0.0;
 
             for j in 0..t {
-                q[(t, t)] += problem.pairwise[(j, t)] * problem.pairwise[(j, t)];
+                q[(t, t)] += pairwise[(j, t)] * pairwise[(j, t)];
                 q[(t, j)] = q[(j, t)];
             }
 
             for j in t + 1..num_classes {
-                q[(t, t)] += problem.pairwise[(j, t)] * problem.pairwise[(j, t)];
-                q[(t, j)] = -problem.pairwise[(j, t)] * problem.pairwise[(t, j)];
+                q[(t, t)] += pairwise[(j, t)] * pairwise[(j, t)];
+                q[(t, j)] = -pairwise[(j, t)] * pairwise[(t, j)];
             }
         }
 
@@ -163,21 +165,19 @@ where
                 let sv_coef0 = &self.classes[i].coefficients[j - 1];
                 let sv_coef1 = &self.classes[j].coefficients[i];
 
-                // For `faster` we have to limit the length of our kvalues slice to the length of
-                // our (shorter) sv_coef slice.
-                let kvalues0 = &problem.kernel_values[i][0..sv_coef0.len()];
-                let kvalues1 = &problem.kernel_values[j][0..sv_coef1.len()];
+                let kvalues0 = &problem.kernel_values[i];
+                let kvalues1 = &problem.kernel_values[j];
 
                 let sum0 = sv_coef0
                     .iter()
                     .zip(kvalues0)
-                    .map(|(a, b)| a * b)
+                    .map(|(a, b)| (*a * *b).sum())
                     .sum::<f64>();
 
                 let sum1 = sv_coef1
                     .iter()
                     .zip(kvalues1)
-                    .map(|(a, b)| a * b)
+                    .map(|(a, b)| (*a * *b).sum())
                     .sum::<f64>();
 
                 let sum = sum0 + sum1 - self.rho[(i, j)];
@@ -259,17 +259,18 @@ where
                                 last_index: last,
                             });
                         }
-                    }
+                    };
 
-                    svm.classes[i].support_vectors[(i_vector, i_attribute)] = attribute.value;
+                    let mut support_vectors = svm.classes[i].support_vectors.as_matrix_mut();
+                    support_vectors[(i_vector, i_attribute)] = attribute.value;
 
                     last_attribute = Some(attribute.index);
                 }
 
                 // Set coefficients
                 for (i_coefficient, coefficient) in vector.coefs.iter().enumerate() {
-                    svm.classes[i].coefficients[(i_coefficient, i_vector)] =
-                        f64::from(*coefficient);
+                    let mut coefficients = svm.classes[i].coefficients.as_matrix_mut();
+                    coefficients[(i_coefficient, i_vector)] = f64::from(*coefficient);
                 }
             }
 
@@ -300,6 +301,8 @@ where
         // First we need to predict the problem for our decision values
         self.predict_value(problem)?;
 
+        let mut pairwise = problem.pairwise.as_matrix_mut();
+
         // Now compute probability values
         for i in 0..num_classes {
             for j in i + 1..num_classes {
@@ -311,14 +314,14 @@ where
                     .max(MIN_PROB)
                     .min(1f64 - MIN_PROB);
 
-                problem.pairwise[(i, j)] = sigmoid;
-                problem.pairwise[(j, i)] = 1f64 - sigmoid;
+                pairwise[(i, j)] = sigmoid;
+                pairwise[(j, i)] = 1f64 - sigmoid;
             }
         }
 
         if num_classes == 2 {
-            problem.probabilities[0] = problem.pairwise[(0, 1)];
-            problem.probabilities[1] = problem.pairwise[(1, 0)];
+            problem.probabilities[0] = pairwise[(0, 1)];
+            problem.probabilities[1] = pairwise[(1, 0)];
         } else {
             self.compute_multiclass_probabilities(problem)?;
         }
