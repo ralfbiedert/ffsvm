@@ -24,7 +24,16 @@ impl Kernel for RbfKernel {
         // According to Instruments, for realistic SVMs and problems, the VAST majority of our
         // CPU time is spent in this loop.
         for (i, sv) in vectors.into_iter().enumerate() {
-            // println!("{}: {}", sv.len(), feature.len());
+            println!("{}: {}", sv.len(), feature.len());
+
+            // running 3 tests
+            // 1 - 2
+
+            // test tests::rbfcsvm_small ... FAILED
+            // 50 - 153
+
+            // test tests::rbfcsvm_multiclass ... FAILED
+            // 1513 - 3012
 
             let mut sum = f32s::splat(0.0);
 
