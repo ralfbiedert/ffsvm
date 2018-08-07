@@ -77,6 +77,18 @@ impl Problem {
             label: 0,
         }
     }
+
+    pub fn features_mut(&mut self) -> &mut [f32] {
+        self.features.as_slice_mut()
+    }
+
+    pub fn probabilities(&self) -> &[f64] {
+        &self.probabilities
+    }
+
+    pub fn label(&self) -> u32 {
+        self.label
+    }
 }
 
 impl<'a, T> From<&'a SVM<T>> for Problem

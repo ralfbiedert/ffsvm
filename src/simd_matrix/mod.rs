@@ -1,5 +1,6 @@
 mod iter;
 mod matrix;
+mod nsfw; // `unsafe` was already taken ...
 mod rows;
 
 pub use packed_simd::*;

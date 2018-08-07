@@ -1,5 +1,6 @@
 use std::ops::{Index, IndexMut};
 
+use super::nsfw::{simd_vector_to_flat_slice, simd_vector_to_flat_slice_mut};
 use super::rows::SimdRows;
 use super::Simd;
 
@@ -26,18 +27,8 @@ where
     fn row(&self, row: usize) -> &[SimdType::Element] {
         let range = self.simd_rows.range_for_row(row);
         let vector_slice = &self.simd_rows.data[range];
-        let ptr = vector_slice.as_ptr() as *const SimdType::Element;
 
-        // This "should be safe(tm)" since:
-        //
-        // 1) a slice of `N x f32x8` elements are transformed into a slice of
-        // `attributes * f32` elements, where `attributes <=  N * 8`.
-        //
-        // 2) The lifetime of the returned value should automatically match the self borrow.
-        //
-        // Having said this, as soon as `std::simd` (or similar) provides a safe way of handling
-        // that for us, these lines should be removed!
-        unsafe { std::slice::from_raw_parts(ptr, self.simd_rows.row_length) }
+        simd_vector_to_flat_slice(vector_slice, self.simd_rows.row_length)
     }
 }
 
@@ -48,19 +39,15 @@ where
     pub fn row(&self, row: usize) -> &[SimdType::Element] {
         let range = self.simd_rows.range_for_row(row);
         let vector_slice = &self.simd_rows.data[range];
-        let ptr = vector_slice.as_ptr() as *const SimdType::Element;
 
-        // See comment above.
-        unsafe { std::slice::from_raw_parts(ptr, self.simd_rows.row_length) }
+        simd_vector_to_flat_slice(vector_slice, self.simd_rows.row_length)
     }
 
     pub fn row_mut(&mut self, row: usize) -> &mut [SimdType::Element] {
         let range = self.simd_rows.range_for_row(row);
         let vector_slice = &mut self.simd_rows.data[range];
-        let ptr = vector_slice.as_mut_ptr() as *mut SimdType::Element;
 
-        // See comment above.
-        unsafe { std::slice::from_raw_parts_mut(ptr, self.simd_rows.row_length) }
+        simd_vector_to_flat_slice_mut(vector_slice, self.simd_rows.row_length)
     }
 }
 

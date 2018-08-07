@@ -8,6 +8,7 @@ use std::{
 
 use super::iter::SimdRowsIter;
 use super::matrix::{SimdMatrix, SimdMatrixMut};
+use super::nsfw::simd_vector_to_flat_slice_mut;
 use super::Simd;
 
 #[derive(Clone, Debug)]
@@ -57,6 +58,13 @@ where
         SimdMatrixMut {
             simd_rows: &mut *self,
         }
+    }
+
+    pub fn as_slice_mut(&mut self) -> &mut [SimdType::Element] {
+        // This function only makes sense if we have exactly 1 row, otherwise there will be weird gaps.
+        assert_eq!(self.rows, 1);
+
+        simd_vector_to_flat_slice_mut(&mut self.data, self.row_length)
     }
 
     /// Computes an offset for a vector and attribute.
