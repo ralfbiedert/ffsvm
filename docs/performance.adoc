@@ -50,7 +50,7 @@ FFSVM has been, from day one, optimized for performance:
 
 = Performance History
 
-image::performance_history.v3.png[]
+image::performance_history.v4.png[]
 
 Some of the more significant performance milestones in ffsvm's development.
 
@@ -61,7 +61,7 @@ Some of the more significant performance milestones in ffsvm's development.
 
 Numbers reported by `cargo bench` as *nanoseconds per iter*. In other words, on my machine (MBP'15 i7), classifiying a given problem takes the time shown.
 
-image::https://i.imgur.com/bvOR8d4.png[]
+image::performance_logs.v1.png[]
 
 I keep these numbers mostly to track my own progress over time while playing with different Rust concepts (e.g., https://github.com/rayon-rs/rayon[Rayon], https://github.com/AdamNiederer/faster[Faster], or https://github.com/rust-lang-nursery/packed_simd[packed_simd]).
 

@@ -35,7 +35,9 @@ let csvm = RbfCSVM::try_from(&model)?;
 let mut problem = Problem::from(&csvm);
 
 // Set features
-problem.features = vec![ 0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.1137485 ];
+problem.features_mut().clone_from_slice(&[
+    0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.0, 0.0, 1.0, 0.1137485,
+]);
 
 // Can be trivially parallelized (e.g., with Rayon) ...
 csvm.predict_value(&mut problem);
@@ -64,7 +66,7 @@ we'll move to beta.
 
 Classification time vs. libSVM.
 
-![performance](docs/performance_history.v3.png)
+![performance](docs/performance_history.v4.png)
 
 Performance milestones during development.
 
