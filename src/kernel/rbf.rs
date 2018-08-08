@@ -3,9 +3,9 @@ use std::convert::From;
 use crate::kernel::Kernel;
 use crate::parser::ModelFile;
 use crate::random::Random;
-use crate::simd_matrix::{f32s, Simd, SimdRows};
 
 use rand::random;
+use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -18,11 +18,17 @@ pub struct RbfKernel {
 }
 
 impl Kernel for RbfKernel {
-    fn compute(&self, vectors: &SimdRows<f32s>, feature: &[f32s], output: &mut [f64]) {
+    fn compute(
+        &self,
+        vectors: &SimdMatrix<f32s, RowOptimized>,
+        feature: &SimdVector<f32s>,
+        output: &mut [f64],
+    ) {
         // According to Instruments, for realistic SVMs and problems, the VAST majority of our
         // CPU time is spent in this loop.
-        for (i, sv) in vectors.into_iter().enumerate() {
+        for (i, sv) in vectors.row_iter().enumerate() {
             let mut sum = f32s::splat(0.0);
+            let feature: &[f32s] = &feature;
 
             for (a, b) in sv.iter().zip(feature) {
                 sum += (*a - *b) * (*a - *b);

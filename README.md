@@ -1,18 +1,18 @@
 [![Latest Version]][crates.io]
-[![docs]][docs.rs]
 [![Travis-CI Status]][travis]
+[![docs]][docs.rs]
 ![MIT]
 
 # In One Sentence
 
-You trained a binary non-sparse RBF-C-SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want the highest possible performance during (real-time) classification, like games or VR.
+You trained a non-sparse RBF-C-SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want the highest possible performance during (real-time) classification, like games or VR.
 
 
 
 # Highlights
 
-* can load trained [libSVM](https://github.com/cjlin1/libsvm) models (currently binary RBF-CSVM without sparse attributes)
-* optimized for SIMD and can be mixed seamlessly with [Rayon](https://github.com/rayon-rs/rayon).
+* can load trained [libSVM](https://github.com/cjlin1/libsvm) models (currently  RBF-CSVM without sparse attributes)
+* optimized for [SIMD](https://github.com/rust-lang/rfcs/pull/2366) and can be mixed seamlessly with [Rayon](https://github.com/rayon-rs/rayon).
 * allocation-free during classification
 * written in 100% Rust, but can be loaded from any language (via FFI)
 * 2.5x - 14x faster than libSVM
@@ -26,22 +26,22 @@ Train with [libSVM](https://github.com/cjlin1/libsvm) (e.g., using the tool `svm
 From Rust:
 
 ```rust
-// Get your libSVM model string from wherever and parse it.
+// Load model file / SVM.
 let model_str: &str = include_str!("model.libsvm");
 let model = ModelFile::try_from(model_str)?;
-
-// Produce actual SVM from raw model, and a problem
 let csvm = RbfCSVM::try_from(&model)?;
+
+// Produce problem we want to classify.
 let mut problem = Problem::from(&csvm);
 
-// Set the features of this problem we want to classify.
+// Set features
 problem.features = vec![ 0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.1137485 ];
 
-// Multiple problems can be trivially parallelized (e.g., with Rayon)
+// Can be trivially parallelized (e.g., with Rayon) ...
 csvm.predict_value(&mut problem);
 
 // Results should match libSVM
-assert_eq!(0, problem.label);
+assert_eq!(42, problem.label);
 ```
 
 From C / FFI:
@@ -69,9 +69,6 @@ Classification time vs. libSVM.
 Performance milestones during development.
 
 [See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/performance.adoc)
-
-
-**For optimal performance with larger models, try to use a number of features divisible by `16` (preferred), `8` or `4`.**
 
 
 

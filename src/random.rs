@@ -1,6 +1,6 @@
 use rand::{distributions, random};
 
-use crate::simd_matrix::{Simd, SimdRows};
+use simd_aligned::*;
 
 /// Randomizes a data structure
 #[doc(hidden)]
@@ -15,21 +15,38 @@ pub trait Random {
     fn new_random() -> Self;
 }
 
-impl<T> Randomize for SimdRows<T>
+impl<T, O> Randomize for SimdMatrix<T, O>
+where
+    T: Simd + Sized + Copy + Default,
+    T::Element: Default + Clone,
+    O: OptimizationStrategy,
+    distributions::Standard: distributions::Distribution<T::Element>,
+{
+    fn randomize(mut self) -> Self {
+        let (h, w) = self.dimension();
+        let mut matrix = self.flat_mut();
+
+        for y in 0..h {
+            for x in 0..w {
+                matrix[(y, x)] = random();
+            }
+        }
+
+        self
+    }
+}
+
+impl<T> Randomize for SimdVector<T>
 where
     T: Simd + Sized + Copy + Default,
     T::Element: Default + Clone,
     distributions::Standard: distributions::Distribution<T::Element>,
 {
     fn randomize(mut self) -> Self {
-        let rows = self.rows();
-        let row_length = self.row_length;
-        let mut matrix = self.as_matrix_mut();
+        let flat = self.flat_mut();
 
-        for y in 0..rows {
-            for x in 0..row_length {
-                matrix[(y, x)] = random();
-            }
+        for v in flat {
+            *v = random();
         }
 
         self

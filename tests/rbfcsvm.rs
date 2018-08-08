@@ -29,8 +29,6 @@ mod tests {
         csvm.predict_probability(&mut problem0).expect("Worked");
         csvm.predict_probability(&mut problem1).expect("Worked");
 
-        println!("{:?}", problem0);
-        println!("{:?}", problem1);
         assert_eq!(2, problem0.label());
         assert_eq!(7, problem1.label());
 
@@ -142,6 +140,7 @@ mod tests {
         let factor = 10.0f64.powi(decimal_places);
         let a = (a * factor).trunc();
         let b = (b * factor).trunc();
-        a == b
+
+        (a - b).abs() < 0.001
     }
 }

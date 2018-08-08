@@ -13,6 +13,8 @@ use crate::svm::{
 use crate::util::{find_max_index, set_all, sigmoid_predict};
 use crate::vectors::Triangular;
 
+use simd_aligned::*;
+
 #[doc(hidden)]
 impl<Knl> SVM<Knl>
 where
@@ -40,14 +42,12 @@ where
     /// Computes the kernel values for this problem
     fn compute_kernel_values(&self, problem: &mut Problem) {
         // Get current problem and decision values array
-        let features = &problem.features[0];
-        let mut kernel_values = problem.kernel_values.as_matrix_mut();
+        let features = &problem.features;
+        let mut kernel_values = &mut problem.kernel_values;
 
         // Compute kernel values per class
         for (i, class) in self.classes.iter().enumerate() {
-            let kvalues = kernel_values.row_mut(i);
-
-            println!("{} - {}", class.support_vectors.rows(), kvalues.len());
+            let kvalues = kernel_values.row_as_flat_mut(i);
 
             self.kernel
                 .compute(&class.support_vectors, features, kvalues);
@@ -62,10 +62,10 @@ where
     fn compute_multiclass_probabilities(&self, problem: &mut Problem) -> Result<(), SVMError> {
         let num_classes = self.classes.len();
         let max_iter = 100.max(num_classes);
-        let mut q = problem.q.as_matrix_mut();
+        let mut q = problem.q.flat_mut();
         let qp = &mut problem.qp;
         let eps = 0.005 / num_classes as f64; // Magic number .005 comes from libSVM.
-        let pairwise = problem.pairwise.as_matrix();
+        let pairwise = problem.pairwise.flat();
 
         // We first build up matrix Q as defined in (14) in the paper above. Q should have
         // the property of being a transition matrix for a Markov Chain.
@@ -164,11 +164,11 @@ where
 
         for i in 0..self.classes.len() {
             for j in (i + 1)..self.classes.len() {
-                let sv_coef0 = &self.classes[i].coefficients[j - 1];
-                let sv_coef1 = &self.classes[j].coefficients[i];
+                let sv_coef0 = self.classes[i].coefficients.row(j - 1);
+                let sv_coef1 = self.classes[j].coefficients.row(i);
 
-                let kvalues0 = &problem.kernel_values[i];
-                let kvalues1 = &problem.kernel_values[j];
+                let kvalues0 = problem.kernel_values.row(i);
+                let kvalues1 = problem.kernel_values.row(j);
 
                 let sum0 = sv_coef0
                     .iter()
@@ -263,7 +263,7 @@ where
                         }
                     };
 
-                    let mut support_vectors = svm.classes[i].support_vectors.as_matrix_mut();
+                    let mut support_vectors = svm.classes[i].support_vectors.flat_mut();
                     support_vectors[(i_vector, i_attribute)] = attribute.value;
 
                     last_attribute = Some(attribute.index);
@@ -271,7 +271,7 @@ where
 
                 // Set coefficients
                 for (i_coefficient, coefficient) in vector.coefs.iter().enumerate() {
-                    let mut coefficients = svm.classes[i].coefficients.as_matrix_mut();
+                    let mut coefficients = svm.classes[i].coefficients.flat_mut();
                     coefficients[(i_coefficient, i_vector)] = f64::from(*coefficient);
                 }
             }
@@ -303,7 +303,7 @@ where
         // First we need to predict the problem for our decision values
         self.predict_value(problem)?;
 
-        let mut pairwise = problem.pairwise.as_matrix_mut();
+        let mut pairwise = problem.pairwise.flat_mut();
 
         // Now compute probability values
         for i in 0..num_classes {

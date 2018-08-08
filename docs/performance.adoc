@@ -2,7 +2,7 @@
 
 = Performance vs. LibSVM
 
-Benchmarks are a tricky thing, but for classifying binary non-sparse RBF-C-SVMs `ffsvm` should be between 2.5x and 14x faster than `libSVM` on reasonably modern x86 CPUs (supporting AVX2).
+Benchmarks are a tricky thing, but for classifying non-sparse RBF-C-SVMs `ffsvm` should be between 2.5x and 14x faster than `libSVM` on reasonably modern x86 CPUs (supporting AVX2).
 
 image::performance_absolute.v3.png[]
 
@@ -38,7 +38,7 @@ For problems with many _problems_ (tasks to classify), it does not make use of t
 
 === FFSVM Design
 
-In contrast to LibSVM, ffsvm focuses on one thing: classifying "bread-and-butter" dense binary RBF-C-SVMs.
+In contrast to LibSVM, ffsvm focuses on one thing: classifying "bread-and-butter" dense  RBF-C-SVMs.
 
 It provides no tools for learning, but is able to load compatible libSVM models.
 

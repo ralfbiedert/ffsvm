@@ -1,5 +1,6 @@
 use crate::random::Randomize;
-use crate::{f32s, f64s, SimdRows};
+
+use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix};
 
 /// Represents one class of the SVM model.
 #[derive(Clone, Debug)]
@@ -12,10 +13,10 @@ pub struct Class {
     pub num_support_vectors: usize,
 
     /// Coefficients between this class and n-1 other classes.
-    pub coefficients: SimdRows<f64s>,
+    pub coefficients: SimdMatrix<f64s, RowOptimized>,
 
     /// All support vectors in this class.
-    pub support_vectors: SimdRows<f32s>,
+    pub support_vectors: SimdMatrix<f32s, RowOptimized>,
 }
 
 impl Class {
@@ -29,8 +30,8 @@ impl Class {
         Class {
             label,
             num_support_vectors: support_vectors,
-            coefficients: SimdRows::with_dimension(classes - 1, support_vectors),
-            support_vectors: SimdRows::with_dimension(support_vectors, attributes),
+            coefficients: SimdMatrix::with_dimension(classes - 1, support_vectors),
+            support_vectors: SimdMatrix::with_dimension(support_vectors, attributes),
         }
     }
 }

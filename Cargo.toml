@@ -21,6 +21,7 @@ maintenance = { status = "experimental" }
 
 
 [dependencies]
+simd_aligned = { path = "../simd_aligned" }
 packed_simd = "0.1"
 rand = "0.5"
 nom = "4.0"
