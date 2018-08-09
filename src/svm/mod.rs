@@ -7,12 +7,6 @@ pub use self::{class::Class, problem::Problem};
 use crate::kernel::{Kernel, RbfKernel};
 use crate::vectors::Triangular;
 
-/// An RBF [SVM] which is the main (and currently only) type of SVM we support.
-///
-/// You can obtain an [RbfCSVM] with the help of a [ModelFile]. Each SVM implements
-/// [PredictProblem] to actually classify data.
-pub type RbfCSVM = SVM<RbfKernel>;
-
 /// Possible error types when classifying with a [SVM].
 #[derive(Debug)]
 pub enum SVMError {
@@ -63,11 +57,7 @@ pub struct Probabilities {
 /// let svm = RbfCSVM::try_from(&model)!;
 /// ```
 ///
-#[derive(Clone, Debug, Default)]
-pub struct SVM<T>
-where
-    T: Kernel,
-{
+pub struct SVM {
     /// Total number of support vectors
     crate num_total_sv: usize,
 
@@ -79,16 +69,13 @@ where
     crate probabilities: Option<Probabilities>,
 
     /// SVM specific data needed for classification
-    crate kernel: T,
+    crate kernel: Box<dyn Kernel>,
 
     /// All classes
     crate classes: Vec<Class>,
 }
 
-impl<T> SVM<T>
-where
-    T: Kernel,
-{
+impl SVM {
     /// Finds the class index for a given label.
     ///
     /// # Description

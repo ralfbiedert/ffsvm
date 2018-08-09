@@ -6,7 +6,10 @@ pub use self::rbf::RbfKernel;
 
 /// Base trait for kernels
 #[doc(hidden)]
-pub trait Kernel {
+pub trait Kernel
+where
+    Self: Sync,
+{
     fn compute(
         &self,
         vectors: &SimdMatrix<f32s, RowOptimized>,

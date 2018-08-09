@@ -1,7 +1,7 @@
 use std::{convert::TryFrom, marker::Sync};
 
 use super::SVMError;
-use crate::kernel::Kernel;
+use crate::kernel::{Kernel, RbfKernel};
 use crate::parser::ModelFile;
 use crate::random::{Random, Randomize};
 use crate::svm::{
@@ -14,10 +14,7 @@ use crate::util::{find_max_index, set_all, sigmoid_predict};
 use crate::vectors::Triangular;
 
 #[doc(hidden)]
-impl<Knl> SVM<Knl>
-where
-    Knl: Kernel + Random,
-{
+impl SVM {
     /// Creates a new random CSVM
     pub fn random(num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self {
         let num_total_sv = num_classes * num_sv_per_class;
@@ -31,7 +28,7 @@ where
             num_total_sv,
             num_attributes,
             rho: Triangular::with_dimension(num_classes, Default::default()),
-            kernel: Knl::new_random(),
+            kernel: Box::new(RbfKernel::new_random()),
             probabilities: None,
             classes,
         }
@@ -190,14 +187,11 @@ where
     }
 }
 
-impl<'a, 'b, Knl> TryFrom<&'a ModelFile<'b>> for SVM<Knl>
-where
-    Knl: Kernel + From<&'a ModelFile<'b>>,
-{
+impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for SVM {
     type Error = SVMError;
 
     /// Creates a SVM from the given raw model.
-    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<SVM<Knl>, SVMError> {
+    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<SVM, SVMError> {
         let header = &raw_model.header;
         let vectors = &raw_model.vectors;
 
@@ -228,7 +222,7 @@ where
             num_total_sv,
             num_attributes,
             probabilities,
-            kernel: Knl::from(raw_model),
+            kernel: Box::new(RbfKernel::from(raw_model)),
             rho: Triangular::from(&header.rho),
             classes,
         };
@@ -283,10 +277,7 @@ where
     }
 }
 
-impl<Knl> PredictProblem for SVM<Knl>
-where
-    Knl: Kernel + Random + Sync,
-{
+impl PredictProblem for SVM {
     fn predict_probability(&self, problem: &mut Problem) -> Result<(), SVMError> {
         const MIN_PROB: f64 = 1e-7;
 

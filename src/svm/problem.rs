@@ -92,11 +92,8 @@ impl Problem {
     }
 }
 
-impl<'a, T> From<&'a SVM<T>> for Problem
-where
-    T: Kernel,
-{
-    fn from(svm: &SVM<T>) -> Self {
+impl<'a> From<&'a SVM> for Problem {
+    fn from(svm: &SVM) -> Self {
         Problem::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes)
     }
 }

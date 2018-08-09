@@ -142,4 +142,4 @@ mod vectors;
 pub use crate::kernel::RbfKernel;
 pub use crate::parser::{ModelError, ModelFile};
 pub use crate::random::{Random, Randomize};
-pub use crate::svm::{Class, PredictProblem, Problem, RbfCSVM, SVMError, SVM};
+pub use crate::svm::{Class, PredictProblem, Problem, SVMError, SVM};

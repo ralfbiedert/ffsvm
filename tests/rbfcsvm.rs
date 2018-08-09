@@ -6,14 +6,14 @@ extern crate test;
 
 #[cfg(test)]
 mod tests {
-    use ffsvm::{ModelFile, PredictProblem, Problem, RbfCSVM};
+    use ffsvm::{ModelFile, PredictProblem, Problem, SVM};
     use std::convert::TryFrom;
 
     #[test]
     fn rbfcsvm_multiclass() {
         let model_str: &str = include_str!("test.multiclass.model");
         let model = ModelFile::try_from(model_str).unwrap();
-        let csvm = RbfCSVM::try_from(&model).unwrap();
+        let csvm = SVM::try_from(&model).unwrap();
 
         let mut problem0 = Problem::from(&csvm);
         let mut problem1 = Problem::from(&csvm);
@@ -39,7 +39,7 @@ mod tests {
     fn rbfcsvm_small() {
         let model_str: &str = include_str!("test.small.model");
         let model = ModelFile::try_from(model_str).unwrap();
-        let csvm = RbfCSVM::try_from(&model).unwrap();
+        let csvm = SVM::try_from(&model).unwrap();
 
         let mut problem0 = Problem::from(&csvm);
         let mut problem1 = Problem::from(&csvm);
@@ -63,7 +63,7 @@ mod tests {
     fn rbfcsvm_large_prob() {
         let model_str: &str = include_str!("test.large.model");
         let model = ModelFile::try_from(model_str).unwrap();
-        let csvm = RbfCSVM::try_from(&model).unwrap();
+        let csvm = SVM::try_from(&model).unwrap();
 
         let mut problem0 = Problem::from(&csvm);
         let mut problem1 = Problem::from(&csvm);

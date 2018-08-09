@@ -5,7 +5,7 @@ extern crate test;
 
 mod benchmarks {
 
-    use ffsvm::{PredictProblem, Problem, Randomize, RbfCSVM};
+    use ffsvm::{PredictProblem, Problem, Randomize, SVM};
     use test::Bencher;
 
     /// Produces a test case run for benchmarking
@@ -15,7 +15,7 @@ mod benchmarks {
         num_sv_per_class: usize,
         num_attributes: usize,
     ) -> impl FnMut() {
-        let mut svm = RbfCSVM::random(num_classes, num_sv_per_class, num_attributes);
+        let mut svm = SVM::random(num_classes, num_sv_per_class, num_attributes);
         let mut problem = Problem::from(&svm).randomize();
 
         move || {
@@ -26,7 +26,9 @@ mod benchmarks {
     }
 
     #[bench]
-    fn csvm_predict_sv128_attr16_problems1(b: &mut Bencher) { b.iter(produce_testcase(2, 64, 16)); }
+    fn csvm_predict_sv128_attr16_problems1(b: &mut Bencher) {
+        b.iter(produce_testcase(2, 64, 16));
+    }
 
     #[bench]
     fn csvm_predict_sv1024_attr16_problems1(b: &mut Bencher) {
