@@ -1,3 +1,4 @@
+mod linear;
 mod rbf;
 
 use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};

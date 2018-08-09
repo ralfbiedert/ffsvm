@@ -217,12 +217,17 @@ impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for SVM {
             (_, _) => None,
         };
 
+        let kernel = match raw_model.header.kernel_type {
+            "rbf" => Box::new(RbfKernel::try_from(raw_model)?),
+            _ => unimplemented!(),
+        };
+
         // Allocate model
         let mut svm = SVM {
             num_total_sv,
             num_attributes,
             probabilities,
-            kernel: Box::new(RbfKernel::from(raw_model)),
+            kernel,
             rho: Triangular::from(&header.rho),
             classes,
         };

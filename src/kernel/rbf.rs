@@ -1,8 +1,9 @@
-use std::convert::From;
+use std::convert::{From, TryFrom};
 
 use crate::kernel::Kernel;
 use crate::parser::ModelFile;
 use crate::random::Random;
+use crate::SVMError;
 
 use rand::random;
 use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};
@@ -48,10 +49,12 @@ impl Random for RbfKernel {
     }
 }
 
-impl<'a> From<&'a ModelFile<'a>> for RbfKernel {
-    fn from(model: &'a ModelFile<'a>) -> Self {
-        RbfKernel {
-            gamma: model.header.gamma,
-        }
+impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for RbfKernel {
+    type Error = SVMError;
+
+    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<RbfKernel, SVMError> {
+        let gamma = raw_model.header.gamma.ok_or(SVMError::ModelMissingGamma)?;
+
+        Ok(RbfKernel { gamma })
     }
 }

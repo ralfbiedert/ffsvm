@@ -34,6 +34,9 @@ pub enum SVMError {
     /// Can be emitted by [PredictProblem::predict_probability()] when predicting probabilities
     /// and the internal iteration limit was exceeded.
     MaxIterationsExceededPredictingProbabilities,
+
+    /// If an `rbf` kernel is loaded but the model does not have a `gamma` set this error will be raised.
+    ModelMissingGamma,
 }
 
 #[derive(Clone, Debug, Default)]

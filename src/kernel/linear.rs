@@ -15,41 +15,34 @@ use serde::{Deserialize, Serialize};
 #[doc(hidden)]
 pub struct LinearKernel {}
 
-impl Kernel for RbfKernel {
+impl Kernel for LinearKernel {
     fn compute(
         &self,
         vectors: &SimdMatrix<f32s, RowOptimized>,
         feature: &SimdVector<f32s>,
         output: &mut [f64],
     ) {
-        // According to Instruments, for realistic SVMs and problems, the VAST majority of our
-        // CPU time is spent in this loop.
         for (i, sv) in vectors.row_iter().enumerate() {
             let mut sum = f32s::splat(0.0);
             let feature: &[f32s] = &feature;
 
             for (a, b) in sv.iter().zip(feature) {
-                sum += (*a - *b) * (*a - *b);
+                sum += *a * *b;
             }
 
-            // This seems to be the single-biggest CPU spike: saving back kernel_values,
-            // and computing exp() (saving back seems to have 3x time impact over exp(),
-            // but I might misread "Instruments" for that particular one).
-            output[i] = f64::from((-self.gamma * sum.sum()).exp());
+            output[i] = f64::from(sum.sum());
         }
     }
 }
 
-impl Random for RbfKernel {
+impl Random for LinearKernel {
     fn new_random() -> Self {
-        RbfKernel { gamma: random() }
+        LinearKernel {}
     }
 }
 
-impl<'a> From<&'a ModelFile<'a>> for RbfKernel {
+impl<'a> From<&'a ModelFile<'a>> for LinearKernel {
     fn from(model: &'a ModelFile<'a>) -> Self {
-        RbfKernel {
-            gamma: model.header.gamma,
-        }
+        LinearKernel {}
     }
 }

@@ -52,7 +52,7 @@ use std::{
 /// In particular:
 ///
 /// * `svm_type` must be `c_svc`.
-/// * `kernel_type` must be `rbf`
+/// * `kernel_type` must be `rbf` or `linear`
 /// * All support vectors (past the `SV` line) must have **strictly** increasing attribute
 /// identifiers, without skipping an attribute.
 ///
@@ -66,7 +66,7 @@ pub struct ModelFile<'a> {
 pub struct Header<'a> {
     crate svm_type: &'a str,
     crate kernel_type: &'a str,
-    crate gamma: f32,
+    crate gamma: Option<f32>,
     crate nr_class: u32,
     crate total_sv: u32,
     crate rho: Vec<f64>,
@@ -208,7 +208,7 @@ named!(pub svm_header <CompleteStr<'_>, Header<'_>>,
     do_parse!(
         svm_type: svm_line_string >>
         kernel_type: svm_line_string >>
-        gamma: svm_line_f32 >>
+        gamma: opt!(svm_line_f32) >>
         nr_class: svm_line_u32 >>
         total_sv: svm_line_u32 >>
         rho: svm_line_vec_f64 >>
