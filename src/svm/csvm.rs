@@ -13,8 +13,6 @@ use crate::svm::{
 use crate::util::{find_max_index, set_all, sigmoid_predict};
 use crate::vectors::Triangular;
 
-use simd_aligned::*;
-
 #[doc(hidden)]
 impl<Knl> SVM<Knl>
 where
@@ -43,7 +41,7 @@ where
     fn compute_kernel_values(&self, problem: &mut Problem) {
         // Get current problem and decision values array
         let features = &problem.features;
-        let mut kernel_values = &mut problem.kernel_values;
+        let kernel_values = &mut problem.kernel_values;
 
         // Compute kernel values per class
         for (i, class) in self.classes.iter().enumerate() {

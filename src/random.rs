@@ -17,7 +17,7 @@ pub trait Random {
 
 impl<T, O> Randomize for SimdMatrix<T, O>
 where
-    T: Simd + Sized + Copy + Default,
+    T: simd_aligned::traits::Simd + Sized + Copy + Default,
     T::Element: Default + Clone,
     O: OptimizationStrategy,
     distributions::Standard: distributions::Distribution<T::Element>,
@@ -38,7 +38,7 @@ where
 
 impl<T> Randomize for SimdVector<T>
 where
-    T: Simd + Sized + Copy + Default,
+    T: simd_aligned::traits::Simd + Sized + Copy + Default,
     T::Element: Default + Clone,
     distributions::Standard: distributions::Distribution<T::Element>,
 {

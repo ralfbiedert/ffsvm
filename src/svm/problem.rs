@@ -67,7 +67,7 @@ impl Problem {
         num_attributes: usize,
     ) -> Problem {
         Problem {
-            features: SimdVector::with_size(num_attributes),
+            features: SimdVector::with(0.0, num_attributes),
             kernel_values: SimdMatrix::with_dimension(num_classes, total_sv),
             pairwise: SimdMatrix::with_dimension(num_classes, num_classes),
             q: SimdMatrix::with_dimension(num_classes, num_classes),
