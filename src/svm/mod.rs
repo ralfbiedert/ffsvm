@@ -69,20 +69,20 @@ where
     T: Kernel,
 {
     /// Total number of support vectors
-    pub(crate) num_total_sv: usize,
+    crate num_total_sv: usize,
 
     /// Number of attributes per support vector
-    pub(crate) num_attributes: usize,
+    crate num_attributes: usize,
 
-    pub(crate) rho: Triangular<f64>,
+    crate rho: Triangular<f64>,
 
-    pub(crate) probabilities: Option<Probabilities>,
+    crate probabilities: Option<Probabilities>,
 
     /// SVM specific data needed for classification
-    pub(crate) kernel: T,
+    crate kernel: T,
 
     /// All classes
-    pub(crate) classes: Vec<Class>,
+    crate classes: Vec<Class>,
 }
 
 impl<T> SVM<T>

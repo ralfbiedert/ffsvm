@@ -58,28 +58,28 @@ use std::{
 ///
 #[derive(Clone, Debug, Default)]
 pub struct ModelFile<'a> {
-    pub(crate) header: Header<'a>,
-    pub(crate) vectors: Vec<SupportVector>,
+    crate header: Header<'a>,
+    crate vectors: Vec<SupportVector>,
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct Header<'a> {
-    pub(crate) svm_type: &'a str,
-    pub(crate) kernel_type: &'a str,
-    pub(crate) gamma: f32,
-    pub(crate) nr_class: u32,
-    pub(crate) total_sv: u32,
-    pub(crate) rho: Vec<f64>,
-    pub(crate) label: Vec<u32>,
-    pub(crate) prob_a: Option<Vec<f64>>,
-    pub(crate) prob_b: Option<Vec<f64>>,
-    pub(crate) nr_sv: Vec<u32>,
+    crate svm_type: &'a str,
+    crate kernel_type: &'a str,
+    crate gamma: f32,
+    crate nr_class: u32,
+    crate total_sv: u32,
+    crate rho: Vec<f64>,
+    crate label: Vec<u32>,
+    crate prob_a: Option<Vec<f64>>,
+    crate prob_b: Option<Vec<f64>>,
+    crate nr_sv: Vec<u32>,
 }
 
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Attribute {
-    pub(crate) index: u32,
-    pub(crate) value: f32,
+    crate index: u32,
+    crate value: f32,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -123,41 +123,84 @@ named!(
     do_parse!(x: take_while_s!(svm_non_whitespace) >> (x.0))
 );
 
-named!(svm_line_string <CompleteStr<'_>, (&str)>,
-    do_parse!( svm_string >> tag!(" ") >> value: svm_string >> line_ending >> (value) )
+named!(
+    svm_line_string<CompleteStr<'_>, (&str)>,
+    do_parse!(svm_string >> tag!(" ") >> value: svm_string >> line_ending >> (value))
 );
 
-named!(svm_line_f32 <CompleteStr<'_>, (f32)>,
-    do_parse!( svm_string >> tag!(" ") >> value: map_res!(svm_string, FromStr::from_str) >> line_ending >> (value) )
-);
-
-named!(svm_line_u32 <CompleteStr<'_>, (u32)>,
-    do_parse!( svm_string >> tag!(" ") >> value: map_res!(svm_string, FromStr::from_str) >> line_ending >> (value) )
-);
-
-named!(svm_line_vec_f64 <CompleteStr<'_>, (Vec<f64>)>,
-    do_parse!( svm_string >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
-);
-
-named!(svm_line_prob_vec_f64 <CompleteStr<'_>, (Vec<f64>)>,
-    do_parse!( alt!(tag!("probA") | tag!("probB")) >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
-);
-
-named!(svm_line_vec_u32 <CompleteStr<'_>, (Vec<u32>)>,
-    do_parse!( svm_string >> values: many0!(preceded!(tag!(" "), map_res!(svm_string, FromStr::from_str))) >> line_ending >> (values) )
-);
-
-named!(svm_attribute <CompleteStr<'_>, (Attribute)>,
+named!(
+    svm_line_f32<CompleteStr<'_>, (f32)>,
     do_parse!(
-        many0!(tag!(" ")) >>
-        index: map_res!(svm_string, FromStr::from_str) >>
-        tag!(":") >>
-        value: map_res!(svm_string, FromStr::from_str)  >>
-        many0!(tag!(" ")) >>
-        (Attribute{
-            index,
-            value
-        })
+        svm_string
+            >> tag!(" ")
+            >> value: map_res!(svm_string, FromStr::from_str)
+            >> line_ending
+            >> (value)
+    )
+);
+
+named!(
+    svm_line_u32<CompleteStr<'_>, (u32)>,
+    do_parse!(
+        svm_string
+            >> tag!(" ")
+            >> value: map_res!(svm_string, FromStr::from_str)
+            >> line_ending
+            >> (value)
+    )
+);
+
+named!(
+    svm_line_vec_f64<CompleteStr<'_>, (Vec<f64>)>,
+    do_parse!(
+        svm_string
+            >> values:
+                many0!(preceded!(
+                    tag!(" "),
+                    map_res!(svm_string, FromStr::from_str)
+                ))
+            >> line_ending
+            >> (values)
+    )
+);
+
+named!(
+    svm_line_prob_vec_f64<CompleteStr<'_>, (Vec<f64>)>,
+    do_parse!(
+        alt!(tag!("probA") | tag!("probB"))
+            >> values:
+                many0!(preceded!(
+                    tag!(" "),
+                    map_res!(svm_string, FromStr::from_str)
+                ))
+            >> line_ending
+            >> (values)
+    )
+);
+
+named!(
+    svm_line_vec_u32<CompleteStr<'_>, (Vec<u32>)>,
+    do_parse!(
+        svm_string
+            >> values:
+                many0!(preceded!(
+                    tag!(" "),
+                    map_res!(svm_string, FromStr::from_str)
+                ))
+            >> line_ending
+            >> (values)
+    )
+);
+
+named!(
+    svm_attribute<CompleteStr<'_>, (Attribute)>,
+    do_parse!(
+        many0!(tag!(" "))
+            >> index: map_res!(svm_string, FromStr::from_str)
+            >> tag!(":")
+            >> value: map_res!(svm_string, FromStr::from_str)
+            >> many0!(tag!(" "))
+            >> (Attribute { index, value })
     )
 );
 
@@ -217,16 +260,13 @@ named_args!(svm_svs(num_coef: u32) <CompleteStr<'_>, (Vec<SupportVector>)>,
     )
 );
 
-named!(svm_file <CompleteStr<'_>, ModelFile<'_>>,
+named!(
+    svm_file<CompleteStr<'_>, ModelFile<'_>>,
     do_parse!(
-        header: svm_header >>
-        tag!("SV") >> line_ending >>
-        vectors: call!(svm_svs, header.nr_class - 1) >>
-        (
-            ModelFile {
-                header,
-                vectors,
-            }
-        )
+        header: svm_header
+            >> tag!("SV")
+            >> line_ending
+            >> vectors: call!(svm_svs, header.nr_class - 1)
+            >> (ModelFile { header, vectors })
     )
 );

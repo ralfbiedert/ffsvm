@@ -31,41 +31,37 @@ use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 #[derive(Debug, Clone)]
 pub struct Problem {
     /// A vector of all features.
-    pub(crate) features: SimdVector<f32s>,
+    crate features: SimdVector<f32s>,
 
     /// Kernel values. A vector for each class.
-    pub(crate) kernel_values: SimdMatrix<f64s, RowOptimized>,
+    crate kernel_values: SimdMatrix<f64s, RowOptimized>,
 
     /// All votes for a given class label.
-    pub(crate) vote: Vec<u32>,
+    crate vote: Vec<u32>,
 
     /// Decision values.
-    pub(crate) decision_values: Triangular<f64>,
+    crate decision_values: Triangular<f64>,
 
     /// Pairwise probabilities
-    pub(crate) pairwise: SimdMatrix<f64s, RowOptimized>,
+    crate pairwise: SimdMatrix<f64s, RowOptimized>,
 
     /// Needed for multi-class probability estimates replicating libSVM.
-    pub(crate) q: SimdMatrix<f64s, RowOptimized>,
+    crate q: SimdMatrix<f64s, RowOptimized>,
 
     /// Needed for multi-class probability estimates replicating libSVM.
-    pub(crate) qp: Vec<f64>,
+    crate qp: Vec<f64>,
 
     /// Probability estimates that will be updated after this problem was processed
     /// by `predict_probability` in [PredictProblem] if the model supports it.
-    pub(crate) probabilities: Vec<f64>,
+    crate probabilities: Vec<f64>,
 
     /// Computed label that will be updated after this problem was processed by [PredictProblem].
-    pub(crate) label: u32,
+    crate label: u32,
 }
 
 impl Problem {
     /// Creates a new problem with the given parameters.
-    pub(crate) fn with_dimension(
-        total_sv: usize,
-        num_classes: usize,
-        num_attributes: usize,
-    ) -> Problem {
+    crate fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem {
         Problem {
             features: SimdVector::with(0.0, num_attributes),
             kernel_values: SimdMatrix::with_dimension(num_classes, total_sv),
