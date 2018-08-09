@@ -6,7 +6,7 @@ extern crate test;
 
 #[cfg(test)]
 mod tests {
-    use ffsvm::{ModelFile, PredictProblem, Problem, SVM};
+    use ffsvm::{ModelFile, Predict, Problem, SVM};
     use std::convert::TryFrom;
 
     #[test]

@@ -1,6 +1,5 @@
-use crate::kernel::Kernel;
 use crate::random::Randomize;
-use crate::svm::SVM;
+use crate::svm::csvm::CSVM;
 use crate::vectors::Triangular;
 
 use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
@@ -26,7 +25,7 @@ use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 /// ];
 /// ```
 ///
-/// It can then be handed over to the [SVM] (via the [PredictProblem] trait).
+/// It can then be handed over to the [SVM] (via the [Predict] trait).
 ///
 #[derive(Debug, Clone)]
 pub struct Problem {
@@ -52,10 +51,10 @@ pub struct Problem {
     crate qp: Vec<f64>,
 
     /// Probability estimates that will be updated after this problem was processed
-    /// by `predict_probability` in [PredictProblem] if the model supports it.
+    /// by `predict_probability` in [Predict] if the model supports it.
     crate probabilities: Vec<f64>,
 
-    /// Computed label that will be updated after this problem was processed by [PredictProblem].
+    /// Computed label that will be updated after this problem was processed by [Predict].
     crate label: u32,
 }
 
@@ -92,8 +91,8 @@ impl Problem {
     }
 }
 
-impl<'a> From<&'a SVM> for Problem {
-    fn from(svm: &SVM) -> Self {
+impl<'a> From<&'a CSVM> for Problem {
+    fn from(svm: &CSVM) -> Self {
         Problem::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes)
     }
 }

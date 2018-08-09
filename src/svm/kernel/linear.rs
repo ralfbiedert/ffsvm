@@ -1,21 +1,16 @@
 use std::convert::From;
 
-use crate::kernel::Kernel;
+use super::Kernel;
 use crate::parser::ModelFile;
 use crate::random::Random;
 
-use rand::random;
 use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};
 
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
-
 #[derive(Copy, Clone, Debug, Default)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[doc(hidden)]
-pub struct LinearKernel {}
+pub struct Linear {}
 
-impl Kernel for LinearKernel {
+impl Kernel for Linear {
     fn compute(
         &self,
         vectors: &SimdMatrix<f32s, RowOptimized>,
@@ -35,14 +30,14 @@ impl Kernel for LinearKernel {
     }
 }
 
-impl Random for LinearKernel {
+impl Random for Linear {
     fn new_random() -> Self {
-        LinearKernel {}
+        Linear {}
     }
 }
 
-impl<'a> From<&'a ModelFile<'a>> for LinearKernel {
+impl<'a> From<&'a ModelFile<'a>> for Linear {
     fn from(model: &'a ModelFile<'a>) -> Self {
-        LinearKernel {}
+        Linear {}
     }
 }

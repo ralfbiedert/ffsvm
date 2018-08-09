@@ -3,7 +3,8 @@ mod rbf;
 
 use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};
 
-pub use self::rbf::RbfKernel;
+pub use self::linear::*;
+pub use self::rbf::*;
 
 /// Base trait for kernels
 #[doc(hidden)]

@@ -3,10 +3,13 @@ use nom::{
     named, named_args, opt, preceded, sep, tag, take_while, take_while_s, tuple, tuple_parser,
     types::CompleteStr, wrap_sep, ws,
 };
+
 use std::{
     convert::TryFrom,
     str::{self, FromStr},
 };
+
+use crate::errors::ModelError;
 
 /// (Start here) Parsing result of a model file used to instantiate a [SVM].
 ///
@@ -77,23 +80,15 @@ pub struct Header<'a> {
 }
 
 #[derive(Copy, Clone, Debug, Default)]
-pub struct Attribute {
+crate struct Attribute {
     crate index: u32,
     crate value: f32,
 }
 
 #[derive(Clone, Debug, Default)]
-pub struct SupportVector {
+crate struct SupportVector {
     pub coefs: Vec<f32>,
     pub features: Vec<Attribute>,
-}
-
-/// Possible error types when loading a [ModelFile].
-#[derive(Debug)]
-pub enum ModelError {
-    /// This signals there was a general parsing error. For models generated with `svm-train`
-    /// this should not happen.
-    ParsingError,
 }
 
 impl<'a> TryFrom<&'a str> for ModelFile<'a> {

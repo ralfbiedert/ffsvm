@@ -1,6 +1,3 @@
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
-
 use std::{
     fmt,
     ops::{Index, IndexMut},
@@ -18,7 +15,6 @@ use std::{
 
 /// Square triangular matrix.
 #[derive(Clone, Default)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Triangular<T>
 where
     T: Copy + Sized,
@@ -143,7 +139,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::vectors::triangular::Triangular;
+    use super::Triangular;
 
     #[test]
     fn test_offset() {

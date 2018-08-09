@@ -1,20 +1,48 @@
-use std::{convert::TryFrom, marker::Sync};
+use std::convert::TryFrom;
 
-use super::SVMError;
-use crate::kernel::{Kernel, RbfKernel};
+use crate::errors::SVMError;
 use crate::parser::ModelFile;
-use crate::random::{Random, Randomize};
-use crate::svm::{
-    problem::Problem,
-    Class, PredictProblem, Probabilities,
-    SVMError::{MaxIterationsExceededPredictingProbabilities, ModelDoesNotSupportProbabilities},
-    SVM,
-};
-use crate::util::{find_max_index, set_all, sigmoid_predict};
+use crate::random::*;
+use crate::svm::class::Class;
+use crate::svm::kernel::{Kernel, Linear, Rbf};
+use crate::svm::problem::Problem;
+use crate::svm::Probabilities;
+use crate::util::set_all;
 use crate::vectors::Triangular;
 
-#[doc(hidden)]
-impl SVM {
+/// Generic support vector machine, template for [RbfCSVM].
+///
+/// The SVM holds a kernel, class information and all other numerical data read from
+/// the [ModelFile]. It implements [Predict] to predict [Problem] instances.
+///
+/// # Creating a SVM
+///
+/// The only SVM currently implemented is the [RbfCSVM]. It can be constructed from a
+/// [ModelFile] like this:
+///
+/// ```ignore
+/// let svm = RbfCSVM::try_from(&model)!;
+/// ```
+///
+pub struct CSVM {
+    /// Total number of support vectors
+    crate num_total_sv: usize,
+
+    /// Number of attributes per support vector
+    crate num_attributes: usize,
+
+    crate rho: Triangular<f64>,
+
+    crate probabilities: Option<Probabilities>,
+
+    /// SVM specific data needed for classification
+    crate kernel: Box<dyn Kernel>,
+
+    /// All classes
+    crate classes: Vec<Class>,
+}
+
+impl CSVM {
     /// Creates a new random CSVM
     pub fn random(num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self {
         let num_total_sv = num_classes * num_sv_per_class;
@@ -24,18 +52,18 @@ impl SVM {
                     .randomize()
             }).collect::<Vec<Class>>();
 
-        SVM {
+        CSVM {
             num_total_sv,
             num_attributes,
             rho: Triangular::with_dimension(num_classes, Default::default()),
-            kernel: Box::new(RbfKernel::new_random()),
+            kernel: Box::new(Rbf::new_random()),
             probabilities: None,
             classes,
         }
     }
 
     /// Computes the kernel values for this problem
-    fn compute_kernel_values(&self, problem: &mut Problem) {
+    crate fn compute_kernel_values(&self, problem: &mut Problem) {
         // Get current problem and decision values array
         let features = &problem.features;
         let kernel_values = &mut problem.kernel_values;
@@ -54,7 +82,10 @@ impl SVM {
     // based on Method 2 from the paper "Probability Estimates for Multi-class
     // Classification by Pairwise Coupling", Journal of Machine Learning Research 5 (2004) 975-1005,
     // by Ting-Fan Wu, Chih-Jen Lin and Ruby C. Weng.
-    fn compute_multiclass_probabilities(&self, problem: &mut Problem) -> Result<(), SVMError> {
+    crate fn compute_multiclass_probabilities(
+        &self,
+        problem: &mut Problem,
+    ) -> Result<(), SVMError> {
         let num_classes = self.classes.len();
         let max_iter = 100.max(num_classes);
         let mut q = problem.q.flat_mut();
@@ -113,7 +144,7 @@ impl SVM {
             // In case we are on the last iteration round past the threshold
             // we know something went wrong. Signal we exceeded the threshold.
             if i == max_iter {
-                return Err(MaxIterationsExceededPredictingProbabilities);
+                return Err(SVMError::IterationsExceeded);
             }
 
             // This seems to be the main function performing (23) and (24).
@@ -134,7 +165,7 @@ impl SVM {
     }
 
     /// Based on kernel values, computes the decision values for this problem.
-    fn compute_decision_values(&self, problem: &mut Problem) {
+    crate fn compute_decision_values(&self, problem: &mut Problem) {
         // Reset all votes
         set_all(&mut problem.vote, 0);
 
@@ -185,13 +216,69 @@ impl SVM {
             }
         }
     }
+
+    /// Finds the class index for a given label.
+    ///
+    /// # Description
+    ///
+    /// This method takes a `label` as defined in the libSVM training model
+    /// and returns the internal `index` where this label resides. The index
+    /// equals the [Problem]'s `.probabilities` index where that label's
+    /// probability can be found.
+    ///
+    /// # Returns
+    ///
+    /// If the label was found its index returned in the [Option]. Otherwise `None`
+    /// is returned.
+    ///
+    pub fn class_index_for_label(&self, label: u32) -> Option<usize> {
+        for (i, class) in self.classes.iter().enumerate() {
+            if class.label != label {
+                continue;
+            }
+
+            return Some(i);
+        }
+
+        None
+    }
+
+    /// Returns the class label for a given index.
+    ///
+    /// # Description
+    ///
+    /// The inverse of [SVM::class_index_for_label], this function returns the class label
+    /// associated with a certain internal index. The index equals the [Problem]'s
+    /// `.probabilities` index where a label's probability can be found.
+    ///
+    /// # Returns
+    ///
+    /// If the index was found it is returned in the [Option]. Otherwise `None`
+    /// is returned.
+    pub fn class_label_for_index(&self, index: usize) -> Option<u32> {
+        if index >= self.classes.len() {
+            None
+        } else {
+            Some(self.classes[index].label)
+        }
+    }
+
+    /// Returns number of attributes, reflecting the libSVM model.
+    pub fn attributes(&self) -> usize {
+        self.num_attributes
+    }
+
+    /// Returns number of classes, reflecting the libSVM model.
+    pub fn classes(&self) -> usize {
+        self.classes.len()
+    }
 }
 
-impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for SVM {
+impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for CSVM {
     type Error = SVMError;
 
     /// Creates a SVM from the given raw model.
-    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<SVM, SVMError> {
+    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<CSVM, SVMError> {
         let header = &raw_model.header;
         let vectors = &raw_model.vectors;
 
@@ -218,12 +305,12 @@ impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for SVM {
         };
 
         let kernel = match raw_model.header.kernel_type {
-            "rbf" => Box::new(RbfKernel::try_from(raw_model)?),
+            "rbf" => Box::new(Rbf::try_from(raw_model)?),
             _ => unimplemented!(),
         };
 
         // Allocate model
-        let mut svm = SVM {
+        let mut svm = CSVM {
             num_total_sv,
             num_attributes,
             probabilities,
@@ -252,7 +339,7 @@ impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for SVM {
                         // In case we have seen an attribute already, this one must be strictly
                         // the successor attribute
                         if attribute.index != last + 1 {
-                            return Result::Err(SVMError::SvmAttributesUnordered {
+                            return Result::Err(SVMError::AttributesUnordered {
                                 index: attribute.index,
                                 value: attribute.value,
                                 last_index: last,
@@ -279,65 +366,5 @@ impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for SVM {
 
         // Return what we have
         Result::Ok(svm)
-    }
-}
-
-impl PredictProblem for SVM {
-    fn predict_probability(&self, problem: &mut Problem) -> Result<(), SVMError> {
-        const MIN_PROB: f64 = 1e-7;
-
-        // Ensure we have probabilities set. If not, somebody used us the wrong way
-        if self.probabilities.is_none() {
-            return Err(ModelDoesNotSupportProbabilities);
-        }
-
-        let num_classes = self.classes.len();
-        let probabilities = self.probabilities.as_ref().unwrap();
-
-        // First we need to predict the problem for our decision values
-        self.predict_value(problem)?;
-
-        let mut pairwise = problem.pairwise.flat_mut();
-
-        // Now compute probability values
-        for i in 0..num_classes {
-            for j in i + 1..num_classes {
-                let decision_value = problem.decision_values[(i, j)];
-                let a = probabilities.a[(i, j)];
-                let b = probabilities.b[(i, j)];
-
-                let sigmoid = sigmoid_predict(decision_value, a, b)
-                    .max(MIN_PROB)
-                    .min(1f64 - MIN_PROB);
-
-                pairwise[(i, j)] = sigmoid;
-                pairwise[(j, i)] = 1f64 - sigmoid;
-            }
-        }
-
-        if num_classes == 2 {
-            problem.probabilities[0] = pairwise[(0, 1)];
-            problem.probabilities[1] = pairwise[(1, 0)];
-        } else {
-            self.compute_multiclass_probabilities(problem)?;
-        }
-
-        let max_index = find_max_index(problem.probabilities.as_slice());
-        problem.label = self.classes[max_index].label;
-
-        Ok(())
-    }
-
-    // Predict the value for one problem.
-    fn predict_value(&self, problem: &mut Problem) -> Result<(), SVMError> {
-        // Compute kernel, decision values and eventually the label
-        self.compute_kernel_values(problem);
-        self.compute_decision_values(problem);
-
-        // Compute highest vote
-        let highest_vote = find_max_index(&problem.vote);
-        problem.label = self.classes[highest_vote].label;
-
-        Ok(())
     }
 }

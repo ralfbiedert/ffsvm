@@ -5,7 +5,7 @@ extern crate test;
 
 mod benchmarks {
 
-    use ffsvm::{PredictProblem, Problem, Randomize, SVM};
+    use ffsvm::{Predict, Problem, Randomize, SVM};
     use test::Bencher;
 
     /// Produces a test case run for benchmarking

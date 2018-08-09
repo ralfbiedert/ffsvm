@@ -1,24 +1,20 @@
 use std::convert::{From, TryFrom};
 
-use crate::kernel::Kernel;
+use super::Kernel;
+use crate::errors::SVMError;
 use crate::parser::ModelFile;
 use crate::random::Random;
-use crate::SVMError;
 
 use rand::random;
 use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};
 
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
-
 #[derive(Copy, Clone, Debug, Default)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[doc(hidden)]
-pub struct RbfKernel {
+pub struct Rbf {
     pub gamma: f32,
 }
 
-impl Kernel for RbfKernel {
+impl Kernel for Rbf {
     fn compute(
         &self,
         vectors: &SimdMatrix<f32s, RowOptimized>,
@@ -43,18 +39,18 @@ impl Kernel for RbfKernel {
     }
 }
 
-impl Random for RbfKernel {
+impl Random for Rbf {
     fn new_random() -> Self {
-        RbfKernel { gamma: random() }
+        Rbf { gamma: random() }
     }
 }
 
-impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for RbfKernel {
+impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for Rbf {
     type Error = SVMError;
 
-    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<RbfKernel, SVMError> {
-        let gamma = raw_model.header.gamma.ok_or(SVMError::ModelMissingGamma)?;
+    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<Rbf, SVMError> {
+        let gamma = raw_model.header.gamma.ok_or(SVMError::NoGamma)?;
 
-        Ok(RbfKernel { gamma })
+        Ok(Rbf { gamma })
     }
 }

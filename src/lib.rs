@@ -132,14 +132,13 @@
 #![feature(try_from, stdsimd, rust_2018_preview)]
 #![warn(rust_2018_idioms)]
 
-mod kernel;
+mod errors;
 mod parser;
 mod random;
 mod svm;
 mod util;
 mod vectors;
 
-pub use crate::kernel::RbfKernel;
-pub use crate::parser::{ModelError, ModelFile};
+pub use crate::errors::{ModelError, SVMError};
 pub use crate::random::{Random, Randomize};
-pub use crate::svm::{Class, PredictProblem, Problem, SVMError, SVM};
+pub use crate::svm::{class::Class, csvm::CSVM, predict::Predict, problem::Problem};
