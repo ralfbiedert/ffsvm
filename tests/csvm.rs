@@ -5,7 +5,7 @@ extern crate ffsvm;
 extern crate test;
 
 macro_rules! test_model {
-    ($name:ident, $file:expr, $prob:expr, $libsvm:expr) => {
+    ($name:ident, $file:expr, $prob:expr, $libsvm:expr, $libsvm_prob:expr) => {
         #[test]
         fn $name() -> Result<(), SVMError> {
             let model = include_str!($file);
@@ -45,8 +45,8 @@ macro_rules! test_model {
                 csvm.predict_probability(&mut problem_0)?;
                 csvm.predict_probability(&mut problem_7)?;
 
-                assert_eq!(problem_0.label(), $libsvm[0]);
-                assert_eq!(problem_7.label(), $libsvm[1]);
+                assert_eq!(problem_0.label(), $libsvm_prob[0]);
+                assert_eq!(problem_7.label(), $libsvm_prob[1]);
             }
 
             Ok(())
@@ -59,11 +59,11 @@ mod tests {
     use ffsvm::{Predict, Problem, SVMError, CSVM};
     use std::convert::TryFrom;
 
-    test_model!(m_csvm_linear_prob, "m_csvm_linear_prob.libsvm", true, [0, 7]);
-    test_model!(m_csvm_poly_prob, "m_csvm_poly_prob.libsvm", true, [0, 7]);
-    test_model!(m_csvm_rbf_prob, "m_csvm_rbf_prob.libsvm", true, [0, 7]);
+    test_model!(m_csvm_linear_prob, "m_csvm_linear_prob.libsvm", true, [0, 7], [0, 7]);
+    test_model!(m_csvm_poly_prob, "m_csvm_poly_prob.libsvm", true, [0, 7], [0, 7]);
+    test_model!(m_csvm_rbf_prob, "m_csvm_rbf_prob.libsvm", true, [0, 7], [2, 7]); // apparently `libSVM` gets this wrong
 
-    test_model!(m_csvm_linear, "m_csvm_linear.libsvm", false, [0, 7]);
-    test_model!(m_csvm_poly, "m_csvm_poly.libsvm", false, [0, 7]);
-    test_model!(m_csvm_rbf, "m_csvm_rbf.libsvm", false, [0, 7]);
+    test_model!(m_csvm_linear, "m_csvm_linear.libsvm", false, [0, 7], [0, 7]);
+    test_model!(m_csvm_poly, "m_csvm_poly.libsvm", false, [0, 7], [0, 7]);
+    test_model!(m_csvm_rbf, "m_csvm_rbf.libsvm", false, [0, 7], [0, 7]);
 }

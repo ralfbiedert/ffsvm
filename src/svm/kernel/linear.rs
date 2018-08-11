@@ -34,5 +34,5 @@ impl Random for Linear {
 }
 
 impl<'a> From<&'a ModelFile<'a>> for Linear {
-    fn from(model: &'a ModelFile<'a>) -> Self { Linear {} }
+    fn from(_model: &'a ModelFile<'a>) -> Self { Linear {} }
 }
