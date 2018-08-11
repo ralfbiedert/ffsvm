@@ -52,7 +52,8 @@ macro_rules! test_model {
                 );
                 assert_eq!(
                     problem_7.result(),
-                    SVMResult::Label($libsvm_prob[1]),
+                    SVMResult::Label($libsvm_prob[1]), // REMOVING SVMResult::Label() around here prevents ICE
+                    // Only this particular item seems to trigger it.
                     "predict_probability(problem_7)"
                 );
             }
@@ -74,7 +75,8 @@ mod svm_class {
     test_model!(m_csvm_rbf_prob, "m_csvm_rbf_prob.libsvm", true, [0, 7], [2, 7]); // apparently `libSVM` gets this wrong
     test_model!(m_csvm_sigmoid_prob, "m_csvm_sigmoid_prob.libsvm", true, [0, 5], [0, 7]); // apparently `libSVM` gets this wrong
 
-    // test_model!(m_csvm_linear, "m_csvm_linear.libsvm", false, [0, 7], []);
+    // ENABLING THIS LINE TRIGGERS IT:
+    test_model!(m_csvm_linear, "m_csvm_linear.libsvm", false, [0, 7], []);
     // test_model!(m_csvm_poly, "m_csvm_poly.libsvm", false, [0, 7], []);
     // test_model!(m_csvm_rbf, "m_csvm_rbf.libsvm", false, [0, 7], []);
     // test_model!(m_csvm_sigmoid, "m_csvm_sigmoid.libsvm", false, [0, 5], []);
