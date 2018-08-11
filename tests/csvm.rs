@@ -60,6 +60,8 @@ mod tests {
     use std::convert::TryFrom;
 
     test_model!(m_csvm_linear_prob, "m_csvm_linear_prob.libsvm", true);
-    test_model!(m_csvm_linear, "m_csvm_linear.libsvm", false);
+    test_model!(m_csvm_rbf_prob, "m_csvm_linear_prob.libsvm", true);
 
+    test_model!(m_csvm_linear, "m_csvm_linear.libsvm", false);
+    test_model!(m_csvm_rbf, "m_csvm_linear.libsvm", false);
 }
