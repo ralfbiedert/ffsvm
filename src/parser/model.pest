@@ -1,0 +1,35 @@
+// SAMPLE FILE
+// ------------------
+// svm_type c_svc
+// kernel_type linear
+// nr_class 2
+// total_sv 6
+// rho 2.45195
+// label 0 1
+// probA -3.09609
+// probB -0.368652
+// nr_sv 3 3
+// SV
+// 0.0625 0:0.6619648 1:0.8464851 2:0.4801146 3:0 4:0 5:0.02131653 6:0 7:0 8:0 9:0 10:0 11:0 12:0 13:0 14:0 15:0.5579834 16:0.1106567 17:0 18:0 19:0 20:0
+// 0.0625 0:0.5861949 1:0.5556895 2:0.619291 3:0 4:0 5:0 6:0 7:0 8:0 9:0 10:0 11:0.5977631 12:0 13:0 14:0 15:0.6203156 16:0 17:0 18:0 19:0.1964417 20:0
+// ------------------
+
+
+// Basic types
+alpha = _{ 'a'..'z' | 'A'..'Z' | "_" }
+digit = _{ '0'..'9' | "." | "-" }
+line_break = _{ "\r\n" | "\n" }
+whitespace = _{ " " | "\t" }
+
+// Elements
+identifier = @{ alpha+ }
+number = @{ digit+ }
+sv = { number ~ ":" ~ number }
+sv_or_number = _{ sv | number }
+
+// Lines
+line_sv = { sv_or_number+ ~ line_break }
+line_multiple = { identifier ~ (identifier | number)* ~ line_break }
+
+// File
+file = { (line_sv | line_multiple)+ }

@@ -129,7 +129,7 @@
 //!
 
 // Opt in to unstable features expected for Rust 2018
-#![feature(try_from, stdsimd, rust_2018_preview)]
+#![feature(try_from, stdsimd, rust_2018_preview, try_trait)]
 #![warn(rust_2018_idioms)]
 
 mod errors;
@@ -139,6 +139,7 @@ mod svm;
 mod util;
 mod vectors;
 
-pub use crate::errors::{ModelError, SVMError};
+pub use crate::errors::SVMError;
+pub use crate::parser::ModelFile;
 pub use crate::random::{Random, Randomize};
 pub use crate::svm::{class::Class, csvm::CSVM, predict::Predict, problem::Problem};

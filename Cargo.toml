@@ -24,7 +24,8 @@ maintenance = { status = "experimental" }
 simd_aligned = "0.1.1"
 packed_simd = "0.1"
 rand = "0.5"
-nom = "4.0"
+pest = "1.0"
+pest_derive = "1.0"
 
 [lib]
 name = "ffsvm"

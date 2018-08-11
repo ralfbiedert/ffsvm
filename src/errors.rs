@@ -1,3 +1,8 @@
+use std::num::{ParseFloatError, ParseIntError};
+use std::option::NoneError;
+
+use pest::Error;
+
 /// Possible error types when classifying with a [SVM].
 #[derive(Debug)]
 pub enum SVMError {
@@ -28,12 +33,31 @@ pub enum SVMError {
 
     /// If an `rbf` kernel is loaded but the model does not have a `gamma` set this error will be raised.
     NoGamma,
+
+    /// Wrapper for [ModelError] when unifiying error handling.
+    ParsingError,
 }
 
-/// Possible error types when loading a [ModelFile].
-#[derive(Debug)]
-pub enum ModelError {
-    /// This signals there was a general parsing error. For models generated with `svm-train`
-    /// this should not happen.
-    ParsingError,
+impl<'a, T> From<Error<'a, T>> for SVMError {
+    fn from(error: Error<'a, T>) -> Self {
+        SVMError::ParsingError
+    }
+}
+
+impl From<NoneError> for SVMError {
+    fn from(error: NoneError) -> Self {
+        SVMError::ParsingError
+    }
+}
+
+impl From<ParseFloatError> for SVMError {
+    fn from(error: ParseFloatError) -> Self {
+        SVMError::ParsingError
+    }
+}
+
+impl From<ParseIntError> for SVMError {
+    fn from(error: ParseIntError) -> Self {
+        SVMError::ParsingError
+    }
 }

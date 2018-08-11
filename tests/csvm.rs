@@ -6,14 +6,14 @@ extern crate test;
 
 #[cfg(test)]
 mod tests {
-    use ffsvm::{ModelFile, Predict, Problem, SVM};
+    use ffsvm::{ModelFile, Predict, Problem, SVMError, CSVM};
     use std::convert::TryFrom;
 
     #[test]
-    fn rbfcsvm_multiclass() {
+    fn rbfcsvm_multiclass() -> Result<(), SVMError> {
         let model_str: &str = include_str!("test.multiclass.model");
-        let model = ModelFile::try_from(model_str).unwrap();
-        let csvm = SVM::try_from(&model).unwrap();
+        let model = ModelFile::try_from(model_str)?;
+        let csvm = CSVM::try_from(&model)?;
 
         let mut problem0 = Problem::from(&csvm);
         let mut problem1 = Problem::from(&csvm);
@@ -33,13 +33,14 @@ mod tests {
         assert_eq!(7, problem1.label());
 
         // csvm.predict_value(&mut problem1);
+        Ok(())
     }
 
     #[test]
-    fn rbfcsvm_small() {
-        let model_str: &str = include_str!("test.small.model");
-        let model = ModelFile::try_from(model_str).unwrap();
-        let csvm = SVM::try_from(&model).unwrap();
+    fn linearcsvm_small() -> Result<(), SVMError> {
+        let model_str: &str = include_str!("x.model");
+        let model = ModelFile::try_from(model_str)?;
+        let csvm = CSVM::try_from(&model)?;
 
         let mut problem0 = Problem::from(&csvm);
         let mut problem1 = Problem::from(&csvm);
@@ -57,13 +58,41 @@ mod tests {
         // Results as per `libsvm`
         assert_eq!(0, problem0.label());
         assert_eq!(1, problem1.label());
+
+        Ok(())
     }
 
     #[test]
-    fn rbfcsvm_large_prob() {
+    fn rbfcsvm_small() -> Result<(), SVMError> {
+        let model_str: &str = include_str!("test.small.model");
+        let model = ModelFile::try_from(model_str)?;
+        let csvm = CSVM::try_from(&model)?;
+
+        let mut problem0 = Problem::from(&csvm);
+        let mut problem1 = Problem::from(&csvm);
+
+        problem0.features_mut().clone_from_slice(&[
+            0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.0, 0.0, 1.0, 0.1137485,
+        ]);
+        problem1.features_mut().clone_from_slice(&[
+            0.3332312, 0.0, 0.0, 0.0, 0.09657142, 1.0, 0.0, 0.0, 1.0, 0.09917226,
+        ]);
+
+        csvm.predict_value(&mut problem0).expect("Worked");
+        csvm.predict_value(&mut problem1).expect("Worked");
+
+        // Results as per `libsvm`
+        assert_eq!(0, problem0.label());
+        assert_eq!(1, problem1.label());
+
+        Ok(())
+    }
+
+    #[test]
+    fn rbfcsvm_large_prob() -> Result<(), SVMError> {
         let model_str: &str = include_str!("test.large.model");
         let model = ModelFile::try_from(model_str).unwrap();
-        let csvm = SVM::try_from(&model).unwrap();
+        let csvm = CSVM::try_from(&model).unwrap();
 
         let mut problem0 = Problem::from(&csvm);
         let mut problem1 = Problem::from(&csvm);
@@ -133,6 +162,8 @@ mod tests {
             0.909501,
             DECIMALS
         ));
+
+        Ok(())
     }
 
     // https://stackoverflow.com/questions/41447678/comparison-of-two-floats-in-rust-to-arbitrary-level-of-precision
