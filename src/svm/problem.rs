@@ -2,6 +2,19 @@ use crate::{random::Randomize, svm::SVM, vectors::Triangular};
 
 use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 
+/// The result of a classification
+#[derive(Copy, Debug, Clone, PartialEq)]
+pub enum SVMResult {
+    /// If classified this will hold the label.
+    Label(u32),
+
+    /// If regression was performed contains regression result.
+    Value(f32),
+
+    /// No operation was performed yet.
+    None,
+}
+
 /// A single problem a [SVM] should classify.
 ///
 /// # Creating a problem
@@ -18,9 +31,7 @@ use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 /// to be set, for example by:
 ///
 /// ```ignore
-/// problem.features = vec![
-///     -0.55838, -0.157895, 0.581292, -0.221184, 0.135713, -0.874396, -0.563197, -1.0, -1.0,
-/// ];
+/// problem.features = vec![-0.55838, -0.157895, 0.581292, -0.221184, 0.135713, -0.874396, -0.563197, -1.0, -1.0]; 
 /// ```
 ///
 /// It can then be handed over to the [SVM] (via the [Predict] trait).
@@ -53,7 +64,7 @@ pub struct Problem {
     crate probabilities: Vec<f64>,
 
     /// Computed label that will be updated after this problem was processed by [Predict].
-    crate label: u32,
+    crate result: SVMResult,
 }
 
 impl Problem {
@@ -68,7 +79,7 @@ impl Problem {
             decision_values: Triangular::with_dimension(num_classes, Default::default()),
             vote: vec![Default::default(); num_classes],
             probabilities: vec![Default::default(); num_classes],
-            label: 0,
+            result: SVMResult::None,
         }
     }
 
@@ -78,7 +89,7 @@ impl Problem {
 
     pub fn probabilities_mut(&mut self) -> &mut [f64] { &mut self.probabilities }
 
-    pub fn label(&self) -> u32 { self.label }
+    pub fn result(&self) -> SVMResult { self.result }
 }
 
 impl<'a> From<&'a SVM> for Problem {

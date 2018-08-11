@@ -13,7 +13,7 @@ use crate::{
         class::Class,
         kernel::{Kernel, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
-        problem::Problem,
+        problem::{Problem, SVMResult},
     },
     util::{find_max_index, set_all, sigmoid_predict},
     vectors::Triangular,
@@ -304,7 +304,7 @@ impl Predict for SVM {
                 }
 
                 let max_index = find_max_index(problem.probabilities.as_slice());
-                problem.label = self.classes[max_index].label;
+                problem.result = SVMResult::Label(self.classes[max_index].label);
 
                 Ok(())
             }
@@ -322,8 +322,22 @@ impl Predict for SVM {
 
                 // Compute highest vote
                 let highest_vote = find_max_index(&problem.vote);
-                problem.label = self.classes[highest_vote].label;
+                problem.result = SVMResult::Label(self.classes[highest_vote].label);
 
+                Ok(())
+            }
+            SVMType::NuSvc => {
+                //         		double *sv_coef = model->sv_coef[0];
+                // double sum = 0;
+                // for(i=0;i<model->l;i++)
+                // 	sum += sv_coef[i] * Kernel::k_function(x,model->SV[i],model->param);
+                // sum -= model->rho[0];
+                // *dec_values = sum;
+
+                // if(model->param.svm_type == ONE_CLASS)
+                // 	return (sum>0)?1:-1;
+                // else
+                // 	return sum;
                 Ok(())
             }
             _ => unimplemented!(),
