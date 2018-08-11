@@ -45,16 +45,8 @@ macro_rules! test_model {
                 svm.predict_probability(&mut problem_0)?;
                 svm.predict_probability(&mut problem_7)?;
 
-                assert_eq!(
-                    problem_0.label(),
-                    $libsvm_prob[0],
-                    "predict_probability(problem_0)"
-                );
-                assert_eq!(
-                    problem_7.label(),
-                    $libsvm_prob[1],
-                    "predict_probability(problem_7)"
-                );
+                assert_eq!(problem_0.label(), $libsvm_prob[0], "predict_probability(problem_0)");
+                assert_eq!(problem_7.label(), $libsvm_prob[1], "predict_probability(problem_7)");
             }
 
             Ok(())
@@ -67,6 +59,8 @@ mod tests {
     use ffsvm::{Predict, Problem, SVMError, SVM};
     use std::convert::TryFrom;
 
+    // CSVM
+
     test_model!(m_csvm_linear_prob, "m_csvm_linear_prob.libsvm", true, [0, 7], [0, 7]);
     test_model!(m_csvm_poly_prob, "m_csvm_poly_prob.libsvm", true, [0, 7], [5, 7]); // apparently `libSVM` gets this wrong
     test_model!(m_csvm_rbf_prob, "m_csvm_rbf_prob.libsvm", true, [0, 7], [2, 7]); // apparently `libSVM` gets this wrong
@@ -77,4 +71,15 @@ mod tests {
     test_model!(m_csvm_rbf, "m_csvm_rbf.libsvm", false, [0, 7], []);
     test_model!(m_csvm_sigmoid, "m_csvm_sigmoid.libsvm", false, [0, 5], []);
 
+    // NUSVM
+
+    test_model!(m_nusvm_linear_prob, "m_nusvm_linear_prob.libsvm", true, [0, 7], [0, 7]);
+    test_model!(m_nusvm_poly_prob, "m_nusvm_poly_prob.libsvm", true, [0, 7], [0, 7]);
+    test_model!(m_nusvm_rbf_prob, "m_nusvm_rbf_prob.libsvm", true, [0, 7], [0, 7]);
+    test_model!(m_nusvm_sigmoid_prob, "m_nusvm_sigmoid_prob.libsvm", true, [0, 7], [0, 7]);
+
+    test_model!(m_nusvm_linear, "m_nusvm_linear.libsvm", false, [0, 7], []);
+    test_model!(m_nusvm_poly, "m_nusvm_poly.libsvm", false, [0, 7], []);
+    test_model!(m_nusvm_rbf, "m_nusvm_rbf.libsvm", false, [0, 7], []);
+    test_model!(m_nusvm_sigmoid, "m_nusvm_sigmoid.libsvm", false, [0, 7], []);
 }
