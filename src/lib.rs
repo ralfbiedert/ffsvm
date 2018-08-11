@@ -145,7 +145,7 @@ pub use crate::{
     svm::{
         class::Class,
         csvm::CSVM,
-        kernel::{Kernel, Linear, Rbf},
+        kernel::{Kernel, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
         problem::Problem,
     },
