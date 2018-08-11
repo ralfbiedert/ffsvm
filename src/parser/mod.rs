@@ -202,7 +202,10 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
                 Rule::line_sv => {
                     let mut line_pairs = line.into_inner();
 
-                    let mut sv = SupportVector { coefs: Vec::new(), features: Vec::new() };
+                    let mut sv = SupportVector {
+                        coefs: Vec::new(),
+                        features: Vec::new(),
+                    };
 
                     for element in line_pairs {
                         match element.as_rule() {

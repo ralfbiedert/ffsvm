@@ -26,7 +26,7 @@ where
     vote_max_idx
 }
 
-/// As implemented in `libsvm`.  
+/// As implemented in `libsvm`.
 pub fn sigmoid_predict(decision_value: f64, a: f64, b: f64) -> f64 {
     let fapb = decision_value * a + b;
 
@@ -37,4 +37,22 @@ pub fn sigmoid_predict(decision_value: f64, a: f64, b: f64) -> f64 {
     } else {
         1f64 / (1f64 + fapb.exp())
     }
+}
+
+/// As implemented in `libsvm`.
+pub fn powi(base: f64, times: u32) -> f64 {
+    let mut tmp = base;
+    let mut ret = 1.0;
+    let mut t = times;
+
+    while t > 0 {
+        if t % 2 == 1 {
+            ret *= tmp
+        };
+
+        tmp = tmp * tmp;
+        t /= 2;
+    }
+
+    ret
 }

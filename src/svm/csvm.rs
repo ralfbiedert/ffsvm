@@ -6,7 +6,7 @@ use crate::{
     random::*,
     svm::{
         class::Class,
-        kernel::{Kernel, Linear, Rbf},
+        kernel::{Kernel, Linear, Poly, Rbf},
         problem::Problem,
         Probabilities,
     },
@@ -57,7 +57,8 @@ impl CSVM {
         for (i, class) in self.classes.iter().enumerate() {
             let kvalues = kernel_values.row_as_flat_mut(i);
 
-            self.kernel.compute(&class.support_vectors, features, kvalues);
+            self.kernel
+                .compute(&class.support_vectors, features, kvalues);
         }
     }
 
@@ -180,9 +181,17 @@ impl CSVM {
                 let kvalues0 = problem.kernel_values.row(i);
                 let kvalues1 = problem.kernel_values.row(j);
 
-                let sum0 = sv_coef0.iter().zip(kvalues0).map(|(a, b)| (*a * *b).sum()).sum::<f64>();
+                let sum0 = sv_coef0
+                    .iter()
+                    .zip(kvalues0)
+                    .map(|(a, b)| (*a * *b).sum())
+                    .sum::<f64>();
 
-                let sum1 = sv_coef1.iter().zip(kvalues1).map(|(a, b)| (*a * *b).sum()).sum::<f64>();
+                let sum1 = sv_coef1
+                    .iter()
+                    .zip(kvalues1)
+                    .map(|(a, b)| (*a * *b).sum())
+                    .sum::<f64>();
 
                 let sum = sum0 + sum1 - self.rho[(i, j)];
                 let index_to_vote = if sum > 0.0 { i } else { j };
@@ -295,9 +304,10 @@ impl<'a, 'b> TryFrom<&'a str> for CSVM {
             }).collect::<Vec<Class>>();
 
         let probabilities = match (&raw_model.header.prob_a, &raw_model.header.prob_b) {
-            (&Some(ref a), &Some(ref b)) => {
-                Some(Probabilities { a: Triangular::from(a), b: Triangular::from(b) })
-            }
+            (&Some(ref a), &Some(ref b)) => Some(Probabilities {
+                a: Triangular::from(a),
+                b: Triangular::from(b),
+            }),
 
             (_, _) => None,
         };
@@ -305,6 +315,7 @@ impl<'a, 'b> TryFrom<&'a str> for CSVM {
         let kernel: Box<dyn Kernel> = match raw_model.header.kernel_type {
             "rbf" => Box::new(Rbf::try_from(&raw_model)?),
             "linear" => Box::new(Linear::from(&raw_model)),
+            "polynomial" => Box::new(Poly::try_from(&raw_model)?),
             _ => unimplemented!(),
         };
 

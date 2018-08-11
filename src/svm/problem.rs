@@ -18,8 +18,9 @@ use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 /// to be set, for example by:
 ///
 /// ```ignore
-/// problem.features =
-///     vec![-0.55838, -0.157895, 0.581292, -0.221184, 0.135713, -0.874396, -0.563197, -1.0, -1.0];
+/// problem.features = vec![
+///     -0.55838, -0.157895, 0.581292, -0.221184, 0.135713, -0.874396, -0.563197, -1.0, -1.0,
+/// ];
 /// ```
 ///
 /// It can then be handed over to the [SVM] (via the [Predict] trait).

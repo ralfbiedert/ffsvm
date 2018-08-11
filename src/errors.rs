@@ -33,8 +33,14 @@ pub enum SVMError {
     /// and the internal iteration limit was exceeded.
     IterationsExceeded,
 
-    /// If an `rbf` kernel is loaded but the model does not have a `gamma` set this error will be raised.
+    /// If an `rbf` or `poly` kernel is loaded but the model does not have a `gamma` set this error will be raised.
     NoGamma,
+
+    /// If an `poly` kernel is loaded but the model does not have a `coef0` set this error will be raised.
+    NoCoef0,
+
+    /// If an `poly` kernel is loaded but the model does not have a `degree` set this error will be raised.
+    NoDegree,
 
     /// Wrapper for [ModelError] when unifiying error handling.
     ParsingError(String),

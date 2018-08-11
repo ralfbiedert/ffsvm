@@ -72,8 +72,9 @@ impl Predict for CSVM {
                 let a = probabilities.a[(i, j)];
                 let b = probabilities.b[(i, j)];
 
-                let sigmoid =
-                    sigmoid_predict(decision_value, a, b).max(MIN_PROB).min(1f64 - MIN_PROB);
+                let sigmoid = sigmoid_predict(decision_value, a, b)
+                    .max(MIN_PROB)
+                    .min(1f64 - MIN_PROB);
 
                 pairwise[(i, j)] = sigmoid;
                 pairwise[(j, i)] = 1f64 - sigmoid;
