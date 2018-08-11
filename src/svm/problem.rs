@@ -1,4 +1,4 @@
-use crate::{random::Randomize, svm::csvm::CSVM, vectors::Triangular};
+use crate::{random::Randomize, svm::SVM, vectors::Triangular};
 
 use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 
@@ -81,10 +81,8 @@ impl Problem {
     pub fn label(&self) -> u32 { self.label }
 }
 
-impl<'a> From<&'a CSVM> for Problem {
-    fn from(svm: &CSVM) -> Self {
-        Problem::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes)
-    }
+impl<'a> From<&'a SVM> for Problem {
+    fn from(svm: &SVM) -> Self { Problem::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes) }
 }
 
 impl Randomize for Problem {

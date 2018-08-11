@@ -24,7 +24,7 @@ use crate::errors::SVMError;
 /// ```
 ///
 /// Should anything be wrong with the model format, a [ModelError] will be returned. Once you have
-/// your model, you can use it to create a [SVM] (in particular an [RbfCSVM]).
+/// your model, you can use it to create a [SVM] (in particular an [RbfSVM]).
 ///
 /// # Model format
 ///

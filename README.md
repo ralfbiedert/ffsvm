@@ -11,7 +11,7 @@ You trained a non-sparse RBF-C-SVM using [libSVM](https://github.com/cjlin1/libs
 
 # Highlights
 
-* can load trained [libSVM](https://github.com/cjlin1/libsvm) models (currently  RBF-CSVM without sparse attributes)
+* can load trained [libSVM](https://github.com/cjlin1/libsvm) models (currently  RBF-SVM without sparse attributes)
 * optimized for [SIMD](https://github.com/rust-lang/rfcs/pull/2366) and can be mixed seamlessly with [Rayon](https://github.com/rayon-rs/rayon).
 * allocation-free during classification
 * written in 100% Rust, but can be loaded from any language (via FFI)
@@ -29,10 +29,10 @@ From Rust:
 // Load model file / SVM.
 let model_str: &str = include_str!("model.libsvm");
 let model = ModelFile::try_from(model_str)?;
-let csvm = RbfCSVM::try_from(&model)?;
+let svm = RbfSVM::try_from(&model)?;
 
 // Produce problem we want to classify.
-let mut problem = Problem::from(&csvm);
+let mut problem = Problem::from(&svm);
 
 // Set features
 problem.features_mut().clone_from_slice(&[
@@ -40,7 +40,7 @@ problem.features_mut().clone_from_slice(&[
 ]);
 
 // Can be trivially parallelized (e.g., with Rayon) ...
-csvm.predict_value(&mut problem);
+svm.predict_value(&mut problem);
 
 // Results should match libSVM
 assert_eq!(42, problem.label);

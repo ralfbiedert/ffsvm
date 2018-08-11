@@ -1,6 +1,6 @@
 use crate::{
     errors::SVMError,
-    svm::{csvm::CSVM, problem::Problem},
+    svm::{problem::Problem, SVM},
     util::{find_max_index, sigmoid_predict},
 };
 
@@ -48,7 +48,7 @@ where
     fn predict_probability(&self, _: &mut Problem) -> Result<(), SVMError>;
 }
 
-impl Predict for CSVM {
+impl Predict for SVM {
     fn predict_probability(&self, problem: &mut Problem) -> Result<(), SVMError> {
         const MIN_PROB: f64 = 1e-7;
 
@@ -72,9 +72,7 @@ impl Predict for CSVM {
                 let a = probabilities.a[(i, j)];
                 let b = probabilities.b[(i, j)];
 
-                let sigmoid = sigmoid_predict(decision_value, a, b)
-                    .max(MIN_PROB)
-                    .min(1f64 - MIN_PROB);
+                let sigmoid = sigmoid_predict(decision_value, a, b).max(MIN_PROB).min(1f64 - MIN_PROB);
 
                 pairwise[(i, j)] = sigmoid;
                 pairwise[(j, i)] = 1f64 - sigmoid;

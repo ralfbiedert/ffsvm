@@ -53,7 +53,7 @@
 //!
 //! // Parse the model, and create an actual SVM instance
 //! let model = ModelFile::try_from(model_str)!;
-//! let svm = RbfCSVM::try_from(&model)!;
+//! let svm = RbfSVM::try_from(&model)!;
 //!
 //! // Create a 'problem'. It will hold your features and, once classified, the label. Problems
 //! // are meant to be reused between calls (e.g., each frame in games).
@@ -144,9 +144,9 @@ pub use crate::{
     random::{Random, RandomSVM, Randomize},
     svm::{
         class::Class,
-        csvm::CSVM,
         kernel::{Kernel, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
         problem::Problem,
+        SVM,
     },
 };

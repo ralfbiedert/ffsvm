@@ -3,9 +3,9 @@
 extern crate ffsvm;
 extern crate test;
 
-mod csvm {
+mod svm {
 
-    use ffsvm::{Kernel, Linear, Poly, Predict, Problem, Random, RandomSVM, Randomize, Rbf, Sigmoid, CSVM};
+    use ffsvm::{Kernel, Linear, Poly, Predict, Problem, Random, RandomSVM, Randomize, Rbf, Sigmoid, SVM};
     use test::Bencher;
 
     /// Produces a test case run for benchmarking
@@ -14,7 +14,7 @@ mod csvm {
     where
         K: Kernel + Random + 'static,
     {
-        let mut svm = CSVM::random::<K>(num_classes, num_sv_per_class, num_attributes);
+        let mut svm = SVM::random::<K>(num_classes, num_sv_per_class, num_attributes);
         let mut problem = Problem::from(&svm).randomize();
 
         move || (&mut svm).predict_value(&mut problem).expect("This should work")

@@ -9,9 +9,9 @@ macro_rules! test_model {
         #[test]
         fn $name() -> Result<(), SVMError> {
             let model = include_str!($file);
-            let csvm = CSVM::try_from(model)?;
+            let svm = SVM::try_from(model)?;
 
-            let mut problem_0 = Problem::from(&csvm);
+            let mut problem_0 = Problem::from(&svm);
             problem_0.features_mut().clone_from_slice(&[
                 0.00010000000092214275,
                 0.00010000000054355651,
@@ -23,7 +23,7 @@ macro_rules! test_model {
                 0.00010000000020787097,
             ]);
 
-            let mut problem_7 = Problem::from(&csvm);
+            let mut problem_7 = Problem::from(&svm);
             problem_7.features_mut().clone_from_slice(&[
                 1.2877848951077797,
                 0.9860317088181307,
@@ -35,15 +35,15 @@ macro_rules! test_model {
                 1.1407629818262937,
             ]);
 
-            csvm.predict_value(&mut problem_0)?;
-            csvm.predict_value(&mut problem_7)?;
+            svm.predict_value(&mut problem_0)?;
+            svm.predict_value(&mut problem_7)?;
 
             assert_eq!(problem_0.label(), $libsvm[0], "predict_value(problem_0)");
             assert_eq!(problem_7.label(), $libsvm[1], "predict_value(problem_7)");
 
             if $prob {
-                csvm.predict_probability(&mut problem_0)?;
-                csvm.predict_probability(&mut problem_7)?;
+                svm.predict_probability(&mut problem_0)?;
+                svm.predict_probability(&mut problem_7)?;
 
                 assert_eq!(
                     problem_0.label(),
@@ -64,7 +64,7 @@ macro_rules! test_model {
 
 #[cfg(test)]
 mod tests {
-    use ffsvm::{Predict, Problem, SVMError, CSVM};
+    use ffsvm::{Predict, Problem, SVMError, SVM};
     use std::convert::TryFrom;
 
     test_model!(m_csvm_linear_prob, "m_csvm_linear_prob.libsvm", true, [0, 7], [0, 7]);

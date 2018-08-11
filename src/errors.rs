@@ -33,13 +33,13 @@ pub enum SVMError {
     /// and the internal iteration limit was exceeded.
     IterationsExceeded,
 
-    /// If an `rbf` or `poly` kernel is loaded but the model does not have a `gamma` set this error will be raised.
+    /// If the model does not have a `gamma` set this error may be raised.
     NoGamma,
 
-    /// If an `poly` kernel is loaded but the model does not have a `coef0` set this error will be raised.
+    /// If the model does not have a `coef0` set this error may be raised.
     NoCoef0,
 
-    /// If an `poly` kernel is loaded but the model does not have a `degree` set this error will be raised.
+    /// If the model does not have a `degree` set this error may be raised.
     NoDegree,
 
     /// Wrapper for [ModelError] when unifiying error handling.
@@ -53,9 +53,7 @@ pub enum SVMError {
 // }
 
 impl<'a> From<pest::Error<'a, crate::parser::Rule>> for SVMError {
-    fn from(e: pest::Error<'a, crate::parser::Rule>) -> Self {
-        SVMError::ParsingError(format!("{}", e))
-    }
+    fn from(e: pest::Error<'a, crate::parser::Rule>) -> Self { SVMError::ParsingError(format!("{}", e)) }
 }
 
 impl From<NoneError> for SVMError {
