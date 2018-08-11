@@ -67,6 +67,8 @@ pub struct Header<'a> {
     crate svm_type: &'a str,
     crate kernel_type: &'a str,
     crate gamma: Option<f32>,
+    crate coef0: Option<f32>,
+    crate degree: Option<u32>,
     crate nr_class: u32,
     crate total_sv: u32,
     crate rho: Vec<f64>,
@@ -96,18 +98,28 @@ const _GRAMMAR: &str = include_str!("model.pest");
 #[grammar = "parser/model.pest"]
 struct LibSVMModel;
 
+// We keep this here just in case I have to touch the parser ever again ...
+#[allow(non_snake_case)]
+fn JUST_FUCKING_DEBUG_IT<T>(t: T) -> T
+where
+    T: std::fmt::Debug,
+{
+    // println!("{:?}", t);
+    t
+}
+
 macro_rules! next {
     ($p:expr, str) => {
         $p.next()?.as_str()
     };
     ($p:expr, $t:ty) => {
-        $p.next()?.as_str().parse::<$t>()?
+        JUST_FUCKING_DEBUG_IT($p.next()?.as_str()).parse::<$t>()?
     };
 }
 
 macro_rules! convert {
     ($p:expr, $t:ty) => {
-        $p.as_str().parse::<$t>()?
+        JUST_FUCKING_DEBUG_IT($p.as_str()).parse::<$t>()?
     };
 }
 
@@ -121,6 +133,8 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
         let mut svm_type = Option::None;
         let mut kernel_type = Option::None;
         let mut gamma = Option::None;
+        let mut coef0 = Option::None;
+        let mut degree = Option::None;
         let mut nr_class = Option::None;
         let mut total_sv = Option::None;
         let mut rho = Vec::new();
@@ -146,11 +160,12 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
                 // SV
                 Rule::line_multiple => {
                     let mut line_pairs = line.into_inner();
-                    println!("line");
                     match next!(line_pairs, str) {
                         "svm_type" => svm_type = Some(next!(line_pairs, str)),
                         "kernel_type" => kernel_type = Some(next!(line_pairs, str)),
                         "gamma" => gamma = Some(next!(line_pairs, f32)),
+                        "coef0" => coef0 = Some(next!(line_pairs, f32)),
+                        "degree" => degree = Some(next!(line_pairs, u32)),
                         "nr_class" => nr_class = Some(next!(line_pairs, u32)),
                         "total_sv" => total_sv = Some(next!(line_pairs, u32)),
                         "rho" => while let Some(x) = line_pairs.next() {
@@ -217,6 +232,8 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
                 svm_type: svm_type?,
                 kernel_type: kernel_type?,
                 gamma,
+                coef0,
+                degree,
                 nr_class: nr_class?,
                 total_sv: total_sv?,
                 rho,

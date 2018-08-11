@@ -57,7 +57,7 @@ impl From<NoneError> for SVMError {
 }
 
 impl From<ParseFloatError> for SVMError {
-    fn from(_: ParseFloatError) -> Self {
+    fn from(e: ParseFloatError) -> Self {
         SVMError::ParsingError("ParseFloatError".to_owned())
     }
 }

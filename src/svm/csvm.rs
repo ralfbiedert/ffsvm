@@ -283,6 +283,10 @@ impl<'a, 'b> TryFrom<&'a str> for CSVM {
 
     fn try_from(input: &'a str) -> Result<CSVM, SVMError> {
         let raw_model = ModelFile::try_from(input)?;
+
+        // To quickly check what broke again during parsing ...
+        // println!("{:?}", raw_model);
+
         let header = &raw_model.header;
         let vectors = &raw_model.vectors;
 

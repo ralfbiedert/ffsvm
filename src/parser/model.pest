@@ -15,15 +15,17 @@
 // ------------------
 
 
-// Basic types
-alpha = _{ 'a'..'z' | 'A'..'Z' | "_" }
-digit = _{ '0'..'9' | "." | "-" }
+// Basic
+alpha = _{ 'a'..'z' | 'A'..'Z' }
+digit = _{ '0' .. '9' }
+float = _{ "e" | "." | "-" }
+id = _{ "_" }
 line_break = _{ "\r\n" | "\n" }
 whitespace = _{ " " | "\t" }
 
 // Elements
-identifier = @{ alpha+ }
-number = @{ digit+ }
+identifier = @{ alpha ~ (alpha | id | digit)+ }
+number = @{ (digit | float)+ }
 sv = { number ~ ":" ~ number }
 sv_or_number = _{ sv | number }
 
