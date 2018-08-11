@@ -12,9 +12,10 @@ use crate::{
     svm::{
         class::Class,
         kernel::{Kernel, Linear, Poly, Rbf, Sigmoid},
+        predict::Predict,
         problem::Problem,
     },
-    util::set_all,
+    util::{find_max_index, set_all, sigmoid_predict},
     vectors::Triangular,
 };
 
@@ -23,6 +24,12 @@ crate struct Probabilities {
     crate a: Triangular<f64>,
 
     crate b: Triangular<f64>,
+}
+
+/// Classifier type.
+pub enum SVMType {
+    C_SVC,
+    NU_SVC,
 }
 
 /// Generic support vector machine, template for [RbfSVM].
@@ -49,6 +56,8 @@ pub struct SVM {
     crate rho: Triangular<f64>,
 
     crate probabilities: Option<Probabilities>,
+
+    crate svmtype: SVMType,
 
     /// SVM specific data needed for classification
     crate kernel: Box<dyn Kernel>,
@@ -253,8 +262,66 @@ impl SVM {
     pub fn classes(&self) -> usize { self.classes.len() }
 }
 
+impl Predict for SVM {
+    fn predict_probability(&self, problem: &mut Problem) -> Result<(), SVMError> {
+        const MIN_PROB: f64 = 1e-7;
+
+        // Ensure we have probabilities set. If not, somebody used us the wrong way
+        if self.probabilities.is_none() {
+            return Err(SVMError::NoProbabilities);
+        }
+
+        let num_classes = self.classes.len();
+        let probabilities = self.probabilities.as_ref().unwrap();
+
+        // First we need to predict the problem for our decision values
+        self.predict_value(problem)?;
+
+        let mut pairwise = problem.pairwise.flat_mut();
+
+        // Now compute probability values
+        for i in 0 .. num_classes {
+            for j in i + 1 .. num_classes {
+                let decision_value = problem.decision_values[(i, j)];
+                let a = probabilities.a[(i, j)];
+                let b = probabilities.b[(i, j)];
+
+                let sigmoid = sigmoid_predict(decision_value, a, b).max(MIN_PROB).min(1f64 - MIN_PROB);
+
+                pairwise[(i, j)] = sigmoid;
+                pairwise[(j, i)] = 1f64 - sigmoid;
+            }
+        }
+
+        if num_classes == 2 {
+            problem.probabilities[0] = pairwise[(0, 1)];
+            problem.probabilities[1] = pairwise[(1, 0)];
+        } else {
+            self.compute_multiclass_probabilities(problem)?;
+        }
+
+        let max_index = find_max_index(problem.probabilities.as_slice());
+        problem.label = self.classes[max_index].label;
+
+        Ok(())
+    }
+
+    // Predict the value for one problem.
+    fn predict_value(&self, problem: &mut Problem) -> Result<(), SVMError> {
+        // Compute kernel, decision values and eventually the label
+        self.compute_kernel_values(problem);
+        self.compute_decision_values(problem);
+
+        // Compute highest vote
+        let highest_vote = find_max_index(&problem.vote);
+        problem.label = self.classes[highest_vote].label;
+
+        Ok(())
+    }
+}
+
 impl RandomSVM for SVM {
-    fn random<K>(num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self
+    fn random<K>(svmtype: SVMType, num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self
     where
         K: Kernel + Random + 'static,
     {
@@ -270,6 +337,7 @@ impl RandomSVM for SVM {
             rho: Triangular::with_dimension(num_classes, Default::default()),
             kernel: Box::new(K::new_random()),
             probabilities: None,
+            svmtype,
             classes,
         }
     }
@@ -317,12 +385,19 @@ impl<'a, 'b> TryFrom<&'a str> for SVM {
             _ => unimplemented!(),
         };
 
+        let svmtype = match raw_model.header.svm_type {
+            "c_svc" => SVMType::C_SVC,
+            "nu_svc" => SVMType::NU_SVC,
+            _ => unimplemented!(),
+        };
+
         // Allocate model
         let mut svm = SVM {
             num_total_sv,
             num_attributes,
             probabilities,
             kernel,
+            svmtype,
             rho: Triangular::from(&header.rho),
             classes,
         };

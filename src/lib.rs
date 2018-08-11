@@ -147,6 +147,6 @@ pub use crate::{
         kernel::{Kernel, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
         problem::Problem,
-        SVM,
+        SVMType, SVM,
     },
 };

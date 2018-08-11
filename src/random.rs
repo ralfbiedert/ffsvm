@@ -2,7 +2,7 @@ use rand::{distributions, random};
 
 use simd_aligned::*;
 
-use crate::svm::kernel::Kernel;
+use crate::svm::{kernel::Kernel, SVMType};
 
 /// Randomizes a data structure
 #[doc(hidden)]
@@ -19,7 +19,7 @@ pub trait Random {
 
 #[doc(hidden)]
 pub trait RandomSVM {
-    fn random<K>(num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self
+    fn random<K>(svmtype: SVMType, num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self
     where
         K: Kernel + Random + 'static;
 }

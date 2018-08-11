@@ -1,8 +1,4 @@
-use crate::{
-    errors::SVMError,
-    svm::{problem::Problem, SVM},
-    util::{find_max_index, sigmoid_predict},
-};
+use crate::{errors::SVMError, svm::problem::Problem};
 
 /// Implemented by [SVM]s to predict a [Problem].
 ///
@@ -46,62 +42,4 @@ where
     /// both the [Problem]'s field `.label` will be set, and all `.probabilities` will
     /// be set accordingly.
     fn predict_probability(&self, _: &mut Problem) -> Result<(), SVMError>;
-}
-
-impl Predict for SVM {
-    fn predict_probability(&self, problem: &mut Problem) -> Result<(), SVMError> {
-        const MIN_PROB: f64 = 1e-7;
-
-        // Ensure we have probabilities set. If not, somebody used us the wrong way
-        if self.probabilities.is_none() {
-            return Err(SVMError::NoProbabilities);
-        }
-
-        let num_classes = self.classes.len();
-        let probabilities = self.probabilities.as_ref().unwrap();
-
-        // First we need to predict the problem for our decision values
-        self.predict_value(problem)?;
-
-        let mut pairwise = problem.pairwise.flat_mut();
-
-        // Now compute probability values
-        for i in 0 .. num_classes {
-            for j in i + 1 .. num_classes {
-                let decision_value = problem.decision_values[(i, j)];
-                let a = probabilities.a[(i, j)];
-                let b = probabilities.b[(i, j)];
-
-                let sigmoid = sigmoid_predict(decision_value, a, b).max(MIN_PROB).min(1f64 - MIN_PROB);
-
-                pairwise[(i, j)] = sigmoid;
-                pairwise[(j, i)] = 1f64 - sigmoid;
-            }
-        }
-
-        if num_classes == 2 {
-            problem.probabilities[0] = pairwise[(0, 1)];
-            problem.probabilities[1] = pairwise[(1, 0)];
-        } else {
-            self.compute_multiclass_probabilities(problem)?;
-        }
-
-        let max_index = find_max_index(problem.probabilities.as_slice());
-        problem.label = self.classes[max_index].label;
-
-        Ok(())
-    }
-
-    // Predict the value for one problem.
-    fn predict_value(&self, problem: &mut Problem) -> Result<(), SVMError> {
-        // Compute kernel, decision values and eventually the label
-        self.compute_kernel_values(problem);
-        self.compute_decision_values(problem);
-
-        // Compute highest vote
-        let highest_vote = find_max_index(&problem.vote);
-        problem.label = self.classes[highest_vote].label;
-
-        Ok(())
-    }
 }
