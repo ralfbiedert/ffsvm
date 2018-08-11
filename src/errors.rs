@@ -1,5 +1,7 @@
-use std::num::{ParseFloatError, ParseIntError};
-use std::option::NoneError;
+use std::{
+    num::{ParseFloatError, ParseIntError},
+    option::NoneError,
+};
 
 use pest::Error;
 
@@ -51,19 +53,13 @@ impl<'a> From<pest::Error<'a, crate::parser::Rule>> for SVMError {
 }
 
 impl From<NoneError> for SVMError {
-    fn from(_: NoneError) -> Self {
-        SVMError::ParsingError("NoneError".to_owned())
-    }
+    fn from(_: NoneError) -> Self { SVMError::ParsingError("NoneError".to_owned()) }
 }
 
 impl From<ParseFloatError> for SVMError {
-    fn from(e: ParseFloatError) -> Self {
-        SVMError::ParsingError("ParseFloatError".to_owned())
-    }
+    fn from(e: ParseFloatError) -> Self { SVMError::ParsingError("ParseFloatError".to_owned()) }
 }
 
 impl From<ParseIntError> for SVMError {
-    fn from(_: ParseIntError) -> Self {
-        SVMError::ParsingError("ParseIntError".to_owned())
-    }
+    fn from(_: ParseIntError) -> Self { SVMError::ParsingError("ParseIntError".to_owned()) }
 }

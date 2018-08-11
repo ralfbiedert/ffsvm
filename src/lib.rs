@@ -139,7 +139,14 @@ mod svm;
 mod util;
 mod vectors;
 
-pub use crate::errors::SVMError;
-pub use crate::random::{Random, RandomSVM, Randomize};
-pub use crate::svm::kernel::{Kernel, Linear, Rbf};
-pub use crate::svm::{class::Class, csvm::CSVM, predict::Predict, problem::Problem};
+pub use crate::{
+    errors::SVMError,
+    random::{Random, RandomSVM, Randomize},
+    svm::{
+        class::Class,
+        csvm::CSVM,
+        kernel::{Kernel, Linear, Rbf},
+        predict::Predict,
+        problem::Problem,
+    },
+};

@@ -1,8 +1,7 @@
 use std::convert::From;
 
 use super::Kernel;
-use crate::parser::ModelFile;
-use crate::random::Random;
+use crate::{parser::ModelFile, random::Random};
 
 use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};
 
@@ -31,13 +30,9 @@ impl Kernel for Linear {
 }
 
 impl Random for Linear {
-    fn new_random() -> Self {
-        Linear {}
-    }
+    fn new_random() -> Self { Linear {} }
 }
 
 impl<'a> From<&'a ModelFile<'a>> for Linear {
-    fn from(model: &'a ModelFile<'a>) -> Self {
-        Linear {}
-    }
+    fn from(model: &'a ModelFile<'a>) -> Self { Linear {} }
 }

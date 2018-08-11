@@ -1,6 +1,4 @@
-use crate::random::Randomize;
-use crate::svm::csvm::CSVM;
-use crate::vectors::Triangular;
+use crate::{random::Randomize, svm::csvm::CSVM, vectors::Triangular};
 
 use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 
@@ -11,7 +9,7 @@ use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 /// Problems are created via the `Problem::from` method:
 ///
 /// ```ignore
-/// let mut problem = Problem::from(&svm);
+/// let mut problem = Problem::from(&svm); 
 /// ```
 ///
 /// # Classifiying a problem
@@ -20,9 +18,8 @@ use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 /// to be set, for example by:
 ///
 /// ```ignore
-/// problem.features = vec![
-///     -0.55838, -0.157895, 0.581292, -0.221184, 0.135713, -0.874396, -0.563197, -1.0, -1.0,
-/// ];
+/// problem.features =
+///     vec![-0.55838, -0.157895, 0.581292, -0.221184, 0.135713, -0.874396, -0.563197, -1.0, -1.0];
 /// ```
 ///
 /// It can then be handed over to the [SVM] (via the [Predict] trait).
@@ -74,21 +71,13 @@ impl Problem {
         }
     }
 
-    pub fn features_mut(&mut self) -> &mut [f32] {
-        self.features.flat_mut()
-    }
+    pub fn features_mut(&mut self) -> &mut [f32] { self.features.flat_mut() }
 
-    pub fn probabilities(&self) -> &[f64] {
-        &self.probabilities
-    }
+    pub fn probabilities(&self) -> &[f64] { &self.probabilities }
 
-    pub fn probabilities_mut(&mut self) -> &mut [f64] {
-        &mut self.probabilities
-    }
+    pub fn probabilities_mut(&mut self) -> &mut [f64] { &mut self.probabilities }
 
-    pub fn label(&self) -> u32 {
-        self.label
-    }
+    pub fn label(&self) -> u32 { self.label }
 }
 
 impl<'a> From<&'a CSVM> for Problem {

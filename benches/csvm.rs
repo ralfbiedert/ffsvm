@@ -21,11 +21,7 @@ mod benchmarks {
         let mut svm = CSVM::random::<K>(num_classes, num_sv_per_class, num_attributes);
         let mut problem = Problem::from(&svm).randomize();
 
-        move || {
-            (&mut svm)
-                .predict_value(&mut problem)
-                .expect("This should work")
-        }
+        move || (&mut svm).predict_value(&mut problem).expect("This should work")
     }
 
     #[bench]

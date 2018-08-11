@@ -1,9 +1,7 @@
 use std::convert::{From, TryFrom};
 
 use super::Kernel;
-use crate::errors::SVMError;
-use crate::parser::ModelFile;
-use crate::random::Random;
+use crate::{errors::SVMError, parser::ModelFile, random::Random};
 
 use rand::random;
 use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};
@@ -40,9 +38,7 @@ impl Kernel for Rbf {
 }
 
 impl Random for Rbf {
-    fn new_random() -> Self {
-        Rbf { gamma: random() }
-    }
+    fn new_random() -> Self { Rbf { gamma: random() } }
 }
 
 impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for Rbf {

@@ -35,8 +35,8 @@ where
         let (h, w) = self.dimension();
         let mut matrix = self.flat_mut();
 
-        for y in 0..h {
-            for x in 0..w {
+        for y in 0 .. h {
+            for x in 0 .. w {
                 matrix[(y, x)] = random();
             }
         }

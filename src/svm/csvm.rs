@@ -1,14 +1,18 @@
 use std::convert::TryFrom;
 
-use crate::errors::SVMError;
-use crate::parser::ModelFile;
-use crate::random::*;
-use crate::svm::class::Class;
-use crate::svm::kernel::{Kernel, Linear, Rbf};
-use crate::svm::problem::Problem;
-use crate::svm::Probabilities;
-use crate::util::set_all;
-use crate::vectors::Triangular;
+use crate::{
+    errors::SVMError,
+    parser::ModelFile,
+    random::*,
+    svm::{
+        class::Class,
+        kernel::{Kernel, Linear, Rbf},
+        problem::Problem,
+        Probabilities,
+    },
+    util::set_all,
+    vectors::Triangular,
+};
 
 /// Generic support vector machine, template for [RbfCSVM].
 ///
@@ -53,8 +57,7 @@ impl CSVM {
         for (i, class) in self.classes.iter().enumerate() {
             let kvalues = kernel_values.row_as_flat_mut(i);
 
-            self.kernel
-                .compute(&class.support_vectors, features, kvalues);
+            self.kernel.compute(&class.support_vectors, features, kvalues);
         }
     }
 
@@ -76,30 +79,30 @@ impl CSVM {
 
         // We first build up matrix Q as defined in (14) in the paper above. Q should have
         // the property of being a transition matrix for a Markov Chain.
-        for t in 0..num_classes {
+        for t in 0 .. num_classes {
             problem.probabilities[t] = 1.0 / num_classes as f64;
 
             q[(t, t)] = 0.0;
 
-            for j in 0..t {
+            for j in 0 .. t {
                 q[(t, t)] += pairwise[(j, t)] * pairwise[(j, t)];
                 q[(t, j)] = q[(j, t)];
             }
 
-            for j in t + 1..num_classes {
+            for j in t + 1 .. num_classes {
                 q[(t, t)] += pairwise[(j, t)] * pairwise[(j, t)];
                 q[(t, j)] = -pairwise[(j, t)] * pairwise[(t, j)];
             }
         }
 
         // We now try to satisfy (21), (23) and (24) in the paper above.
-        for i in 0..=max_iter {
+        for i in 0 ..= max_iter {
             let mut pqp = 0.0;
 
-            for t in 0..num_classes {
+            for t in 0 .. num_classes {
                 qp[t] = 0.0;
 
-                for j in 0..num_classes {
+                for j in 0 .. num_classes {
                     qp[t] += q[(t, j)] * problem.probabilities[j];
                 }
 
@@ -129,13 +132,13 @@ impl CSVM {
             }
 
             // This seems to be the main function performing (23) and (24).
-            for t in 0..num_classes {
+            for t in 0 .. num_classes {
                 let diff = (-qp[t] + pqp) / q[(t, t)];
 
                 problem.probabilities[t] += diff;
                 pqp = (pqp + diff * (diff * q[(t, t)] + 2.0 * qp[t])) / (1.0 + diff) / (1.0 + diff);
 
-                for j in 0..num_classes {
+                for j in 0 .. num_classes {
                     qp[j] = (qp[j] + diff * q[(t, j)]) / (1.0 + diff);
                     problem.probabilities[j] /= 1.0 + diff;
                 }
@@ -169,25 +172,17 @@ impl CSVM {
         // Both a) and b) are multiplied with the computed kernel values and summed,
         // and eventually used to compute on which side we are.
 
-        for i in 0..self.classes.len() {
-            for j in (i + 1)..self.classes.len() {
+        for i in 0 .. self.classes.len() {
+            for j in (i + 1) .. self.classes.len() {
                 let sv_coef0 = self.classes[i].coefficients.row(j - 1);
                 let sv_coef1 = self.classes[j].coefficients.row(i);
 
                 let kvalues0 = problem.kernel_values.row(i);
                 let kvalues1 = problem.kernel_values.row(j);
 
-                let sum0 = sv_coef0
-                    .iter()
-                    .zip(kvalues0)
-                    .map(|(a, b)| (*a * *b).sum())
-                    .sum::<f64>();
+                let sum0 = sv_coef0.iter().zip(kvalues0).map(|(a, b)| (*a * *b).sum()).sum::<f64>();
 
-                let sum1 = sv_coef1
-                    .iter()
-                    .zip(kvalues1)
-                    .map(|(a, b)| (*a * *b).sum())
-                    .sum::<f64>();
+                let sum1 = sv_coef1.iter().zip(kvalues1).map(|(a, b)| (*a * *b).sum()).sum::<f64>();
 
                 let sum = sum0 + sum1 - self.rho[(i, j)];
                 let index_to_vote = if sum > 0.0 { i } else { j };
@@ -245,14 +240,10 @@ impl CSVM {
     }
 
     /// Returns number of attributes, reflecting the libSVM model.
-    pub fn attributes(&self) -> usize {
-        self.num_attributes
-    }
+    pub fn attributes(&self) -> usize { self.num_attributes }
 
     /// Returns number of classes, reflecting the libSVM model.
-    pub fn classes(&self) -> usize {
-        self.classes.len()
-    }
+    pub fn classes(&self) -> usize { self.classes.len() }
 }
 
 impl RandomSVM for CSVM {
@@ -261,7 +252,7 @@ impl RandomSVM for CSVM {
         K: Kernel + Random + 'static,
     {
         let num_total_sv = num_classes * num_sv_per_class;
-        let classes = (0..num_classes)
+        let classes = (0 .. num_classes)
             .map(|class| {
                 Class::with_parameters(num_classes, num_sv_per_class, num_attributes, class as u32)
                     .randomize()
@@ -296,7 +287,7 @@ impl<'a, 'b> TryFrom<&'a str> for CSVM {
         let num_total_sv = header.total_sv as usize;
 
         // Construct vector of classes
-        let classes = (0..num_classes)
+        let classes = (0 .. num_classes)
             .map(|class| {
                 let label = header.label[class];
                 let num_sv = header.nr_sv[class] as usize;
@@ -304,10 +295,9 @@ impl<'a, 'b> TryFrom<&'a str> for CSVM {
             }).collect::<Vec<Class>>();
 
         let probabilities = match (&raw_model.header.prob_a, &raw_model.header.prob_b) {
-            (&Some(ref a), &Some(ref b)) => Some(Probabilities {
-                a: Triangular::from(a),
-                b: Triangular::from(b),
-            }),
+            (&Some(ref a), &Some(ref b)) => {
+                Some(Probabilities { a: Triangular::from(a), b: Triangular::from(b) })
+            }
 
             (_, _) => None,
         };
@@ -334,12 +324,12 @@ impl<'a, 'b> TryFrom<&'a str> for CSVM {
         let mut start_offset = 0;
 
         // In the raw file, support vectors are grouped by class
-        for i in 0..num_classes {
+        for i in 0 .. num_classes {
             let num_sv_per_class = &header.nr_sv[i];
             let stop_offset = start_offset + *num_sv_per_class as usize;
 
             // Set support vector and coefficients
-            for (i_vector, vector) in vectors[start_offset..stop_offset].iter().enumerate() {
+            for (i_vector, vector) in vectors[start_offset .. stop_offset].iter().enumerate() {
                 let mut last_attribute = None;
 
                 // Set support vectors

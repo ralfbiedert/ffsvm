@@ -33,10 +33,7 @@ where
     /// Creates a triangular with the given dimension.
     pub fn with_dimension(dimension: usize, default: T) -> Triangular<T> {
         let len = (dimension * (dimension - 1)) / 2;
-        Triangular {
-            dimension,
-            data: vec![default; len],
-        }
+        Triangular { dimension, data: vec![default; len] }
     }
 
     /// Computes the offset for a given i,j position.
@@ -99,10 +96,7 @@ where
         //
         let dimension = (((2 * vec.len()) as f32).sqrt() as usize) + 1;
 
-        Triangular {
-            dimension,
-            data: vec.clone(),
-        }
+        Triangular { dimension, data: vec.clone() }
     }
 }
 

@@ -1,7 +1,8 @@
-use crate::errors::SVMError;
-use crate::svm::csvm::CSVM;
-use crate::svm::problem::Problem;
-use crate::util::{find_max_index, sigmoid_predict};
+use crate::{
+    errors::SVMError,
+    svm::{csvm::CSVM, problem::Problem},
+    util::{find_max_index, sigmoid_predict},
+};
 
 /// Implemented by [SVM]s to predict a [Problem].
 ///
@@ -65,15 +66,14 @@ impl Predict for CSVM {
         let mut pairwise = problem.pairwise.flat_mut();
 
         // Now compute probability values
-        for i in 0..num_classes {
-            for j in i + 1..num_classes {
+        for i in 0 .. num_classes {
+            for j in i + 1 .. num_classes {
                 let decision_value = problem.decision_values[(i, j)];
                 let a = probabilities.a[(i, j)];
                 let b = probabilities.b[(i, j)];
 
-                let sigmoid = sigmoid_predict(decision_value, a, b)
-                    .max(MIN_PROB)
-                    .min(1f64 - MIN_PROB);
+                let sigmoid =
+                    sigmoid_predict(decision_value, a, b).max(MIN_PROB).min(1f64 - MIN_PROB);
 
                 pairwise[(i, j)] = sigmoid;
                 pairwise[(j, i)] = 1f64 - sigmoid;
