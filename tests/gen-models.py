@@ -8,7 +8,7 @@ svm_predict = "/usr/local/bin/svm-predict"
 problemfile = "problem.in"
 
 svm_types = {"csvm": "0", "nusvm": "1"}
-kernel_types = {"linear": "0", "poly": "1", "rbf": "2"}
+kernel_types = {"linear": "0", "poly": "1", "rbf": "2", "sigmoid": "3"}
 probabilities = {"_prob": "1", "": "0"}
 
 CLASSES = 8

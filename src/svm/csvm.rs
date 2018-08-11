@@ -6,7 +6,7 @@ use crate::{
     random::*,
     svm::{
         class::Class,
-        kernel::{Kernel, Linear, Poly, Rbf},
+        kernel::{Kernel, Linear, Poly, Rbf, Sigmoid},
         problem::Problem,
         Probabilities,
     },
@@ -57,8 +57,7 @@ impl CSVM {
         for (i, class) in self.classes.iter().enumerate() {
             let kvalues = kernel_values.row_as_flat_mut(i);
 
-            self.kernel
-                .compute(&class.support_vectors, features, kvalues);
+            self.kernel.compute(&class.support_vectors, features, kvalues);
         }
     }
 
@@ -67,10 +66,7 @@ impl CSVM {
     // based on Method 2 from the paper "Probability Estimates for Multi-class
     // Classification by Pairwise Coupling", Journal of Machine Learning Research 5 (2004) 975-1005,
     // by Ting-Fan Wu, Chih-Jen Lin and Ruby C. Weng.
-    crate fn compute_multiclass_probabilities(
-        &self,
-        problem: &mut Problem,
-    ) -> Result<(), SVMError> {
+    crate fn compute_multiclass_probabilities(&self, problem: &mut Problem) -> Result<(), SVMError> {
         let num_classes = self.classes.len();
         let max_iter = 100.max(num_classes);
         let mut q = problem.q.flat_mut();
@@ -181,17 +177,9 @@ impl CSVM {
                 let kvalues0 = problem.kernel_values.row(i);
                 let kvalues1 = problem.kernel_values.row(j);
 
-                let sum0 = sv_coef0
-                    .iter()
-                    .zip(kvalues0)
-                    .map(|(a, b)| (*a * *b).sum())
-                    .sum::<f64>();
+                let sum0 = sv_coef0.iter().zip(kvalues0).map(|(a, b)| (*a * *b).sum()).sum::<f64>();
 
-                let sum1 = sv_coef1
-                    .iter()
-                    .zip(kvalues1)
-                    .map(|(a, b)| (*a * *b).sum())
-                    .sum::<f64>();
+                let sum1 = sv_coef1.iter().zip(kvalues1).map(|(a, b)| (*a * *b).sum()).sum::<f64>();
 
                 let sum = sum0 + sum1 - self.rho[(i, j)];
                 let index_to_vote = if sum > 0.0 { i } else { j };
@@ -263,8 +251,7 @@ impl RandomSVM for CSVM {
         let num_total_sv = num_classes * num_sv_per_class;
         let classes = (0 .. num_classes)
             .map(|class| {
-                Class::with_parameters(num_classes, num_sv_per_class, num_attributes, class as u32)
-                    .randomize()
+                Class::with_parameters(num_classes, num_sv_per_class, num_attributes, class as u32).randomize()
             }).collect::<Vec<Class>>();
 
         CSVM {
@@ -316,6 +303,7 @@ impl<'a, 'b> TryFrom<&'a str> for CSVM {
             "rbf" => Box::new(Rbf::try_from(&raw_model)?),
             "linear" => Box::new(Linear::from(&raw_model)),
             "polynomial" => Box::new(Poly::try_from(&raw_model)?),
+            "sigmoid" => Box::new(Sigmoid::try_from(&raw_model)?),
             _ => unimplemented!(),
         };
 
