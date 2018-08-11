@@ -230,13 +230,3 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
         })
     }
 }
-
-#[cfg(test)]
-mod test {
-    use super::{LibSVMModel, Rule};
-    use pest::Parser;
-
-    #[test]
-    fn test_index() {}
-
-}

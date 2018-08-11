@@ -43,25 +43,6 @@ pub struct CSVM {
 }
 
 impl CSVM {
-    /// Creates a new random CSVM
-    pub fn random(num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self {
-        let num_total_sv = num_classes * num_sv_per_class;
-        let classes = (0..num_classes)
-            .map(|class| {
-                Class::with_parameters(num_classes, num_sv_per_class, num_attributes, class as u32)
-                    .randomize()
-            }).collect::<Vec<Class>>();
-
-        CSVM {
-            num_total_sv,
-            num_attributes,
-            rho: Triangular::with_dimension(num_classes, Default::default()),
-            kernel: Box::new(Rbf::new_random()),
-            probabilities: None,
-            classes,
-        }
-    }
-
     /// Computes the kernel values for this problem
     crate fn compute_kernel_values(&self, problem: &mut Problem) {
         // Get current problem and decision values array
@@ -274,6 +255,29 @@ impl CSVM {
     }
 }
 
+impl RandomSVM for CSVM {
+    fn random<K>(num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self
+    where
+        K: Kernel + Random + 'static,
+    {
+        let num_total_sv = num_classes * num_sv_per_class;
+        let classes = (0..num_classes)
+            .map(|class| {
+                Class::with_parameters(num_classes, num_sv_per_class, num_attributes, class as u32)
+                    .randomize()
+            }).collect::<Vec<Class>>();
+
+        CSVM {
+            num_total_sv,
+            num_attributes,
+            rho: Triangular::with_dimension(num_classes, Default::default()),
+            kernel: Box::new(K::new_random()),
+            probabilities: None,
+            classes,
+        }
+    }
+}
+
 impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for CSVM {
     type Error = SVMError;
 
@@ -304,8 +308,9 @@ impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for CSVM {
             (_, _) => None,
         };
 
-        let kernel = match raw_model.header.kernel_type {
+        let kernel: Box<dyn Kernel> = match raw_model.header.kernel_type {
             "rbf" => Box::new(Rbf::try_from(raw_model)?),
+            "linear" => Box::new(Linear::from(raw_model)),
             _ => unimplemented!(),
         };
 

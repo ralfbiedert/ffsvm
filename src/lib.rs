@@ -141,5 +141,6 @@ mod vectors;
 
 pub use crate::errors::SVMError;
 pub use crate::parser::ModelFile;
-pub use crate::random::{Random, Randomize};
+pub use crate::random::{Random, RandomSVM, Randomize};
+pub use crate::svm::kernel::{Kernel, Linear, Rbf};
 pub use crate::svm::{class::Class, csvm::CSVM, predict::Predict, problem::Problem};

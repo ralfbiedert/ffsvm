@@ -2,6 +2,8 @@ use rand::{distributions, random};
 
 use simd_aligned::*;
 
+use crate::svm::kernel::Kernel;
+
 /// Randomizes a data structure
 #[doc(hidden)]
 pub trait Randomize {
@@ -13,6 +15,13 @@ pub trait Randomize {
 pub trait Random {
     /// Creates a new random thing.
     fn new_random() -> Self;
+}
+
+#[doc(hidden)]
+pub trait RandomSVM {
+    fn random<K>(num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self
+    where
+        K: Kernel + Random + 'static;
 }
 
 impl<T, O> Randomize for SimdMatrix<T, O>

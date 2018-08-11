@@ -39,25 +39,25 @@ pub enum SVMError {
 }
 
 impl<'a, T> From<Error<'a, T>> for SVMError {
-    fn from(error: Error<'a, T>) -> Self {
+    fn from(_: Error<'a, T>) -> Self {
         SVMError::ParsingError
     }
 }
 
 impl From<NoneError> for SVMError {
-    fn from(error: NoneError) -> Self {
+    fn from(_: NoneError) -> Self {
         SVMError::ParsingError
     }
 }
 
 impl From<ParseFloatError> for SVMError {
-    fn from(error: ParseFloatError) -> Self {
+    fn from(_: ParseFloatError) -> Self {
         SVMError::ParsingError
     }
 }
 
 impl From<ParseIntError> for SVMError {
-    fn from(error: ParseIntError) -> Self {
+    fn from(_: ParseIntError) -> Self {
         SVMError::ParsingError
     }
 }
