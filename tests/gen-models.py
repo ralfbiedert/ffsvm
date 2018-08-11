@@ -5,9 +5,9 @@ import subprocess
 
 svm_train = "/usr/local/bin/svm-train"
 svm_predict = "/usr/local/bin/svm-predict"
-problemfile = "problem.in"
+problemfile = "data/problem.in"
 
-svm_types = {"csvm": "0", "nusvm": "1"}
+svm_types = {"csvm": "0", "nusvm": "1", "e_svr": "3"}
 kernel_types = {"linear": "0", "poly": "1", "rbf": "2", "sigmoid": "3"}
 probabilities = {"_prob": "1", "": "0"}
 
@@ -22,7 +22,7 @@ for svm_type in svm_types.keys():
             t = kernel_types[kernel_type]
             b = probabilities[probablity]
 
-            modelfile = f"m_{svm_type}_{kernel_type}{probablity}.libsvm"
+            modelfile = f"data/m_{svm_type}_{kernel_type}{probablity}.libsvm"
             predictionfile = f"{modelfile}-predicted"
 
             subprocess.run([svm_train, "-s", s, "-t",

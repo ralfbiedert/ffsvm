@@ -6,8 +6,8 @@ CLASSES = 8
 SAMPLES_PER_CLASS = 4
 ATTRIBUTES = 8
 
-with open('problem.csv', "w") as csv:
-    with open('problem.in', "w") as f:
+with open('data/problem.csv', "w") as csv:
+    with open('data/problem.in', "w") as f:
         for c in range(CLASSES):
 
             # We'll write `SAMPLES_PER_CLASS * CLASSES` lines.

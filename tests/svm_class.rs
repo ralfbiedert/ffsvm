@@ -8,7 +8,7 @@ macro_rules! test_model {
     ($name:ident, $file:expr, $prob:expr, $libsvm:expr, $libsvm_prob:expr) => {
         #[test]
         fn $name() -> Result<(), SVMError> {
-            let model = include_str!($file);
+            let model = include_str!(concat!("data/", $file));
             let svm = SVM::try_from(model)?;
 
             let mut problem_0 = Problem::from(&svm);
@@ -55,7 +55,7 @@ macro_rules! test_model {
 }
 
 #[cfg(test)]
-mod tests {
+mod svm_class {
     use ffsvm::{Predict, Problem, SVMError, SVM};
     use std::convert::TryFrom;
 

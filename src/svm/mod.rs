@@ -28,8 +28,9 @@ crate struct Probabilities {
 
 /// Classifier type.
 pub enum SVMType {
-    C_SVC,
-    NU_SVC,
+    CSvc,
+    NuSvc,
+    ESvr,
 }
 
 /// Generic support vector machine, template for [RbfSVM].
@@ -265,7 +266,7 @@ impl SVM {
 impl Predict for SVM {
     fn predict_probability(&self, problem: &mut Problem) -> Result<(), SVMError> {
         match self.svmtype {
-            SVMType::C_SVC | SVMType::NU_SVC => {
+            SVMType::CSvc | SVMType::NuSvc => {
                 const MIN_PROB: f64 = 1e-7;
 
                 // Ensure we have probabilities set. If not, somebody used us the wrong way
@@ -314,7 +315,7 @@ impl Predict for SVM {
     // Predict the value for one problem.
     fn predict_value(&self, problem: &mut Problem) -> Result<(), SVMError> {
         match self.svmtype {
-            SVMType::C_SVC | SVMType::NU_SVC => {
+            SVMType::CSvc | SVMType::NuSvc => {
                 // Compute kernel, decision values and eventually the label
                 self.compute_kernel_values(problem);
                 self.compute_decision_values(problem);
@@ -337,9 +338,8 @@ impl RandomSVM for SVM {
     {
         let num_total_sv = num_classes * num_sv_per_class;
         let classes = (0 .. num_classes)
-            .map(|class| {
-                Class::with_parameters(num_classes, num_sv_per_class, num_attributes, class as u32).randomize()
-            }).collect::<Vec<Class>>();
+            .map(|class| Class::with_parameters(num_classes, num_sv_per_class, num_attributes, class as u32).randomize())
+            .collect::<Vec<Class>>();
 
         SVM {
             num_total_sv,
@@ -396,8 +396,9 @@ impl<'a, 'b> TryFrom<&'a str> for SVM {
         };
 
         let svmtype = match raw_model.header.svm_type {
-            "c_svc" => SVMType::C_SVC,
-            "nu_svc" => SVMType::NU_SVC,
+            "c_svc" => SVMType::CSvc,
+            "nu_svc" => SVMType::NuSvc,
+            "epsilon_svr" => SVMType::ESvr,
             _ => unimplemented!(),
         };
 
