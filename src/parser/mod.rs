@@ -146,6 +146,7 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
                 // SV
                 Rule::line_multiple => {
                     let mut line_pairs = line.into_inner();
+                    println!("line");
                     match next!(line_pairs, str) {
                         "svm_type" => svm_type = Some(next!(line_pairs, str)),
                         "kernel_type" => kernel_type = Some(next!(line_pairs, str)),
@@ -178,8 +179,6 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
                         "SV" => (),
                         unknown => panic!("Unknown header `{}`!", unknown),
                     };
-
-                    // println!("{:?}", x.as_str());
                 }
 
                 // 0.0625 0:0.6619648 1:0.8464851 2:0.4801146 3:0 4:0 5:0.02131653 6:0 7:0 8:0 9:0 10:0 11:0 12:0 13:0 14:0 15:0.5579834 16:0.1106567 17:0 18:0 19:0 20:0

@@ -35,29 +35,35 @@ pub enum SVMError {
     NoGamma,
 
     /// Wrapper for [ModelError] when unifiying error handling.
-    ParsingError,
+    ParsingError(String),
 }
 
-impl<'a, T> From<Error<'a, T>> for SVMError {
-    fn from(_: Error<'a, T>) -> Self {
-        SVMError::ParsingError
+// impl<'a, T> From<Error<'a, T>> for SVMError {
+//     fn from(_: Error<'a, T>) -> Self {
+//         SVMError::ParsingError
+//     }
+// }
+
+impl<'a> From<pest::Error<'a, crate::parser::Rule>> for SVMError {
+    fn from(e: pest::Error<'a, crate::parser::Rule>) -> Self {
+        SVMError::ParsingError(format!("{}", e))
     }
 }
 
 impl From<NoneError> for SVMError {
     fn from(_: NoneError) -> Self {
-        SVMError::ParsingError
+        SVMError::ParsingError("NoneError".to_owned())
     }
 }
 
 impl From<ParseFloatError> for SVMError {
     fn from(_: ParseFloatError) -> Self {
-        SVMError::ParsingError
+        SVMError::ParsingError("ParseFloatError".to_owned())
     }
 }
 
 impl From<ParseIntError> for SVMError {
     fn from(_: ParseIntError) -> Self {
-        SVMError::ParsingError
+        SVMError::ParsingError("ParseIntError".to_owned())
     }
 }

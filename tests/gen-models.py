@@ -9,7 +9,7 @@ problemfile = "problem.in"
 
 svm_types = {"csvm": "0", "nusvm": "1"}
 kernel_types = {"linear": "0", "rbf": "2"}
-probabilities = {"-prob": "1", "": "0"}
+probabilities = {"_prob": "1", "": "0"}
 
 CLASSES = 8
 SAMPLES_PER_CLASS = 4
@@ -22,7 +22,7 @@ for svm_type in svm_types.keys():
             t = kernel_types[kernel_type]
             b = probabilities[probablity]
 
-            modelfile = f"m-{svm_type}-{kernel_type}{probablity}.libsvm"
+            modelfile = f"m_{svm_type}_{kernel_type}{probablity}.libsvm"
             predictionfile = f"{modelfile}-predicted"
 
             subprocess.run([svm_train, "-s", s, "-t",

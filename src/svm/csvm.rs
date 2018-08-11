@@ -278,11 +278,11 @@ impl RandomSVM for CSVM {
     }
 }
 
-impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for CSVM {
+impl<'a, 'b> TryFrom<&'a str> for CSVM {
     type Error = SVMError;
 
-    /// Creates a SVM from the given raw model.
-    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<CSVM, SVMError> {
+    fn try_from(input: &'a str) -> Result<CSVM, SVMError> {
+        let raw_model = ModelFile::try_from(input)?;
         let header = &raw_model.header;
         let vectors = &raw_model.vectors;
 
@@ -309,8 +309,8 @@ impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for CSVM {
         };
 
         let kernel: Box<dyn Kernel> = match raw_model.header.kernel_type {
-            "rbf" => Box::new(Rbf::try_from(raw_model)?),
-            "linear" => Box::new(Linear::from(raw_model)),
+            "rbf" => Box::new(Rbf::try_from(&raw_model)?),
+            "linear" => Box::new(Linear::from(&raw_model)),
             _ => unimplemented!(),
         };
 
