@@ -3,6 +3,7 @@ crate mod kernel;
 crate mod predict;
 crate mod problem;
 
+use simd_aligned::f64s;
 use std::convert::TryFrom;
 
 use crate::{
@@ -167,7 +168,7 @@ impl SVM {
     }
 
     /// Based on kernel values, computes the decision values for this problem.
-    crate fn compute_decision_values(&self, problem: &mut Problem) {
+    crate fn compute_classification_values(&self, problem: &mut Problem) {
         // Reset all votes
         set_all(&mut problem.vote, 0);
 
@@ -208,6 +209,18 @@ impl SVM {
                 problem.vote[index_to_vote] += 1;
             }
         }
+    }
+
+    /// Based on kernel values, computes the decision values for this problem.
+    crate fn compute_regression_values(&self, problem: &mut Problem) {
+        let class = &self.classes[0];
+        let coef = class.coefficients.row(0);
+        let kvalues = problem.kernel_values.row(0);
+
+        let mut sum = coef.iter().zip(kvalues).map(|(a, b)| (*a * *b).sum()).sum::<f64>();
+
+        sum -= self.rho[0];
+        problem.result = SVMResult::Value(sum as f32);
     }
 
     /// Finds the class index for a given label.
@@ -318,7 +331,7 @@ impl Predict for SVM {
             SVMType::CSvc | SVMType::NuSvc => {
                 // Compute kernel, decision values and eventually the label
                 self.compute_kernel_values(problem);
-                self.compute_decision_values(problem);
+                self.compute_classification_values(problem);
 
                 // Compute highest vote
                 let highest_vote = find_max_index(&problem.vote);
@@ -328,17 +341,7 @@ impl Predict for SVM {
             }
             SVMType::ESvr => {
                 self.compute_kernel_values(problem);
-                let mut sum = 0.0;
-                let class = &self.classes[0];
-                let coef = class.coefficients.row_as_flat(0);
-                let xxx = problem.kernel_values.row_as_flat(0);
-
-                for i in 0 .. self.num_total_sv {
-                    sum += coef[i] * xxx[i];
-                }
-
-                sum -= self.rho[0];
-                problem.result = SVMResult::Value(sum as f32);
+                self.compute_regression_values(problem);
                 //         		double *sv_coef = model->sv_coef[0];
                 // double sum = 0;
                 // for(i=0;i<model->l;i++)
