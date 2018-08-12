@@ -88,4 +88,4 @@ Performance milestones during development.
 [crates.io]: https://crates.io/crates/ffsvm
 [MIT]: https://img.shields.io/badge/license-MIT-blue.svg
 [docs]: https://docs.rs/ffsvm/badge.svg
-[docs.rs]: https://docs.rs/ffsvm/
+[docs.rs]: https://docs.rs/crate/ffsvm/
