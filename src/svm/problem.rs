@@ -25,7 +25,7 @@ pub enum SVMResult {
 /// let mut problem = Problem::from(&svm); 
 /// ```
 ///
-/// # Classifiying a problem
+/// # Classifying a problem
 ///
 /// A problem is an instance of the SVM's problem domain. To be classified, all `features` need
 /// to be set, for example by:

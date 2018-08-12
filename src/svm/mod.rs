@@ -58,7 +58,7 @@ pub struct SVM {
 
     crate probabilities: Option<Probabilities>,
 
-    crate svmtype: SVMType,
+    crate svm_type: SVMType,
 
     /// SVM specific data needed for classification
     crate kernel: Box<dyn Kernel>,
@@ -265,7 +265,7 @@ impl SVM {
 
 impl Predict for SVM {
     fn predict_probability(&self, problem: &mut Problem) -> Result<(), SVMError> {
-        match self.svmtype {
+        match self.svm_type {
             SVMType::CSvc | SVMType::NuSvc => {
                 const MIN_PROB: f64 = 1e-7;
 
@@ -308,13 +308,13 @@ impl Predict for SVM {
 
                 Ok(())
             }
-            _ => unimplemented!(),
+            SVMType::ESvr => self.predict_value(problem),
         }
     }
 
     // Predict the value for one problem.
     fn predict_value(&self, problem: &mut Problem) -> Result<(), SVMError> {
-        match self.svmtype {
+        match self.svm_type {
             SVMType::CSvc | SVMType::NuSvc => {
                 // Compute kernel, decision values and eventually the label
                 self.compute_kernel_values(problem);
@@ -326,7 +326,19 @@ impl Predict for SVM {
 
                 Ok(())
             }
-            SVMType::NuSvc => {
+            SVMType::ESvr => {
+                self.compute_kernel_values(problem);
+                let mut sum = 0.0;
+                let class = &self.classes[0];
+                let coef = class.coefficients.row_as_flat(0);
+                let xxx = problem.kernel_values.row_as_flat(0);
+
+                for i in 0 .. self.num_total_sv {
+                    sum += coef[i] * xxx[i];
+                }
+
+                sum -= self.rho[0];
+                problem.result = SVMResult::Value(sum as f32);
                 //         		double *sv_coef = model->sv_coef[0];
                 // double sum = 0;
                 // for(i=0;i<model->l;i++)
@@ -340,13 +352,12 @@ impl Predict for SVM {
                 // 	return sum;
                 Ok(())
             }
-            _ => unimplemented!(),
         }
     }
 }
 
 impl RandomSVM for SVM {
-    fn random<K>(svmtype: SVMType, num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self
+    fn random<K>(svm_type: SVMType, num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self
     where
         K: Kernel + Random + 'static,
     {
@@ -361,7 +372,7 @@ impl RandomSVM for SVM {
             rho: Triangular::with_dimension(num_classes, Default::default()),
             kernel: Box::new(K::new_random()),
             probabilities: None,
-            svmtype,
+            svm_type,
             classes,
         }
     }
@@ -381,24 +392,13 @@ impl<'a, 'b> TryFrom<&'a str> for SVM {
 
         // Get basic info
         let num_attributes = vectors[0].features.len();
-        let num_classes = header.nr_class as usize;
         let num_total_sv = header.total_sv as usize;
 
-        // Construct vector of classes
-        let classes = (0 .. num_classes)
-            .map(|class| {
-                let label = header.label[class];
-                let num_sv = header.nr_sv[class] as usize;
-                Class::with_parameters(num_classes, num_sv, num_attributes, label)
-            }).collect::<Vec<Class>>();
-
-        let probabilities = match (&raw_model.header.prob_a, &raw_model.header.prob_b) {
-            (&Some(ref a), &Some(ref b)) => Some(Probabilities {
-                a: Triangular::from(a),
-                b: Triangular::from(b),
-            }),
-
-            (_, _) => None,
+        let svm_type = match raw_model.header.svm_type {
+            "c_svc" => SVMType::CSvc,
+            "nu_svc" => SVMType::NuSvc,
+            "epsilon_svr" => SVMType::ESvr,
+            _ => unimplemented!(),
         };
 
         let kernel: Box<dyn Kernel> = match raw_model.header.kernel_type {
@@ -409,11 +409,53 @@ impl<'a, 'b> TryFrom<&'a str> for SVM {
             _ => unimplemented!(),
         };
 
-        let svmtype = match raw_model.header.svm_type {
-            "c_svc" => SVMType::CSvc,
-            "nu_svc" => SVMType::NuSvc,
-            "epsilon_svr" => SVMType::ESvr,
-            _ => unimplemented!(),
+        let num_classes = match svm_type {
+            SVMType::CSvc | SVMType::NuSvc => header.nr_class as usize,
+            // For SVRs we set number of classes to 1, since that resonates better
+            // with our internal handling
+            SVMType::ESvr => 1,
+        };
+
+        let nr_sv = match svm_type {
+            SVMType::CSvc | SVMType::NuSvc => header.nr_sv.clone(),
+            // For SVRs we set number of classes to 1, since that resonates better
+            // with our internal handling
+            SVMType::ESvr => vec![num_total_sv as u32],
+        };
+
+        // svm_type epsilon_svr
+        // kernel_type linear
+        // nr_class 2
+        // total_sv 29
+        // rho -0.368636
+        // probA 0.28447
+        // SV
+
+        // Construct vector of classes
+        let classes = match svm_type {
+            // TODO: CLEAN THIS UP ... We can probably unify the logic
+            SVMType::CSvc | SVMType::NuSvc => (0 .. num_classes)
+                .map(|c| {
+                    let label = header.label[c];
+                    let num_sv = nr_sv[c] as usize;
+                    Class::with_parameters(num_classes, num_sv, num_attributes, label)
+                }).collect::<Vec<Class>>(),
+            SVMType::ESvr => vec![Class::with_parameters(2, num_total_sv, num_attributes, 0)],
+        };
+
+        let probabilities = match (&raw_model.header.prob_a, &raw_model.header.prob_b) {
+            // Regular case for classification with probabilities
+            (&Some(ref a), &Some(ref b)) => Some(Probabilities {
+                a: Triangular::from(a),
+                b: Triangular::from(b),
+            }),
+            // For SVRs only one probability array is given
+            (&Some(ref a), None) => Some(Probabilities {
+                a: Triangular::from(a),
+                b: Triangular::with_dimension(0, 0.0),
+            }),
+            // Regular case for classification w/o probabilities
+            (_, _) => None,
         };
 
         // Allocate model
@@ -422,7 +464,7 @@ impl<'a, 'b> TryFrom<&'a str> for SVM {
             num_attributes,
             probabilities,
             kernel,
-            svmtype,
+            svm_type,
             rho: Triangular::from(&header.rho),
             classes,
         };
@@ -434,8 +476,8 @@ impl<'a, 'b> TryFrom<&'a str> for SVM {
 
         // In the raw file, support vectors are grouped by class
         for i in 0 .. num_classes {
-            let num_sv_per_class = &header.nr_sv[i];
-            let stop_offset = start_offset + *num_sv_per_class as usize;
+            let num_sv_per_class = nr_sv[i];
+            let stop_offset = start_offset + num_sv_per_class as usize;
 
             // Set support vector and coefficients
             for (i_vector, vector) in vectors[start_offset .. stop_offset].iter().enumerate() {

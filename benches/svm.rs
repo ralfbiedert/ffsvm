@@ -10,11 +10,11 @@ mod svm {
 
     /// Produces a test case run for benchmarking
     #[allow(dead_code)]
-    fn produce_testcase<K>(svmtype: SVMType, num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> impl FnMut()
+    fn produce_testcase<K>(svm_type: SVMType, num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> impl FnMut()
     where
         K: Kernel + Random + 'static,
     {
-        let mut svm = SVM::random::<K>(svmtype, num_classes, num_sv_per_class, num_attributes);
+        let mut svm = SVM::random::<K>(svm_type, num_classes, num_sv_per_class, num_attributes);
         let mut problem = Problem::from(&svm).randomize();
 
         move || (&mut svm).predict_value(&mut problem).expect("This should work")

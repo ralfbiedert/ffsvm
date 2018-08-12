@@ -32,7 +32,11 @@ where
 {
     /// Creates a triangular with the given dimension.
     pub fn with_dimension(dimension: usize, default: T) -> Triangular<T> {
-        let len = (dimension * (dimension - 1)) / 2;
+        let len = match dimension {
+            0 => 0,
+            _ => (dimension * (dimension - 1)) / 2,
+        };
+
         Triangular {
             dimension,
             data: vec![default; len],
@@ -118,6 +122,15 @@ where
     }
 }
 
+impl<T> Index<usize> for Triangular<T>
+where
+    T: Copy + Sized,
+{
+    type Output = T;
+
+    fn index(&self, index: usize) -> &T { &self.data[index] }
+}
+
 impl<T> IndexMut<(usize, usize)> for Triangular<T>
 where
     T: Copy + Sized,
@@ -132,9 +145,7 @@ impl<T> fmt::Debug for Triangular<T>
 where
     T: Copy + Sized,
 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "(Triangular {}, [data])", self.dimension)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "(Triangular {}, [data])", self.dimension) }
 }
 
 #[cfg(test)]
