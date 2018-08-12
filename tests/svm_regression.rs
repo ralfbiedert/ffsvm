@@ -1,8 +1,14 @@
 #![feature(test)]
 #![feature(try_from)]
 
-extern crate ffsvm;
-extern crate test;
+use ffsvm::SVMResult;
+
+fn similar(a: SVMResult, b: SVMResult) -> bool {
+    match (a, b) {
+        (SVMResult::Value(a), SVMResult::Value(b)) => (a - b).abs() < 0.001 * ((a + b) / 2.0),
+        _ => false,
+    }
+}
 
 macro_rules! test_model {
     ($name:ident, $file:expr, $prob:expr, $libsvm:expr, $libsvm_prob:expr) => {
@@ -38,15 +44,15 @@ macro_rules! test_model {
             svm.predict_value(&mut problem_0)?;
             svm.predict_value(&mut problem_7)?;
 
-            // assert!(problem_0.label(), $libsvm[0], "predict_value(problem_0)");
-            // assert!(problem_7.label(), $libsvm[1], "predict_value(problem_7)");
+            assert!(similar(problem_0.result(), SVMResult::Value($libsvm[0])));
+            assert!(similar(problem_7.result(), SVMResult::Value($libsvm[1])));
 
             if $prob {
                 svm.predict_probability(&mut problem_0)?;
                 svm.predict_probability(&mut problem_7)?;
 
-                // assert!(problem_0.label(), $libsvm_prob[0], "predict_probability(problem_0)");
-                // assert!(problem_7.label(), $libsvm_prob[1], "predict_probability(problem_7)");
+                assert!(similar(problem_0.result(), SVMResult::Value($libsvm_prob[0])));
+                assert!(similar(problem_7.result(), SVMResult::Value($libsvm_prob[1])));
             }
 
             Ok(())
@@ -56,7 +62,8 @@ macro_rules! test_model {
 
 #[cfg(test)]
 mod svm_regression {
-    use ffsvm::{Predict, Problem, SVMError, SVM};
+    use super::similar;
+    use ffsvm::{Predict, Problem, SVMError, SVMResult, SVM};
     use std::convert::TryFrom;
 
     // E-SVR
