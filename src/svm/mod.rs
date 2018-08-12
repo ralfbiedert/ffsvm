@@ -418,14 +418,6 @@ impl<'a, 'b> TryFrom<&'a str> for SVM {
             SVMType::ESvr | SVMType::NuSvr => vec![num_total_sv as u32],
         };
 
-        // svm_type epsilon_svr
-        // kernel_type linear
-        // nr_class 2
-        // total_sv 29
-        // rho -0.368636
-        // probA 0.28447
-        // SV
-
         // Construct vector of classes
         let classes = match svm_type {
             // TODO: CLEAN THIS UP ... We can probably unify the logic
