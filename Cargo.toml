@@ -3,7 +3,7 @@ cargo-features = ["edition"]
 [package]
 name = "ffsvm"
 description="A libSVM compatible support vector machine (RBF), but up to 10x faster, for games or VR."
-version = "0.5.0"
+version = "0.6.0"
 repository = "https://github.com/ralfbiedert/ffsvm-rust"
 authors = ["Ralf Biedert <rb@xr.io>"]
 readme = "README.md"
