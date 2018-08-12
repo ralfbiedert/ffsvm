@@ -11,13 +11,13 @@ You trained a non-sparse SVM using [libSVM](https://github.com/cjlin1/libsvm), n
 
 # Highlights
 
-* can load most non-sparse [libSVM](https://github.com/cjlin1/libsvm) type (C-SVC, nu-SVC, epsilor-SVR, nu-SVR) and kernels (linear, poly, RBF and sigmoid)
+* loads non-sparse [libSVM](https://github.com/cjlin1/libsvm) types (C-SVC, nu-SVC, epsilor-SVR, nu-SVR) and kernels (linear, poly, RBF and sigmoid)
 * Produces practically same classification results as libSVM
 * optimized for [SIMD](https://github.com/rust-lang/rfcs/pull/2366) and can be mixed seamlessly with [Rayon](https://github.com/rayon-rs/rayon).
 * allocation-free during classification
 * written in 100% Rust, but can be loaded from any language (via FFI)
 * 2.5x - 14x faster than libSVM,
-* extremely low & predictable classification times (nano-seconds) for small models (e.g., 128 SV, 16 attributes, linear kernel ~ 500ns)
+* extremely low classification times for small models (e.g., 128 SV, 16 attributes, linear kernel ~ 500ns)
 * Successfully used in Unity and VR projects (Windows & Android)
 * Free of `unsafe` code ;)
 
