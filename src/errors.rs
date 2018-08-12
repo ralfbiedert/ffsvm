@@ -3,8 +3,6 @@ use std::{
     option::NoneError,
 };
 
-use pest::Error;
-
 /// Possible error types when classifying with a [SVM].
 #[derive(Debug)]
 pub enum SVMError {

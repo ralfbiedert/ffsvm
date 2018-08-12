@@ -1,7 +1,4 @@
-use std::{
-    convert::TryFrom,
-    str::{self, FromStr},
-};
+use std::{convert::TryFrom, str};
 
 use pest::Parser;
 use pest_derive::Parser;

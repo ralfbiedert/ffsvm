@@ -5,17 +5,20 @@
 
 # In One Sentence
 
-You trained a non-sparse RBF-C-SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want the highest possible performance during (real-time) classification, like games or VR.
+You trained a non-sparse SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want the highest possible performance during (real-time) classification, like games or VR.
 
 
 
 # Highlights
 
-* can load trained [libSVM](https://github.com/cjlin1/libsvm) models (currently  RBF-SVM without sparse attributes)
+* can load most non-sparse [libSVM](https://github.com/cjlin1/libsvm) type (C-SVC, nu-SVC, epsilor-SVR, nu-SVR) and kernels (linear, poly, RBF and sigmoid)
+* Produces practically same classification results as libSVM
 * optimized for [SIMD](https://github.com/rust-lang/rfcs/pull/2366) and can be mixed seamlessly with [Rayon](https://github.com/rayon-rs/rayon).
 * allocation-free during classification
 * written in 100% Rust, but can be loaded from any language (via FFI)
-* 2.5x - 14x faster than libSVM
+* 2.5x - 14x faster than libSVM,
+* extremely low & predictable classification times (nano-seconds) for small models (e.g., 128 SV, 16 attributes, linear kernel ~ 500ns)
+* Successfully used in Unity and VR projects (Windows & Android)
 * Free of `unsafe` code ;)
 
 
@@ -27,14 +30,14 @@ From Rust:
 
 ```rust
 // Load model file / SVM.
-let model_str: &str = include_str!("model.libsvm");
-let model = ModelFile::try_from(model_str)?;
-let svm = RbfSVM::try_from(&model)?;
+let model: &str = include_str!("model.libsvm");
+let svm = SVM::try_from(&model)?;
 
 // Produce problem we want to classify.
 let mut problem = Problem::from(&svm);
 
-// Set features
+// Set features. You can also re-use this `Problem` later. If you do
+// no further allocations happen beyond this point.
 problem.features_mut().clone_from_slice(&[
     0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.0, 0.0, 1.0, 0.1137485,
 ]);
@@ -43,7 +46,7 @@ problem.features_mut().clone_from_slice(&[
 svm.predict_value(&mut problem);
 
 // Results should match libSVM
-assert_eq!(42, problem.label);
+assert_eq!(SVMResult::Label(42), problem.label());
 ```
 
 From C / FFI:

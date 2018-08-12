@@ -3,7 +3,6 @@ crate mod kernel;
 crate mod predict;
 crate mod problem;
 
-use simd_aligned::f64s;
 use std::convert::TryFrom;
 
 use crate::{
@@ -221,6 +220,7 @@ impl SVM {
         let mut sum = coef.iter().zip(kvalues).map(|(a, b)| (*a * *b).sum()).sum::<f64>();
 
         sum -= self.rho[0];
+
         problem.result = SVMResult::Value(sum as f32);
     }
 
@@ -322,6 +322,7 @@ impl Predict for SVM {
 
                 Ok(())
             }
+            // This fallback behavior is mandated by `libSVM`.
             SVMType::ESvr | SVMType::NuSvr => self.predict_value(problem),
         }
     }
@@ -469,9 +470,8 @@ impl<'a, 'b> TryFrom<&'a str> for SVM {
         let mut start_offset = 0;
 
         // In the raw file, support vectors are grouped by class
-        for i in 0 .. num_classes {
-            let num_sv_per_class = nr_sv[i];
-            let stop_offset = start_offset + num_sv_per_class as usize;
+        for (i, num_sv_per_class) in nr_sv.iter().enumerate() {
+            let stop_offset = start_offset + *num_sv_per_class as usize;
 
             // Set support vector and coefficients
             for (i_vector, vector) in vectors[start_offset .. stop_offset].iter().enumerate() {
