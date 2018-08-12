@@ -7,7 +7,7 @@ svm_train = "/usr/local/bin/svm-train"
 svm_predict = "/usr/local/bin/svm-predict"
 problemfile = "data/problem.in"
 
-svm_types = {"csvm": "0", "nusvm": "1", "e_svr": "3"}
+svm_types = {"csvm": "0", "nusvm": "1", "e_svr": "3", "nu_svr": "4"}
 kernel_types = {"linear": "0", "poly": "1", "rbf": "2", "sigmoid": "3"}
 probabilities = {"_prob": "1", "": "0"}
 

@@ -32,6 +32,7 @@ pub enum SVMType {
     CSvc,
     NuSvc,
     ESvr,
+    NuSvr,
 }
 
 /// Generic support vector machine, template for [RbfSVM].
@@ -321,7 +322,7 @@ impl Predict for SVM {
 
                 Ok(())
             }
-            SVMType::ESvr => self.predict_value(problem),
+            SVMType::ESvr | SVMType::NuSvr => self.predict_value(problem),
         }
     }
 
@@ -339,20 +340,9 @@ impl Predict for SVM {
 
                 Ok(())
             }
-            SVMType::ESvr => {
+            SVMType::ESvr | SVMType::NuSvr => {
                 self.compute_kernel_values(problem);
                 self.compute_regression_values(problem);
-                //         		double *sv_coef = model->sv_coef[0];
-                // double sum = 0;
-                // for(i=0;i<model->l;i++)
-                // 	sum += sv_coef[i] * Kernel::k_function(x,model->SV[i],model->param);
-                // sum -= model->rho[0];
-                // *dec_values = sum;
-
-                // if(model->param.svm_type == ONE_CLASS)
-                // 	return (sum>0)?1:-1;
-                // else
-                // 	return sum;
                 Ok(())
             }
         }
@@ -401,6 +391,7 @@ impl<'a, 'b> TryFrom<&'a str> for SVM {
             "c_svc" => SVMType::CSvc,
             "nu_svc" => SVMType::NuSvc,
             "epsilon_svr" => SVMType::ESvr,
+            "nu_svr" => SVMType::NuSvr,
             _ => unimplemented!(),
         };
 
@@ -416,14 +407,14 @@ impl<'a, 'b> TryFrom<&'a str> for SVM {
             SVMType::CSvc | SVMType::NuSvc => header.nr_class as usize,
             // For SVRs we set number of classes to 1, since that resonates better
             // with our internal handling
-            SVMType::ESvr => 1,
+            SVMType::ESvr | SVMType::NuSvr => 1,
         };
 
         let nr_sv = match svm_type {
             SVMType::CSvc | SVMType::NuSvc => header.nr_sv.clone(),
             // For SVRs we set number of classes to 1, since that resonates better
             // with our internal handling
-            SVMType::ESvr => vec![num_total_sv as u32],
+            SVMType::ESvr | SVMType::NuSvr => vec![num_total_sv as u32],
         };
 
         // svm_type epsilon_svr
@@ -443,7 +434,7 @@ impl<'a, 'b> TryFrom<&'a str> for SVM {
                     let num_sv = nr_sv[c] as usize;
                     Class::with_parameters(num_classes, num_sv, num_attributes, label)
                 }).collect::<Vec<Class>>(),
-            SVMType::ESvr => vec![Class::with_parameters(2, num_total_sv, num_attributes, 0)],
+            SVMType::ESvr | SVMType::NuSvr => vec![Class::with_parameters(2, num_total_sv, num_attributes, 0)],
         };
 
         let probabilities = match (&raw_model.header.prob_a, &raw_model.header.prob_b) {
