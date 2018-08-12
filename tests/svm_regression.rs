@@ -68,11 +68,14 @@ mod svm_regression {
 
     // E-SVR
 
-    test_model!(
-        m_e_svr_linear_prob,
-        "m_e_svr_linear_prob.libsvm",
-        true,
-        [0.369232, 7.1004],
-        [0.369232, 7.1004]
-    );
+    test_model!(m_e_svr_linear_prob, "m_e_svr_linear_prob.libsvm", true, [0.369232, 7.1004], [0.369232, 7.1004]);
+    test_model!(m_e_svr_poly_prob, "m_e_svr_poly_prob.libsvm", true, [2.71936, 6.89966], [2.71936, 6.89966]);
+    test_model!(m_e_svr_rbf_prob, "m_e_svr_rbf_prob.libsvm", true, [0.581717, 6.39637], [0.581717, 6.39637]);
+    test_model!(m_e_svr_sigmoid_prob, "m_e_svr_sigmoid_prob.libsvm", true, [0.0267491, 5.26548], [0.0267491, 5.26548]);
+
+    test_model!(m_e_svr_linear, "m_e_svr_linear.libsvm", false, [0.369232, 7.1004], []);
+    test_model!(m_e_svr_poly, "m_e_svr_poly.libsvm", false, [2.71936, 6.89966], []);
+    test_model!(m_e_svr_rbf, "m_e_svr_rbf.libsvm", false, [0.581717, 6.39637], []);
+    test_model!(m_e_svr_sigmoid, "m_e_svr_sigmoid.libsvm", false, [0.0267491, 5.26548], []);
+
 }
