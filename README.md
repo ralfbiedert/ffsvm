@@ -5,19 +5,19 @@
 
 # In One Sentence
 
-You trained a non-sparse SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want the highest possible performance during (real-time) classification, like games or VR.
+You trained a SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want the highest possible performance during (real-time) classification, like games or VR.
 
 
 
 # Highlights
 
-* loads non-sparse [libSVM](https://github.com/cjlin1/libsvm) types (C-SVC, nu-SVC, epsilor-SVR, nu-SVR) and kernels (linear, poly, RBF and sigmoid)
+* loads almost all [libSVM](https://github.com/cjlin1/libsvm) types (C-SVC, ν-SVC, ε-SVR,  ν-SVR) and kernels (linear, poly, RBF and sigmoid)
 * Produces practically same classification results as libSVM
 * optimized for [SIMD](https://github.com/rust-lang/rfcs/pull/2366) and can be mixed seamlessly with [Rayon](https://github.com/rayon-rs/rayon).
 * allocation-free during classification
 * written in 100% Rust, but can be loaded from any language (via FFI)
-* 2.5x - 14x faster than libSVM,
-* extremely low classification times for small models (e.g., 128 SV, 16 attributes, linear kernel ~ 500ns)
+* 2.5x - 14x faster than libSVM for dense models,
+* extremely low classification times for small models (e.g., 128 SV, 16 dense attributes, linear ~ 500ns)
 * Successfully used in Unity and VR projects (Windows & Android)
 * Free of `unsafe` code ;)
 
@@ -73,13 +73,16 @@ Classification time vs. libSVM.
 
 Performance milestones during development.
 
+All performance numbers for the `DenseSVM`. We also have support for `SparseSVM`s, which are slower for "mostly dense" models, and faster for "mostly sparse" models.
+
+
 [See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/performance.adoc)
 
 
 
 # FAQ
 
-[See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/FAQ.adoc)
+[See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/FAQ.md)
 
 
 [travis]: https://travis-ci.org/ralfbiedert/ffsvm-rust

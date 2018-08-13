@@ -44,7 +44,7 @@ impl SVMCore<KernelSparse, SparseMatrix<f64>, SparseMatrix<f32>, SparseVector<f3
         let qp = &mut problem.qp;
         let eps = 0.005 / num_classes as f64; // Magic number .005 comes from libSVM.
         let pairwise = problem.pairwise.flat();
-        let probabilities = problem.probabilities.flat_mut();
+        let probabilities = problem.probabilities;
 
         // We first build up matrix Q as defined in (14) in the paper above. Q should have
         // the property of being a transition matrix for a Markov Chain.
