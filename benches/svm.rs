@@ -5,7 +5,7 @@ extern crate test;
 
 mod svm {
 
-    use ffsvm::{KernelDense, Linear, Poly, Predict, Problem, Random, RandomSVM, Randomize, Rbf, SVMType, Sigmoid, SVM};
+    use ffsvm::{DenseSVM, KernelDense, Linear, Poly, Predict, Problem, Random, RandomSVM, Randomize, Rbf, SVMType, Sigmoid, SVM};
     use test::Bencher;
 
     /// Produces a test case run for benchmarking
@@ -14,7 +14,7 @@ mod svm {
     where
         K: KernelDense + Random + 'static,
     {
-        let mut svm = SVM::random::<K>(svm_type, num_classes, num_sv_per_class, num_attributes);
+        let mut svm = DenseSVM::random::<K>(svm_type, num_classes, num_sv_per_class, num_attributes);
         let mut problem = Problem::from(&svm).randomize();
 
         move || (&mut svm).predict_value(&mut problem).expect("This should work")

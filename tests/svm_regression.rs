@@ -15,7 +15,7 @@ macro_rules! test_model {
         #[test]
         fn $name() -> Result<(), SVMError> {
             let model = include_str!(concat!("data/", $file));
-            let svm = SVM::try_from(model)?;
+            let svm = DenseSVM::try_from(model)?;
 
             let mut problem_0 = Problem::from(&svm);
             problem_0.features_mut().clone_from_slice(&[
@@ -63,7 +63,7 @@ macro_rules! test_model {
 #[cfg(test)]
 mod svm_regression {
     use super::similar;
-    use ffsvm::{Predict, Problem, SVMError, SVMResult, SVM};
+    use ffsvm::{DenseSVM, Predict, Problem, SVMError, SVMResult};
     use std::convert::TryFrom;
 
     // E-SVR
