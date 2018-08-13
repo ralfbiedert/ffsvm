@@ -5,7 +5,7 @@ extern crate test;
 
 mod svm {
 
-    use ffsvm::{DenseSVM, KernelDense, Linear, Poly, Predict, Problem, Random, RandomSVM, Randomize, Rbf, SVMType, Sigmoid, SVM};
+    use ffsvm::{DenseSVM, KernelDense, Linear, Poly, Predict, Problem, Random, RandomSVM, Randomize, Rbf, SVMType, Sigmoid};
     use test::Bencher;
 
     /// Produces a test case run for benchmarking

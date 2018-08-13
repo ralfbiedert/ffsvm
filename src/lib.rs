@@ -135,6 +135,7 @@
 mod errors;
 mod parser;
 mod random;
+mod sparse;
 mod svm;
 mod util;
 mod vectors;
