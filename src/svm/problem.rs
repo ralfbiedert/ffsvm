@@ -1,4 +1,4 @@
-use crate::{random::Randomize, svm::SVM, vectors::Triangular};
+use crate::{random::Randomize, svm::core::SVMCore, vectors::Triangular};
 
 use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 
@@ -94,8 +94,8 @@ impl Problem<SimdVector<f32s>, SimdVector<f64s>> {
     pub fn probabilities_mut(&mut self) -> &mut [f64] { self.probabilities.flat_mut() }
 }
 
-impl<'a> From<&'a SVM<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>> for Problem<SimdVector<f32s>, SimdVector<f64s>> {
-    fn from(svm: &SVM<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>) -> Self {
+impl<'a> From<&'a SVMCore<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>> for Problem<SimdVector<f32s>, SimdVector<f64s>> {
+    fn from(svm: &SVMCore<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>) -> Self {
         Problem::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes)
     }
 }
