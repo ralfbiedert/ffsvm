@@ -1,4 +1,5 @@
 mod dense;
+mod sparse;
 
 use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 use std::{convert::TryFrom, marker::PhantomData};
@@ -32,7 +33,10 @@ use crate::{
 /// let svm = RbfSVM::try_from(&model)!;
 /// ```
 ///
-pub struct SVMCore<M64, M32, V32, V64> {
+pub struct SVMCore<K, M64, M32, V32, V64>
+where
+    K: ?Sized,
+{
     /// Total number of support vectors
     crate num_total_sv: usize,
 
@@ -46,7 +50,7 @@ pub struct SVMCore<M64, M32, V32, V64> {
     crate svm_type: SVMType,
 
     /// SVM specific data needed for classification
-    crate kernel: Box<dyn KernelDense>,
+    crate kernel: Box<K>,
 
     /// All classes
     crate classes: Vec<Class<M32, M64>>,
@@ -56,7 +60,7 @@ pub struct SVMCore<M64, M32, V32, V64> {
     phantomV64: PhantomData<V64>,
 }
 
-impl<M64, M32, V32, V64> SVMCore<M64, M32, V32, V64> {
+impl<K, M64, M32, V32, V64> SVMCore<K, M64, M32, V32, V64> {
     /// Finds the class index for a given label.
     ///
     /// # Description

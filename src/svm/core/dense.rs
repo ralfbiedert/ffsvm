@@ -17,7 +17,7 @@ use crate::{
     vectors::Triangular,
 };
 
-impl SVMCore<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
+impl SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
     /// Computes the kernel values for this problem
     crate fn compute_kernel_values(&self, problem: &mut Problem<SimdVector<f32s>, SimdVector<f64s>>) {
         // Get current problem and decision values array
@@ -175,7 +175,7 @@ impl SVMCore<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, Sim
     }
 }
 
-impl Predict<SimdVector<f32s>, SimdVector<f64s>> for SVMCore<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
+impl Predict<SimdVector<f32s>, SimdVector<f64s>> for SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
     fn predict_probability(&self, problem: &mut Problem<SimdVector<f32s>, SimdVector<f64s>>) -> Result<(), SVMError> {
         match self.svm_type {
             SVMType::CSvc | SVMType::NuSvc => {
@@ -250,10 +250,10 @@ impl Predict<SimdVector<f32s>, SimdVector<f64s>> for SVMCore<SimdMatrix<f64s, Ro
     }
 }
 
-impl RandomSVM for SVMCore<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
+impl RandomSVM for SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
     fn random<K>(svm_type: SVMType, num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self
     where
-        K: KernelDense + Random + 'static,
+        K: Random + 'static,
     {
         let num_total_sv = num_classes * num_sv_per_class;
         let classes = (0 .. num_classes)
@@ -274,10 +274,10 @@ impl RandomSVM for SVMCore<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowO
     }
 }
 
-impl<'a, 'b> TryFrom<&'a str> for SVMCore<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
+impl<'a, 'b> TryFrom<&'a str> for SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
     type Error = SVMError;
 
-    fn try_from(input: &'a str) -> Result<SVMCore<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>, SVMError> {
+    fn try_from(input: &'a str) -> Result<SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>, SVMError> {
         let raw_model = ModelFile::try_from(input)?;
 
         // To quickly check what broke again during parsing ...

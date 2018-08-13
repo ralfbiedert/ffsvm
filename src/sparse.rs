@@ -1,12 +1,35 @@
-struct Entry<T> {
-    key: u32,
-    value: T,
+use std::collections::BTreeMap;
+
+#[derive(Clone)]
+crate struct SparseVector<T>
+where
+    T: Clone,
+{
+    entries: BTreeMap<u32, T>,
 }
 
-struct SparseVector<T> {
-    entries: Vec<Entry<T>>,
+impl<T> SparseVector<T>
+where
+    T: Clone,
+{
+    fn new() -> Self { SparseVector { entries: BTreeMap::new() } }
 }
 
-struct SparseMatrix<T> {
-    vectors: Vec<Vec<Entry<T>>>,
+#[derive(Clone)]
+crate struct SparseMatrix<T>
+where
+    T: Clone,
+{
+    vectors: Vec<SparseVector<T>>,
+}
+
+impl<T> SparseMatrix<T>
+where
+    T: Clone,
+{
+    fn with(rows: usize) -> Self {
+        SparseMatrix {
+            vectors: vec![SparseVector::new(); rows],
+        }
+    }
 }

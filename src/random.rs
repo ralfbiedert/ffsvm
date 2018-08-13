@@ -21,7 +21,7 @@ pub trait Random {
 pub trait RandomSVM {
     fn random<K>(svm_type: SVMType, num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self
     where
-        K: KernelDense + Random + 'static;
+        K: Random + 'static;
 }
 
 impl<T, O> Randomize for SimdMatrix<T, O>
