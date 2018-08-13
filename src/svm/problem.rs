@@ -1,5 +1,4 @@
 use crate::{
-    random::Randomize,
     svm::{
         core::SVMCore,
         kernel::{KernelDense, KernelSparse},
@@ -106,12 +105,5 @@ impl<'a> From<&'a SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatri
 {
     fn from(svm: &SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>) -> Self {
         Problem::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes)
-    }
-}
-
-impl Randomize for Problem<SimdVector<f32s>, SimdVector<f64s>> {
-    fn randomize(mut self) -> Self {
-        self.features = self.features.randomize();
-        self
     }
 }

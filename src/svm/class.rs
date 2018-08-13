@@ -1,5 +1,3 @@
-use crate::random::Randomize;
-
 use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix};
 
 /// Represents one class of the SVM model.
@@ -28,13 +26,5 @@ impl Class<SimdMatrix<f32s, RowOptimized>, SimdMatrix<f64s, RowOptimized>> {
             coefficients: SimdMatrix::with_dimension(classes - 1, support_vectors),
             support_vectors: SimdMatrix::with_dimension(support_vectors, attributes),
         }
-    }
-}
-
-impl Randomize for Class<SimdMatrix<f32s, RowOptimized>, SimdMatrix<f64s, RowOptimized>> {
-    fn randomize(mut self) -> Self {
-        self.coefficients = self.coefficients.randomize();
-        self.support_vectors = self.support_vectors.randomize();
-        self
     }
 }

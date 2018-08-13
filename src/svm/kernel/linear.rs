@@ -1,7 +1,7 @@
 use std::convert::From;
 
 use super::KernelDense;
-use crate::{parser::ModelFile, random::Random};
+use crate::parser::ModelFile;
 
 use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};
 
@@ -22,10 +22,6 @@ impl KernelDense for Linear {
             output[i] = f64::from(sum.sum());
         }
     }
-}
-
-impl Random for Linear {
-    fn new_random() -> Self { Linear {} }
 }
 
 impl<'a> From<&'a ModelFile<'a>> for Linear {

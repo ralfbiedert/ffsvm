@@ -5,7 +5,6 @@ use std::{convert::TryFrom, marker::PhantomData};
 use crate::{
     errors::SVMError,
     parser::ModelFile,
-    random::*,
     svm::{
         class::Class,
         core::SVMCore,
@@ -247,30 +246,6 @@ impl Predict<SparseVector<f32>, SparseVector<f64>> for SVMCore<KernelSparse, Spa
                 self.compute_regression_values(problem);
                 Ok(())
             }
-        }
-    }
-}
-
-impl RandomSVM for SVMCore<KernelSparse, SparseMatrix<f64>, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>> {
-    fn random<K>(svm_type: SVMType, num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self
-    where
-        K: Random + 'static,
-    {
-        let num_total_sv = num_classes * num_sv_per_class;
-        let classes = (0 .. num_classes)
-            .map(|class| Class::with_parameters(num_classes, num_sv_per_class, num_attributes, class as u32).randomize())
-            .collect::<Vec<Class<SparseMatrix<f32>, SparseMatrix<f64>>>>();
-
-        SVMCore {
-            num_total_sv,
-            num_attributes,
-            rho: Triangular::with_dimension(num_classes, Default::default()),
-            kernel: Box::new(K::new_random()),
-            probabilities: None,
-            svm_type,
-            classes,
-            phantomV32: PhantomData,
-            phantomV64: PhantomData,
         }
     }
 }

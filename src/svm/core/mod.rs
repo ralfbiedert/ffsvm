@@ -7,7 +7,6 @@ use std::{convert::TryFrom, marker::PhantomData};
 use crate::{
     errors::SVMError,
     parser::ModelFile,
-    random::*,
     svm::{
         class::Class,
         kernel::{KernelDense, Linear, Poly, Rbf, Sigmoid},

@@ -134,7 +134,6 @@
 
 mod errors;
 mod parser;
-mod random;
 mod sparse;
 mod svm;
 mod util;
@@ -142,7 +141,6 @@ mod vectors;
 
 pub use crate::{
     errors::SVMError,
-    random::{Random, RandomSVM, Randomize},
     svm::{
         kernel::{KernelDense, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,

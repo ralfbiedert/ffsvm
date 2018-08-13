@@ -1,7 +1,7 @@
 use std::convert::{From, TryFrom};
 
 use super::KernelDense;
-use crate::{errors::SVMError, parser::ModelFile, random::Random};
+use crate::{errors::SVMError, parser::ModelFile};
 
 use rand::random;
 use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};
@@ -30,10 +30,6 @@ impl KernelDense for Rbf {
             output[i] = f64::from((-self.gamma * sum.sum()).exp());
         }
     }
-}
-
-impl Random for Rbf {
-    fn new_random() -> Self { Rbf { gamma: random() } }
 }
 
 impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for Rbf {

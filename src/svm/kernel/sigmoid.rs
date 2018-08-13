@@ -1,7 +1,7 @@
 use std::convert::{From, TryFrom};
 
 use super::KernelDense;
-use crate::{parser::ModelFile, random::Random, SVMError};
+use crate::{parser::ModelFile, SVMError};
 
 use rand::random;
 use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};
@@ -26,10 +26,6 @@ impl KernelDense for Sigmoid {
             output[i] = (f64::from(self.gamma * sum.sum() + self.coef0)).tanh();
         }
     }
-}
-
-impl Random for Sigmoid {
-    fn new_random() -> Self { Sigmoid { gamma: random(), coef0: random() } }
 }
 
 impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for Sigmoid {

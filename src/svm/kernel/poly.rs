@@ -1,7 +1,7 @@
 use std::convert::{From, TryFrom};
 
 use super::KernelDense;
-use crate::{parser::ModelFile, random::Random, SVMError};
+use crate::{parser::ModelFile, SVMError};
 
 use rand::random;
 use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};
@@ -25,16 +25,6 @@ impl KernelDense for Poly {
             }
 
             output[i] = crate::util::powi(f64::from(self.gamma * sum.sum() + self.coef0), self.degree);
-        }
-    }
-}
-
-impl Random for Poly {
-    fn new_random() -> Self {
-        Poly {
-            gamma: random(),
-            coef0: random(),
-            degree: random(),
         }
     }
 }
