@@ -143,7 +143,7 @@ pub use crate::{
     errors::SVMError,
     random::{Random, RandomSVM, Randomize},
     svm::{
-        kernel::{Kernel, Linear, Poly, Rbf, Sigmoid},
+        kernel::{KernelDense, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
         problem::{Problem, SVMResult},
         SVMType, SVM,

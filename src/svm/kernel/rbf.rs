@@ -1,6 +1,6 @@
 use std::convert::{From, TryFrom};
 
-use super::Kernel;
+use super::KernelDense;
 use crate::{errors::SVMError, parser::ModelFile, random::Random};
 
 use rand::random;
@@ -12,13 +12,8 @@ pub struct Rbf {
     pub gamma: f32,
 }
 
-impl Kernel for Rbf {
-    fn compute(
-        &self,
-        vectors: &SimdMatrix<f32s, RowOptimized>,
-        feature: &SimdVector<f32s>,
-        output: &mut [f64],
-    ) {
+impl KernelDense for Rbf {
+    fn compute(&self, vectors: &SimdMatrix<f32s, RowOptimized>, feature: &SimdVector<f32s>, output: &mut [f64]) {
         // According to Instruments, for realistic SVMs and problems, the VAST majority of our
         // CPU time is spent in this loop.
         for (i, sv) in vectors.row_iter().enumerate() {

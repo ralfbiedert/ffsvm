@@ -1,6 +1,6 @@
 use std::convert::{From, TryFrom};
 
-use super::Kernel;
+use super::KernelDense;
 use crate::{parser::ModelFile, random::Random, SVMError};
 
 use rand::random;
@@ -13,7 +13,7 @@ pub struct Sigmoid {
     coef0: f32,
 }
 
-impl Kernel for Sigmoid {
+impl KernelDense for Sigmoid {
     fn compute(&self, vectors: &SimdMatrix<f32s, RowOptimized>, feature: &SimdVector<f32s>, output: &mut [f64]) {
         for (i, sv) in vectors.row_iter().enumerate() {
             let mut sum = f32s::splat(0.0);
@@ -29,12 +29,7 @@ impl Kernel for Sigmoid {
 }
 
 impl Random for Sigmoid {
-    fn new_random() -> Self {
-        Sigmoid {
-            gamma: random(),
-            coef0: random(),
-        }
-    }
+    fn new_random() -> Self { Sigmoid { gamma: random(), coef0: random() } }
 }
 
 impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for Sigmoid {

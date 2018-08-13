@@ -1,6 +1,6 @@
 use std::convert::{From, TryFrom};
 
-use super::Kernel;
+use super::KernelDense;
 use crate::{parser::ModelFile, random::Random, SVMError};
 
 use rand::random;
@@ -14,7 +14,7 @@ pub struct Poly {
     coef0: f32,
 }
 
-impl Kernel for Poly {
+impl KernelDense for Poly {
     fn compute(&self, vectors: &SimdMatrix<f32s, RowOptimized>, feature: &SimdVector<f32s>, output: &mut [f64]) {
         for (i, sv) in vectors.row_iter().enumerate() {
             let mut sum = f32s::splat(0.0);

@@ -3,7 +3,8 @@ crate mod kernel;
 crate mod predict;
 crate mod problem;
 
-use std::convert::TryFrom;
+use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
+use std::{convert::TryFrom, marker::PhantomData};
 
 use crate::{
     errors::SVMError,
@@ -11,7 +12,7 @@ use crate::{
     random::*,
     svm::{
         class::Class,
-        kernel::{Kernel, Linear, Poly, Rbf, Sigmoid},
+        kernel::{KernelDense, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
         problem::{Problem, SVMResult},
     },
@@ -48,7 +49,7 @@ pub enum SVMType {
 /// let svm = RbfSVM::try_from(&model)!;
 /// ```
 ///
-pub struct SVM {
+pub struct SVM<M64, M32, V32, V64> {
     /// Total number of support vectors
     crate num_total_sv: usize,
 
@@ -62,15 +63,19 @@ pub struct SVM {
     crate svm_type: SVMType,
 
     /// SVM specific data needed for classification
-    crate kernel: Box<dyn Kernel>,
+    crate kernel: Box<dyn KernelDense>,
 
     /// All classes
-    crate classes: Vec<Class>,
+    crate classes: Vec<Class<M32, M64>>,
+
+    phantomV32: PhantomData<V32>,
+
+    phantomV64: PhantomData<V64>,
 }
 
-impl SVM {
+impl SVM<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
     /// Computes the kernel values for this problem
-    crate fn compute_kernel_values(&self, problem: &mut Problem) {
+    crate fn compute_kernel_values(&self, problem: &mut Problem<SimdVector<f32s>, SimdVector<f64s>>) {
         // Get current problem and decision values array
         let features = &problem.features;
         let kernel_values = &mut problem.kernel_values;
@@ -88,18 +93,19 @@ impl SVM {
     // based on Method 2 from the paper "Probability Estimates for Multi-class
     // Classification by Pairwise Coupling", Journal of Machine Learning Research 5 (2004) 975-1005,
     // by Ting-Fan Wu, Chih-Jen Lin and Ruby C. Weng.
-    crate fn compute_multiclass_probabilities(&self, problem: &mut Problem) -> Result<(), SVMError> {
+    crate fn compute_multiclass_probabilities(&self, problem: &mut Problem<SimdVector<f32s>, SimdVector<f64s>>) -> Result<(), SVMError> {
         let num_classes = self.classes.len();
         let max_iter = 100.max(num_classes);
         let mut q = problem.q.flat_mut();
         let qp = &mut problem.qp;
         let eps = 0.005 / num_classes as f64; // Magic number .005 comes from libSVM.
         let pairwise = problem.pairwise.flat();
+        let probabilities = problem.probabilities.flat_mut();
 
         // We first build up matrix Q as defined in (14) in the paper above. Q should have
         // the property of being a transition matrix for a Markov Chain.
         for t in 0 .. num_classes {
-            problem.probabilities[t] = 1.0 / num_classes as f64;
+            probabilities[t] = 1.0 / num_classes as f64;
 
             q[(t, t)] = 0.0;
 
@@ -122,10 +128,10 @@ impl SVM {
                 qp[t] = 0.0;
 
                 for j in 0 .. num_classes {
-                    qp[t] += q[(t, j)] * problem.probabilities[j];
+                    qp[t] += q[(t, j)] * probabilities[j];
                 }
 
-                pqp += problem.probabilities[t] * qp[t];
+                pqp += probabilities[t] * qp[t];
             }
 
             // Check if we fulfilled our abort criteria, which seems to be related
@@ -154,12 +160,12 @@ impl SVM {
             for t in 0 .. num_classes {
                 let diff = (-qp[t] + pqp) / q[(t, t)];
 
-                problem.probabilities[t] += diff;
+                probabilities[t] += diff;
                 pqp = (pqp + diff * (diff * q[(t, t)] + 2.0 * qp[t])) / (1.0 + diff) / (1.0 + diff);
 
                 for j in 0 .. num_classes {
                     qp[j] = (qp[j] + diff * q[(t, j)]) / (1.0 + diff);
-                    problem.probabilities[j] /= 1.0 + diff;
+                    probabilities[j] /= 1.0 + diff;
                 }
             }
         }
@@ -168,7 +174,7 @@ impl SVM {
     }
 
     /// Based on kernel values, computes the decision values for this problem.
-    crate fn compute_classification_values(&self, problem: &mut Problem) {
+    crate fn compute_classification_values(&self, problem: &mut Problem<SimdVector<f32s>, SimdVector<f64s>>) {
         // Reset all votes
         set_all(&mut problem.vote, 0);
 
@@ -212,7 +218,7 @@ impl SVM {
     }
 
     /// Based on kernel values, computes the decision values for this problem.
-    crate fn compute_regression_values(&self, problem: &mut Problem) {
+    crate fn compute_regression_values(&self, problem: &mut Problem<SimdVector<f32s>, SimdVector<f64s>>) {
         let class = &self.classes[0];
         let coef = class.coefficients.row(0);
         let kvalues = problem.kernel_values.row(0);
@@ -277,8 +283,8 @@ impl SVM {
     pub fn classes(&self) -> usize { self.classes.len() }
 }
 
-impl Predict for SVM {
-    fn predict_probability(&self, problem: &mut Problem) -> Result<(), SVMError> {
+impl Predict<SimdVector<f32s>, SimdVector<f64s>> for SVM<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
+    fn predict_probability(&self, problem: &mut Problem<SimdVector<f32s>, SimdVector<f64s>>) -> Result<(), SVMError> {
         match self.svm_type {
             SVMType::CSvc | SVMType::NuSvc => {
                 const MIN_PROB: f64 = 1e-7;
@@ -310,14 +316,16 @@ impl Predict for SVM {
                     }
                 }
 
+                let problem_probabilities = problem.probabilities.flat_mut();
+
                 if num_classes == 2 {
-                    problem.probabilities[0] = pairwise[(0, 1)];
-                    problem.probabilities[1] = pairwise[(1, 0)];
+                    problem_probabilities[0] = pairwise[(0, 1)];
+                    problem_probabilities[1] = pairwise[(1, 0)];
                 } else {
                     self.compute_multiclass_probabilities(problem)?;
                 }
 
-                let max_index = find_max_index(problem.probabilities.as_slice());
+                let max_index = find_max_index(problem.probabilities.flat());
                 problem.result = SVMResult::Label(self.classes[max_index].label);
 
                 Ok(())
@@ -328,7 +336,7 @@ impl Predict for SVM {
     }
 
     // Predict the value for one problem.
-    fn predict_value(&self, problem: &mut Problem) -> Result<(), SVMError> {
+    fn predict_value(&self, problem: &mut Problem<SimdVector<f32s>, SimdVector<f64s>>) -> Result<(), SVMError> {
         match self.svm_type {
             SVMType::CSvc | SVMType::NuSvc => {
                 // Compute kernel, decision values and eventually the label
@@ -350,15 +358,15 @@ impl Predict for SVM {
     }
 }
 
-impl RandomSVM for SVM {
+impl RandomSVM for SVM<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
     fn random<K>(svm_type: SVMType, num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> Self
     where
-        K: Kernel + Random + 'static,
+        K: KernelDense + Random + 'static,
     {
         let num_total_sv = num_classes * num_sv_per_class;
         let classes = (0 .. num_classes)
             .map(|class| Class::with_parameters(num_classes, num_sv_per_class, num_attributes, class as u32).randomize())
-            .collect::<Vec<Class>>();
+            .collect::<Vec<Class<SimdMatrix<f32s, RowOptimized>, SimdMatrix<f64s, RowOptimized>>>>();
 
         SVM {
             num_total_sv,
@@ -368,14 +376,16 @@ impl RandomSVM for SVM {
             probabilities: None,
             svm_type,
             classes,
+            phantomV32: PhantomData,
+            phantomV64: PhantomData,
         }
     }
 }
 
-impl<'a, 'b> TryFrom<&'a str> for SVM {
+impl<'a, 'b> TryFrom<&'a str> for SVM<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
     type Error = SVMError;
 
-    fn try_from(input: &'a str) -> Result<SVM, SVMError> {
+    fn try_from(input: &'a str) -> Result<SVM<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>, SVMError> {
         let raw_model = ModelFile::try_from(input)?;
 
         // To quickly check what broke again during parsing ...
@@ -396,7 +406,7 @@ impl<'a, 'b> TryFrom<&'a str> for SVM {
             _ => unimplemented!(),
         };
 
-        let kernel: Box<dyn Kernel> = match raw_model.header.kernel_type {
+        let kernel: Box<dyn KernelDense> = match raw_model.header.kernel_type {
             "rbf" => Box::new(Rbf::try_from(&raw_model)?),
             "linear" => Box::new(Linear::from(&raw_model)),
             "polynomial" => Box::new(Poly::try_from(&raw_model)?),
@@ -426,7 +436,7 @@ impl<'a, 'b> TryFrom<&'a str> for SVM {
                     let label = header.label[c];
                     let num_sv = nr_sv[c] as usize;
                     Class::with_parameters(num_classes, num_sv, num_attributes, label)
-                }).collect::<Vec<Class>>(),
+                }).collect::<Vec<Class<SimdMatrix<f32s, RowOptimized>, SimdMatrix<f64s, RowOptimized>>>>(),
             SVMType::ESvr | SVMType::NuSvr => vec![Class::with_parameters(2, num_total_sv, num_attributes, 0)],
         };
 
@@ -454,6 +464,8 @@ impl<'a, 'b> TryFrom<&'a str> for SVM {
             svm_type,
             rho: Triangular::from(&header.rho),
             classes,
+            phantomV32: PhantomData,
+            phantomV64: PhantomData,
         };
 
         // Things down here are a bit ugly as the file format is a bit ugly ...

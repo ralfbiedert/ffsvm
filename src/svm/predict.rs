@@ -26,7 +26,7 @@ use crate::{errors::SVMError, svm::problem::Problem};
 /// will be updated accordingly. The class labels for each `.probabilities` entry can be obtained
 /// by [SVM]'s `class_label_for_index` and `class_index_for_label` methods.
 ///
-pub trait Predict
+pub trait Predict<V32, V64>
 where
     Self: Sync,
 {
@@ -34,12 +34,12 @@ where
     ///
     /// The problem needs to have all `.features` set. Once this method returns,
     /// the [Problem]'s field `.label` will be set.
-    fn predict_value(&self, _: &mut Problem) -> Result<(), SVMError>;
+    fn predict_value(&self, _: &mut Problem<V32, V64>) -> Result<(), SVMError>;
 
     /// Predict a probability value for a problem.
     ///
     /// The problem needs to have all `.features` set. Once this method returns,
     /// both the [Problem]'s field `.label` will be set, and all `.probabilities` will
     /// be set accordingly.
-    fn predict_probability(&self, _: &mut Problem) -> Result<(), SVMError>;
+    fn predict_probability(&self, _: &mut Problem<V32, V64>) -> Result<(), SVMError>;
 }

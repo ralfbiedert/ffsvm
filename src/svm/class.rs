@@ -5,7 +5,7 @@ use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix};
 /// Represents one class of the SVM model.
 #[derive(Clone, Debug)]
 #[doc(hidden)]
-crate struct Class {
+crate struct Class<M32, M64> {
     /// The label of this class
     crate label: u32,
 
@@ -13,15 +13,15 @@ crate struct Class {
     crate num_support_vectors: usize,
 
     /// Coefficients between this class and n-1 other classes.
-    crate coefficients: SimdMatrix<f64s, RowOptimized>,
+    crate coefficients: M64,
 
     /// All support vectors in this class.
-    crate support_vectors: SimdMatrix<f32s, RowOptimized>,
+    crate support_vectors: M32,
 }
 
-impl Class {
+impl Class<SimdMatrix<f32s, RowOptimized>, SimdMatrix<f64s, RowOptimized>> {
     /// Creates a new class with the given parameters.
-    pub fn with_parameters(classes: usize, support_vectors: usize, attributes: usize, label: u32) -> Class {
+    pub fn with_parameters(classes: usize, support_vectors: usize, attributes: usize, label: u32) -> Class<SimdMatrix<f32s, RowOptimized>, SimdMatrix<f64s, RowOptimized>> {
         Class {
             label,
             num_support_vectors: support_vectors,
@@ -31,7 +31,7 @@ impl Class {
     }
 }
 
-impl Randomize for Class {
+impl Randomize for Class<SimdMatrix<f32s, RowOptimized>, SimdMatrix<f64s, RowOptimized>> {
     fn randomize(mut self) -> Self {
         self.coefficients = self.coefficients.randomize();
         self.support_vectors = self.support_vectors.randomize();

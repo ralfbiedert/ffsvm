@@ -5,14 +5,14 @@ extern crate test;
 
 mod svm {
 
-    use ffsvm::{Kernel, Linear, Poly, Predict, Problem, Random, RandomSVM, Randomize, Rbf, SVMType, Sigmoid, SVM};
+    use ffsvm::{KernelDense, Linear, Poly, Predict, Problem, Random, RandomSVM, Randomize, Rbf, SVMType, Sigmoid, SVM};
     use test::Bencher;
 
     /// Produces a test case run for benchmarking
     #[allow(dead_code)]
     fn produce_testcase<K>(svm_type: SVMType, num_classes: usize, num_sv_per_class: usize, num_attributes: usize) -> impl FnMut()
     where
-        K: Kernel + Random + 'static,
+        K: KernelDense + Random + 'static,
     {
         let mut svm = SVM::random::<K>(svm_type, num_classes, num_sv_per_class, num_attributes);
         let mut problem = Problem::from(&svm).randomize();

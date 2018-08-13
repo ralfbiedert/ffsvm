@@ -37,11 +37,11 @@ pub enum SVMResult {
 /// It can then be handed over to the [SVM] (via the [Predict] trait).
 ///
 #[derive(Debug, Clone)]
-pub struct Problem {
+pub struct Problem<V32, V64> {
     /// A vector of all features.
-    crate features: SimdVector<f32s>,
+    crate features: V32,
 
-    /// Kernel values. A vector for each class.
+    /// KernelDense values. A vector for each class.
     crate kernel_values: SimdMatrix<f64s, RowOptimized>,
 
     /// All votes for a given class label.
@@ -61,15 +61,19 @@ pub struct Problem {
 
     /// Probability estimates that will be updated after this problem was processed
     /// by `predict_probability` in [Predict] if the model supports it.
-    crate probabilities: Vec<f64>,
+    crate probabilities: V64,
 
     /// Computed label that will be updated after this problem was processed by [Predict].
     crate result: SVMResult,
 }
 
-impl Problem {
+impl<T, R> Problem<T, R> {
+    pub fn result(&self) -> SVMResult { self.result }
+}
+
+impl Problem<SimdVector<f32s>, SimdVector<f64s>> {
     /// Creates a new problem with the given parameters.
-    crate fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem {
+    crate fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem<SimdVector<f32s>, SimdVector<f64s>> {
         Problem {
             features: SimdVector::with(0.0, num_attributes),
             kernel_values: SimdMatrix::with_dimension(num_classes, total_sv),
@@ -78,25 +82,25 @@ impl Problem {
             qp: vec![Default::default(); num_classes],
             decision_values: Triangular::with_dimension(num_classes, Default::default()),
             vote: vec![Default::default(); num_classes],
-            probabilities: vec![Default::default(); num_classes],
+            probabilities: SimdVector::with(0.0, num_classes),
             result: SVMResult::None,
         }
     }
 
     pub fn features_mut(&mut self) -> &mut [f32] { self.features.flat_mut() }
 
-    pub fn probabilities(&self) -> &[f64] { &self.probabilities }
+    pub fn probabilities(&self) -> &[f64] { self.probabilities.flat() }
 
-    pub fn probabilities_mut(&mut self) -> &mut [f64] { &mut self.probabilities }
-
-    pub fn result(&self) -> SVMResult { self.result }
+    pub fn probabilities_mut(&mut self) -> &mut [f64] { self.probabilities.flat_mut() }
 }
 
-impl<'a> From<&'a SVM> for Problem {
-    fn from(svm: &SVM) -> Self { Problem::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes) }
+impl<'a> From<&'a SVM<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>> for Problem<SimdVector<f32s>, SimdVector<f64s>> {
+    fn from(svm: &SVM<SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>) -> Self {
+        Problem::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes)
+    }
 }
 
-impl Randomize for Problem {
+impl Randomize for Problem<SimdVector<f32s>, SimdVector<f64s>> {
     fn randomize(mut self) -> Self {
         self.features = self.features.randomize();
         self
