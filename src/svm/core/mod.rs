@@ -18,7 +18,7 @@ use crate::{
     vectors::Triangular,
 };
 
-/// Generic support vector machine, template for [RbfSVM].
+/// Generic support vector machine core, used by [DenseSVM] and [SparseSVM].
 ///
 /// The SVM holds a kernel, class information and all other numerical data read from
 /// the [ModelFile]. It implements [Predict] to predict [Problem] instances.

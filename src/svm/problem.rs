@@ -32,7 +32,7 @@ pub struct Features<V32> {
     data: V32,
 }
 
-/// A single problem a [SVM] should classify.
+/// A single problem a [DenseSVM] or [SparseSVM] should classify.
 ///
 /// # Creating a problem
 ///

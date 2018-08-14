@@ -26,6 +26,63 @@ With this in mind, `libSVM` still has nice, portable tools for training and grid
 
 ## Usage
 
+
+### How can I train a model?
+
+Although FFSVM is 100% Rust code without any native dependencies, creating a model for use in
+this library requires the `libSVM` tools for your current platform:
+
+* On **Windows** see the [official builds](https://github.com/cjlin1/libsvm/tree/master/windows)
+* For **MacOS** use [Homebrew](https://brew.sh/) and run `brew install libsvm`,
+* **Linux** users need to check with their distro
+
+Then make sure you have labeled training data in a libSVM compatible file format:
+
+```ignore
+> cat ./my.training-data
++1 1:0.708333 2:1 3:1 4:-0.320755 5:-0.105023 6:-1 7:1 8:-0.419847
+-1 1:0.583333 2:-1 3:0.333333 4:-0.603774 5:1 6:-1 7:1 8:0.358779
++1 1:0.166667 2:1 3:-0.333333 4:-0.433962 5:-0.383562 6:-1 7:-1 8:0.0687023
+-1 1:0.458333 2:1 3:1 4:-0.358491 5:-0.374429 6:-1 7:-1 8:-0.480916
+
+```
+If you want to use a [DenseSVM] you **must make sure** all attributes
+for each sample are present, and **all attributes are numbered in sequential, increasing**
+order! For [SparseSVM]s these restrictions don't apply.
+
+Next, run `svm-train` on your data:
+
+```ignore
+svm-train ./my.training-data ./my.model
+```
+
+This will create the file `my.model` you can then include in the example above.
+For more advanced use cases and best classification accuracy, you should consider to run
+grid search before you train your model. LibSVM comes with a tool `tools/grid.py` that you
+can run:
+
+```ignore
+> python3 grid.py ./my.training-data
+[local] 5 -7 0.0 (best c=32.0, g=0.0078125, rate=0.0)
+[local] -1 -7 0.0 (best c=0.5, g=0.0078125, rate=0.0)
+[local] 5 -1 0.0 (best c=0.5, g=0.0078125, rate=0.0)
+[local] -1 -1 0.0 (best c=0.5, g=0.0078125, rate=0.0)
+...
+```
+
+The best parameters (in this case `c=0.5`, `g=0.0078125`) can then be used on `svm-train`. The
+optional paramter `-b 1` allows the model to also predict probabilty estimates for its
+classification.
+
+```ignore
+> svm-train -c 0.5 -g 0.0078125 -b 1 ./my.training-data ./my.model
+```
+
+For more information how to use libSVM to generate the best models, see the
+[Practical Guide to SVM Classification](https://www.csie.ntu.edu.tw/%7Ecjlin/papers/guide/guide.pdf)
+and the [libSVM FAQ](https://www.csie.ntu.edu.tw/%7Ecjlin/libsvm/faq.html).
+
+
 ### How can I use a trained `libSVM` model?
 
 Since version 0.6 we should be able to load practically all `libSVM` models. Two caveats:

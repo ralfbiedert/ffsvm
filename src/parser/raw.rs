@@ -1,6 +1,6 @@
 use rand::Rng;
 
-/// (Start here) Parsing result of a model file used to instantiate a [SVM].
+/// Parsing result of a model file used to instantiate a [SVM].
 ///
 /// # Obtaining a model
 /// A model file is produced by [libSVM](https://github.com/cjlin1/libsvm). For details
@@ -48,6 +48,7 @@ use rand::Rng;
 /// * All support vectors (past the `SV` line) must have **strictly** increasing attribute
 /// identifiers, without skipping an attribute.
 ///
+#[doc(hidden)]
 #[derive(Clone, Debug, Default)]
 pub struct ModelFile<'a> {
     crate header: Header<'a>,

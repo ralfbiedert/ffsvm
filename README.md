@@ -29,24 +29,20 @@ Train with [libSVM](https://github.com/cjlin1/libsvm) (e.g., using the tool `svm
 From Rust:
 
 ```rust
-// Load model file / SVM.
-let model: &str = include_str!("model.libsvm");
-let svm = SVM::try_from(&model)?;
+// Replace `SAMPLE_MODEL` with a `&str` to your model.
+let svm = DenseSVM::try_from(SAMPLE_MODEL)?;
 
-// Produce problem we want to classify.
 let mut problem = Problem::from(&svm);
+let features = problem.features();
 
-// Set features. You can also re-use this `Problem` later. If you do
-// no further allocations happen beyond this point.
-problem.features_mut().clone_from_slice(&[
-    0.3093766, 0.0, 0.0, 0.0, 0.0, 0.1764706, 0.0, 0.0, 1.0, 0.1137485,
-]);
+features[0] = 0.55838;
+features[1] = -0.157895;
+features[2] = 0.581292;
+features[3] = -0.221184;
 
-// Can be trivially parallelized (e.g., with Rayon) ...
-svm.predict_value(&mut problem);
+svm.predict_value(&mut problem)?;
 
-// Results should match libSVM
-assert_eq!(SVMResult::Label(42), problem.label());
+assert_eq!(problem.result(), SVMResult::Label(42));
 ```
 
 From C / FFI:
