@@ -1,7 +1,11 @@
 use std::convert::{From, TryFrom};
 
-use super::KernelDense;
-use crate::{parser::ModelFile, SVMError};
+use super::{KernelDense, KernelSparse};
+use crate::{
+    errors::SVMError,
+    parser::ModelFile,
+    sparse::{SparseMatrix, SparseVector},
+};
 
 use rand::random;
 use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};
@@ -25,6 +29,32 @@ impl KernelDense for Poly {
             }
 
             output[i] = crate::util::powi(f64::from(self.gamma * sum.sum() + self.coef0), self.degree);
+        }
+    }
+}
+
+impl KernelSparse for Poly {
+    fn compute(&self, vectors: &SparseMatrix<f32>, feature: &SparseVector<f32>, output: &mut [f64]) {
+        for (i, sv) in vectors.row_iter().enumerate() {
+            let mut sum = 0.0;
+            let mut a_iter = sv.iter();
+            let mut b_iter = feature.iter();
+
+            let (mut a, mut b) = (a_iter.next(), b_iter.next());
+
+            output[i] = loop {
+                match (a, b) {
+                    (Some((i_a, x)), Some((i_b, y))) if i_a == i_b => {
+                        sum += x * y;
+
+                        a = a_iter.next();
+                        b = b_iter.next();
+                    }
+                    (Some((i_a, _)), Some((i_b, _))) if i_a < i_b => a = a_iter.next(),
+                    (Some((i_a, _)), Some((i_b, _))) if i_a > i_b => b = b_iter.next(),
+                    _ => break crate::util::powi(f64::from(self.gamma * sum + self.coef0), self.degree),
+                }
+            }
         }
     }
 }

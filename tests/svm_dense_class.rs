@@ -8,11 +8,12 @@ macro_rules! test_model {
     ($name:ident, $file:expr, $prob:expr, $libsvm:expr, $libsvm_prob:expr) => {
         #[test]
         fn $name() -> Result<(), SVMError> {
-            let model = include_str!(concat!("data/", $file));
+            let model = include_str!(concat!("data_dense/", $file));
             let svm = DenseSVM::try_from(model)?;
 
             let mut problem_0 = Problem::from(&svm);
-            problem_0.features_mut().clone_from_slice(&[
+            let features_0 = problem_0.features().as_slice_mut();
+            features_0.clone_from_slice(&[
                 0.00010000000092214275,
                 0.00010000000054355651,
                 0.00010000000063263872,
@@ -24,7 +25,8 @@ macro_rules! test_model {
             ]);
 
             let mut problem_7 = Problem::from(&svm);
-            problem_7.features_mut().clone_from_slice(&[
+            let features_7 = problem_7.features().as_slice_mut();
+            features_7.clone_from_slice(&[
                 1.2877848951077797,
                 0.9860317088181307,
                 1.4862471751386734,
@@ -55,7 +57,7 @@ macro_rules! test_model {
 }
 
 #[cfg(test)]
-mod svm_class {
+mod svm_dense_class {
     use ffsvm::{DenseSVM, Predict, Problem, SVMError, SVMResult};
     use std::convert::TryFrom;
 

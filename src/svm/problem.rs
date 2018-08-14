@@ -1,4 +1,10 @@
+use std::{
+    marker::PhantomData,
+    ops::{Index, IndexMut},
+};
+
 use crate::{
+    sparse::{SparseMatrix, SparseVector},
     svm::{
         core::SVMCore,
         kernel::{KernelDense, KernelSparse},
@@ -19,6 +25,11 @@ pub enum SVMResult {
 
     /// No operation was performed yet.
     None,
+}
+
+#[derive(Debug, Clone)]
+pub struct Features<V32> {
+    data: V32,
 }
 
 /// A single problem a [SVM] should classify.
@@ -43,9 +54,9 @@ pub enum SVMResult {
 /// It can then be handed over to the [SVM] (via the [Predict] trait).
 ///
 #[derive(Debug, Clone)]
-pub struct Problem<V32, V64> {
+pub struct Problem<V32> {
     /// A vector of all features.
-    crate features: V32,
+    crate features: Features<V32>,
 
     /// KernelDense values. A vector for each class.
     crate kernel_values: SimdMatrix<f64s, RowOptimized>,
@@ -67,21 +78,29 @@ pub struct Problem<V32, V64> {
 
     /// Probability estimates that will be updated after this problem was processed
     /// by `predict_probability` in [Predict] if the model supports it.
-    crate probabilities: V64,
+    crate probabilities: SimdVector<f64s>,
 
     /// Computed label that will be updated after this problem was processed by [Predict].
     crate result: SVMResult,
 }
 
-impl<T, R> Problem<T, R> {
+impl<T> Problem<T> {
     pub fn result(&self) -> SVMResult { self.result }
+
+    pub fn probabilities(&self) -> &[f64] { self.probabilities.flat() }
+
+    pub fn probabilities_mut(&mut self) -> &mut [f64] { self.probabilities.flat_mut() }
+
+    pub fn features(&mut self) -> &mut Features<T> { &mut self.features }
 }
 
-impl Problem<SimdVector<f32s>, SimdVector<f64s>> {
+impl Problem<SimdVector<f32s>> {
     /// Creates a new problem with the given parameters.
-    crate fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem<SimdVector<f32s>, SimdVector<f64s>> {
+    crate fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem<SimdVector<f32s>> {
         Problem {
-            features: SimdVector::with(0.0, num_attributes),
+            features: Features {
+                data: SimdVector::with(0.0, num_attributes),
+            },
             kernel_values: SimdMatrix::with_dimension(num_classes, total_sv),
             pairwise: SimdMatrix::with_dimension(num_classes, num_classes),
             q: SimdMatrix::with_dimension(num_classes, num_classes),
@@ -92,18 +111,63 @@ impl Problem<SimdVector<f32s>, SimdVector<f64s>> {
             result: SVMResult::None,
         }
     }
-
-    pub fn features_mut(&mut self) -> &mut [f32] { self.features.flat_mut() }
-
-    pub fn probabilities(&self) -> &[f64] { self.probabilities.flat() }
-
-    pub fn probabilities_mut(&mut self) -> &mut [f64] { self.probabilities.flat_mut() }
 }
 
-impl<'a> From<&'a SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>>
-    for Problem<SimdVector<f32s>, SimdVector<f64s>>
-{
-    fn from(svm: &SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>) -> Self {
-        Problem::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes)
+impl Problem<SparseVector<f32>> {
+    /// Creates a new problem with the given parameters.
+    crate fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem<SparseVector<f32>> {
+        Problem {
+            features: Features { data: SparseVector::new() },
+            kernel_values: SimdMatrix::with_dimension(num_classes, total_sv),
+            pairwise: SimdMatrix::with_dimension(num_classes, num_classes),
+            q: SimdMatrix::with_dimension(num_classes, num_classes),
+            qp: vec![Default::default(); num_classes],
+            decision_values: Triangular::with_dimension(num_classes, Default::default()),
+            vote: vec![Default::default(); num_classes],
+            probabilities: SimdVector::with(0.0, num_classes),
+            result: SVMResult::None,
+        }
     }
+}
+
+impl<'a> From<&'a SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>> for Problem<SimdVector<f32s>> {
+    fn from(svm: &SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>) -> Self {
+        Problem::<SimdVector<f32s>>::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes)
+    }
+}
+
+impl<'a> From<&'a SVMCore<KernelSparse, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>>> for Problem<SparseVector<f32>> {
+    fn from(svm: &SVMCore<KernelSparse, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>>) -> Self {
+        Problem::<SparseVector<f32>>::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes)
+    }
+}
+
+impl<V32> Features<V32> {
+    pub fn as_raw(&self) -> &V32 { &self.data }
+}
+
+impl Features<SimdVector<f32s>> {
+    pub fn as_slice_mut(&mut self) -> &mut [f32] { self.data.flat_mut() }
+}
+
+impl Index<usize> for Features<SimdVector<f32s>> // where
+{
+    type Output = f32;
+
+    fn index(&self, index: usize) -> &f32 { &self.data.flat()[index] }
+}
+
+impl IndexMut<usize> for Features<SimdVector<f32s>> {
+    fn index_mut(&mut self, index: usize) -> &mut f32 { &mut self.data.flat_mut()[index] }
+}
+
+impl Index<usize> for Features<SparseVector<f32>> // where
+{
+    type Output = f32;
+
+    fn index(&self, index: usize) -> &f32 { &self.data[index] }
+}
+
+impl IndexMut<usize> for Features<SparseVector<f32>> {
+    fn index_mut(&mut self, index: usize) -> &mut f32 { &mut self.data[index] }
 }

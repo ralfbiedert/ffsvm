@@ -5,7 +5,10 @@ crate mod predict;
 crate mod problem;
 
 use self::kernel::{KernelDense, KernelSparse};
-use crate::vectors::Triangular;
+use crate::{
+    sparse::{SparseMatrix, SparseVector},
+    vectors::Triangular,
+};
 
 use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 
@@ -24,4 +27,6 @@ pub enum SVMType {
     NuSvr,
 }
 
-pub type DenseSVM = core::SVMCore<dyn KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>;
+pub type DenseSVM = core::SVMCore<dyn KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>;
+
+pub type SparseSVM = core::SVMCore<dyn KernelSparse, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>>;

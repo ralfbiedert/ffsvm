@@ -17,9 +17,9 @@ use crate::{
     vectors::Triangular,
 };
 
-impl SVMCore<KernelSparse, SparseMatrix<f64>, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>> {
+impl SVMCore<KernelSparse, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>> {
     /// Computes the kernel values for this problem
-    crate fn compute_kernel_values(&self, problem: &mut Problem<SparseVector<f32>, SparseVector<f64>>) {
+    crate fn compute_kernel_values(&self, problem: &mut Problem<SparseVector<f32>>) {
         // Get current problem and decision values array
         let features = &problem.features;
         let kernel_values = &mut problem.kernel_values;
@@ -28,7 +28,7 @@ impl SVMCore<KernelSparse, SparseMatrix<f64>, SparseMatrix<f32>, SparseVector<f3
         for (i, class) in self.classes.iter().enumerate() {
             let kvalues = kernel_values.row_as_flat_mut(i);
 
-            self.kernel.compute(&class.support_vectors, features, kvalues);
+            self.kernel.compute(&class.support_vectors, features.as_raw(), kvalues);
         }
     }
 
@@ -37,14 +37,14 @@ impl SVMCore<KernelSparse, SparseMatrix<f64>, SparseMatrix<f32>, SparseVector<f3
     // based on Method 2 from the paper "Probability Estimates for Multi-class
     // Classification by Pairwise Coupling", Journal of Machine Learning Research 5 (2004) 975-1005,
     // by Ting-Fan Wu, Chih-Jen Lin and Ruby C. Weng.
-    crate fn compute_multiclass_probabilities(&self, problem: &mut Problem<SparseVector<f32>, SparseVector<f64>>) -> Result<(), SVMError> {
+    crate fn compute_multiclass_probabilities(&self, problem: &mut Problem<SparseVector<f32>>) -> Result<(), SVMError> {
         let num_classes = self.classes.len();
         let max_iter = 100.max(num_classes);
         let mut q = problem.q.flat_mut();
         let qp = &mut problem.qp;
         let eps = 0.005 / num_classes as f64; // Magic number .005 comes from libSVM.
         let pairwise = problem.pairwise.flat();
-        let probabilities = problem.probabilities;
+        let probabilities = problem.probabilities.flat_mut();
 
         // We first build up matrix Q as defined in (14) in the paper above. Q should have
         // the property of being a transition matrix for a Markov Chain.
@@ -118,7 +118,7 @@ impl SVMCore<KernelSparse, SparseMatrix<f64>, SparseMatrix<f32>, SparseVector<f3
     }
 
     /// Based on kernel values, computes the decision values for this problem.
-    crate fn compute_classification_values(&self, problem: &mut Problem<SparseVector<f32>, SparseVector<f64>>) {
+    crate fn compute_classification_values(&self, problem: &mut Problem<SparseVector<f32>>) {
         // Reset all votes
         set_all(&mut problem.vote, 0);
 
@@ -162,7 +162,7 @@ impl SVMCore<KernelSparse, SparseMatrix<f64>, SparseMatrix<f32>, SparseVector<f3
     }
 
     /// Based on kernel values, computes the decision values for this problem.
-    crate fn compute_regression_values(&self, problem: &mut Problem<SparseVector<f32>, SparseVector<f64>>) {
+    crate fn compute_regression_values(&self, problem: &mut Problem<SparseVector<f32>>) {
         let class = &self.classes[0];
         let coef = class.coefficients.row(0);
         let kvalues = problem.kernel_values.row(0);
@@ -175,8 +175,8 @@ impl SVMCore<KernelSparse, SparseMatrix<f64>, SparseMatrix<f32>, SparseVector<f3
     }
 }
 
-impl Predict<SparseVector<f32>, SparseVector<f64>> for SVMCore<KernelSparse, SparseMatrix<f64>, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>> {
-    fn predict_probability(&self, problem: &mut Problem<SparseVector<f32>, SparseVector<f64>>) -> Result<(), SVMError> {
+impl Predict<SparseVector<f32>, SparseVector<f64>> for SVMCore<KernelSparse, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>> {
+    fn predict_probability(&self, problem: &mut Problem<SparseVector<f32>>) -> Result<(), SVMError> {
         match self.svm_type {
             SVMType::CSvc | SVMType::NuSvc => {
                 const MIN_PROB: f64 = 1e-7;
@@ -228,7 +228,7 @@ impl Predict<SparseVector<f32>, SparseVector<f64>> for SVMCore<KernelSparse, Spa
     }
 
     // Predict the value for one problem.
-    fn predict_value(&self, problem: &mut Problem<SparseVector<f32>, SparseVector<f64>>) -> Result<(), SVMError> {
+    fn predict_value(&self, problem: &mut Problem<SparseVector<f32>>) -> Result<(), SVMError> {
         match self.svm_type {
             SVMType::CSvc | SVMType::NuSvc => {
                 // Compute kernel, decision values and eventually the label
@@ -250,12 +250,19 @@ impl Predict<SparseVector<f32>, SparseVector<f64>> for SVMCore<KernelSparse, Spa
     }
 }
 
-impl<'a, 'b> TryFrom<&'a str> for SVMCore<KernelSparse, SparseMatrix<f64>, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>> {
+impl<'a, 'b> TryFrom<&'a str> for SVMCore<KernelSparse, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>> {
     type Error = SVMError;
 
-    fn try_from(input: &'a str) -> Result<SVMCore<KernelSparse, SparseMatrix<f64>, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>>, SVMError> {
+    fn try_from(input: &'a str) -> Result<SVMCore<KernelSparse, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>>, SVMError> {
         let raw_model = ModelFile::try_from(input)?;
+        Self::try_from(&raw_model)
+    }
+}
 
+impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for SVMCore<KernelSparse, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>> {
+    type Error = SVMError;
+
+    fn try_from(raw_model: &'a ModelFile) -> Result<SVMCore<KernelSparse, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>>, SVMError> {
         // To quickly check what broke again during parsing ...
         // println!("{:?}", raw_model);
 
@@ -275,10 +282,10 @@ impl<'a, 'b> TryFrom<&'a str> for SVMCore<KernelSparse, SparseMatrix<f64>, Spars
         };
 
         let kernel: Box<dyn KernelSparse> = match raw_model.header.kernel_type {
-            "rbf" => Box::new(Rbf::try_from(&raw_model)?),
-            "linear" => Box::new(Linear::from(&raw_model)),
-            "polynomial" => Box::new(Poly::try_from(&raw_model)?),
-            "sigmoid" => Box::new(Sigmoid::try_from(&raw_model)?),
+            "rbf" => Box::new(Rbf::try_from(raw_model)?),
+            "linear" => Box::new(Linear::from(raw_model)),
+            "polynomial" => Box::new(Poly::try_from(raw_model)?),
+            "sigmoid" => Box::new(Sigmoid::try_from(raw_model)?),
             _ => unimplemented!(),
         };
 
@@ -303,9 +310,9 @@ impl<'a, 'b> TryFrom<&'a str> for SVMCore<KernelSparse, SparseMatrix<f64>, Spars
                 .map(|c| {
                     let label = header.label[c];
                     let num_sv = nr_sv[c] as usize;
-                    Class::with_parameters(num_classes, num_sv, num_attributes, label)
-                }).collect::<Vec<Class<SparseMatrix<f32>, SparseMatrix<f64>>>>(),
-            SVMType::ESvr | SVMType::NuSvr => vec![Class::with_parameters(2, num_total_sv, num_attributes, 0)],
+                    Class::<SparseMatrix<f32>>::with_parameters(num_classes, num_sv, num_attributes, label)
+                }).collect::<Vec<Class<SparseMatrix<f32>>>>(),
+            SVMType::ESvr | SVMType::NuSvr => vec![Class::<SparseMatrix<f32>>::with_parameters(2, num_total_sv, num_attributes, 0)],
         };
 
         let probabilities = match (&raw_model.header.prob_a, &raw_model.header.prob_b) {
@@ -350,21 +357,9 @@ impl<'a, 'b> TryFrom<&'a str> for SVMCore<KernelSparse, SparseMatrix<f64>, Spars
                 let mut last_attribute = None;
 
                 // Set support vectors
-                for (i_attribute, attribute) in vector.features.iter().enumerate() {
-                    if let Some(last) = last_attribute {
-                        // In case we have seen an attribute already, this one must be strictly
-                        // the successor attribute
-                        if attribute.index != last + 1 {
-                            return Result::Err(SVMError::AttributesUnordered {
-                                index: attribute.index,
-                                value: attribute.value,
-                                last_index: last,
-                            });
-                        }
-                    };
-
-                    let mut support_vectors = svm.classes[i].support_vectors.flat_mut();
-                    support_vectors[(i_vector, i_attribute)] = attribute.value;
+                for attribute in vector.features.iter() {
+                    let mut support_vectors = &mut svm.classes[i].support_vectors;
+                    support_vectors[(i_vector, attribute.index as usize)] = attribute.value;
 
                     last_attribute = Some(attribute.index);
                 }

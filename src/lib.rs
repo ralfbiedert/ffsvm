@@ -141,10 +141,11 @@ mod vectors;
 
 pub use crate::{
     errors::SVMError,
+    parser::ModelFile,
     svm::{
         kernel::{KernelDense, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
         problem::{Problem, SVMResult},
-        DenseSVM, SVMType,
+        DenseSVM, SVMType, SparseSVM,
     },
 };

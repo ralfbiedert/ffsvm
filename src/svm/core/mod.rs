@@ -32,7 +32,7 @@ use crate::{
 /// let svm = RbfSVM::try_from(&model)!;
 /// ```
 ///
-pub struct SVMCore<K, M64, M32, V32, V64>
+pub struct SVMCore<K, M32, V32, V64>
 where
     K: ?Sized,
 {
@@ -52,14 +52,14 @@ where
     crate kernel: Box<K>,
 
     /// All classes
-    crate classes: Vec<Class<M32, M64>>,
+    crate classes: Vec<Class<M32>>,
 
     phantomV32: PhantomData<V32>,
 
     phantomV64: PhantomData<V64>,
 }
 
-impl<K, M64, M32, V32, V64> SVMCore<K, M64, M32, V32, V64> {
+impl<K, M32, V32, V64> SVMCore<K, M32, V32, V64> {
     /// Finds the class index for a given label.
     ///
     /// # Description

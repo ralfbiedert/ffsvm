@@ -16,9 +16,9 @@ use crate::{
     vectors::Triangular,
 };
 
-impl SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
+impl SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
     /// Computes the kernel values for this problem
-    crate fn compute_kernel_values(&self, problem: &mut Problem<SimdVector<f32s>, SimdVector<f64s>>) {
+    crate fn compute_kernel_values(&self, problem: &mut Problem<SimdVector<f32s>>) {
         // Get current problem and decision values array
         let features = &problem.features;
         let kernel_values = &mut problem.kernel_values;
@@ -27,7 +27,7 @@ impl SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOp
         for (i, class) in self.classes.iter().enumerate() {
             let kvalues = kernel_values.row_as_flat_mut(i);
 
-            self.kernel.compute(&class.support_vectors, features, kvalues);
+            self.kernel.compute(&class.support_vectors, features.as_raw(), kvalues);
         }
     }
 
@@ -36,7 +36,7 @@ impl SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOp
     // based on Method 2 from the paper "Probability Estimates for Multi-class
     // Classification by Pairwise Coupling", Journal of Machine Learning Research 5 (2004) 975-1005,
     // by Ting-Fan Wu, Chih-Jen Lin and Ruby C. Weng.
-    crate fn compute_multiclass_probabilities(&self, problem: &mut Problem<SimdVector<f32s>, SimdVector<f64s>>) -> Result<(), SVMError> {
+    crate fn compute_multiclass_probabilities(&self, problem: &mut Problem<SimdVector<f32s>>) -> Result<(), SVMError> {
         let num_classes = self.classes.len();
         let max_iter = 100.max(num_classes);
         let mut q = problem.q.flat_mut();
@@ -117,7 +117,7 @@ impl SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOp
     }
 
     /// Based on kernel values, computes the decision values for this problem.
-    crate fn compute_classification_values(&self, problem: &mut Problem<SimdVector<f32s>, SimdVector<f64s>>) {
+    crate fn compute_classification_values(&self, problem: &mut Problem<SimdVector<f32s>>) {
         // Reset all votes
         set_all(&mut problem.vote, 0);
 
@@ -161,7 +161,7 @@ impl SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOp
     }
 
     /// Based on kernel values, computes the decision values for this problem.
-    crate fn compute_regression_values(&self, problem: &mut Problem<SimdVector<f32s>, SimdVector<f64s>>) {
+    crate fn compute_regression_values(&self, problem: &mut Problem<SimdVector<f32s>>) {
         let class = &self.classes[0];
         let coef = class.coefficients.row(0);
         let kvalues = problem.kernel_values.row(0);
@@ -174,8 +174,8 @@ impl SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOp
     }
 }
 
-impl Predict<SimdVector<f32s>, SimdVector<f64s>> for SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
-    fn predict_probability(&self, problem: &mut Problem<SimdVector<f32s>, SimdVector<f64s>>) -> Result<(), SVMError> {
+impl Predict<SimdVector<f32s>, SimdVector<f64s>> for SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
+    fn predict_probability(&self, problem: &mut Problem<SimdVector<f32s>>) -> Result<(), SVMError> {
         match self.svm_type {
             SVMType::CSvc | SVMType::NuSvc => {
                 const MIN_PROB: f64 = 1e-7;
@@ -227,7 +227,7 @@ impl Predict<SimdVector<f32s>, SimdVector<f64s>> for SVMCore<KernelDense, SimdMa
     }
 
     // Predict the value for one problem.
-    fn predict_value(&self, problem: &mut Problem<SimdVector<f32s>, SimdVector<f64s>>) -> Result<(), SVMError> {
+    fn predict_value(&self, problem: &mut Problem<SimdVector<f32s>>) -> Result<(), SVMError> {
         match self.svm_type {
             SVMType::CSvc | SVMType::NuSvc => {
                 // Compute kernel, decision values and eventually the label
@@ -249,12 +249,19 @@ impl Predict<SimdVector<f32s>, SimdVector<f64s>> for SVMCore<KernelDense, SimdMa
     }
 }
 
-impl<'a, 'b> TryFrom<&'a str> for SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
+impl<'a, 'b> TryFrom<&'a str> for SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
     type Error = SVMError;
 
-    fn try_from(input: &'a str) -> Result<SVMCore<KernelDense, SimdMatrix<f64s, RowOptimized>, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>, SVMError> {
+    fn try_from(input: &'a str) -> Result<SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>, SVMError> {
         let raw_model = ModelFile::try_from(input)?;
+        Self::try_from(&raw_model)
+    }
+}
 
+impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
+    type Error = SVMError;
+
+    fn try_from(raw_model: &'a ModelFile) -> Result<SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>, SVMError> {
         // To quickly check what broke again during parsing ...
         // println!("{:?}", raw_model);
 
@@ -274,10 +281,10 @@ impl<'a, 'b> TryFrom<&'a str> for SVMCore<KernelDense, SimdMatrix<f64s, RowOptim
         };
 
         let kernel: Box<dyn KernelDense> = match raw_model.header.kernel_type {
-            "rbf" => Box::new(Rbf::try_from(&raw_model)?),
-            "linear" => Box::new(Linear::from(&raw_model)),
-            "polynomial" => Box::new(Poly::try_from(&raw_model)?),
-            "sigmoid" => Box::new(Sigmoid::try_from(&raw_model)?),
+            "rbf" => Box::new(Rbf::try_from(raw_model)?),
+            "linear" => Box::new(Linear::from(raw_model)),
+            "polynomial" => Box::new(Poly::try_from(raw_model)?),
+            "sigmoid" => Box::new(Sigmoid::try_from(raw_model)?),
             _ => unimplemented!(),
         };
 
@@ -302,9 +309,9 @@ impl<'a, 'b> TryFrom<&'a str> for SVMCore<KernelDense, SimdMatrix<f64s, RowOptim
                 .map(|c| {
                     let label = header.label[c];
                     let num_sv = nr_sv[c] as usize;
-                    Class::with_parameters(num_classes, num_sv, num_attributes, label)
-                }).collect::<Vec<Class<SimdMatrix<f32s, RowOptimized>, SimdMatrix<f64s, RowOptimized>>>>(),
-            SVMType::ESvr | SVMType::NuSvr => vec![Class::with_parameters(2, num_total_sv, num_attributes, 0)],
+                    Class::<SimdMatrix<f32s, RowOptimized>>::with_parameters(num_classes, num_sv, num_attributes, label)
+                }).collect::<Vec<Class<SimdMatrix<f32s, RowOptimized>>>>(),
+            SVMType::ESvr | SVMType::NuSvr => vec![Class::<SimdMatrix<f32s, RowOptimized>>::with_parameters(2, num_total_sv, num_attributes, 0)],
         };
 
         let probabilities = match (&raw_model.header.prob_a, &raw_model.header.prob_b) {
