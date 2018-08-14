@@ -12,14 +12,15 @@ You trained a SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want
 # Highlights
 
 * loads almost all [libSVM](https://github.com/cjlin1/libsvm) types (C-SVC, ν-SVC, ε-SVR,  ν-SVR) and kernels (linear, poly, RBF and sigmoid)
-* Produces practically same classification results as libSVM
-* optimized for [SIMD](https://github.com/rust-lang/rfcs/pull/2366) and can be mixed seamlessly with [Rayon](https://github.com/rayon-rs/rayon).
-* allocation-free during classification
+* produces practically same classification results as libSVM
+* optimized for [SIMD](https://github.com/rust-lang/rfcs/pull/2366) and can be mixed seamlessly with [Rayon](https://github.com/rayon-rs/rayon)
 * written in 100% Rust, but can be loaded from any language (via FFI)
-* 2.5x - 14x faster than libSVM for dense models,
+* allocation-free during classification for dense SVMs
+* 2.5x - 14x faster than libSVM for dense SVMs
+* on-par performance with libSVM for sparse SVMs
 * extremely low classification times for small models (e.g., 128 SV, 16 dense attributes, linear ~ 500ns)
-* Successfully used in Unity and VR projects (Windows & Android)
-* Free of `unsafe` code ;)
+* successfully used in Unity and VR projects (Windows & Android)
+* free of `unsafe` code ;)
 
 
 # Principal Usage
@@ -67,13 +68,13 @@ we'll move to beta.
 
 ![performance](docs/performance_relative.v3.png)
 
-Classification time vs. libSVM.
+Classification time vs. libSVM for dense models.
 
 ![performance](docs/performance_history.v4.png)
 
 Performance milestones during development.
 
-All performance numbers for the `DenseSVM`. We also have support for `SparseSVM`s, which are slower for "mostly dense" models, and faster for "mostly sparse" models.
+All performance numbers reported for the `DenseSVM`. We also have support for `SparseSVM`s, which are slower for "mostly dense" models, and faster for "mostly sparse" models (and generally on the performance level of libSVM).
 
 
 [See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/performance.adoc)

@@ -23,48 +23,48 @@ mod svm_dense {
         move || (&mut svm).predict_value(&mut problem).expect("This should work")
     }
 
-    // RBF
+    // // RBF
 
-    #[bench]
-    fn predict_rbf_sv128_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "rbf", 128, 16)); }
+    // #[bench]
+    // fn predict_rbf_sv128_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "rbf", 128, 16)); }
 
-    #[bench]
-    fn predict_rbf_sv1024_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "rbf", 1024, 16)); }
+    // #[bench]
+    // fn predict_rbf_sv1024_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "rbf", 1024, 16)); }
 
-    #[bench]
-    fn predict_rbf_sv1024_attr1024(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "rbf", 1024, 1024)); }
+    // #[bench]
+    // fn predict_rbf_sv1024_attr1024(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "rbf", 1024, 1024)); }
 
-    // Linear
+    // // Linear
 
-    #[bench]
-    fn predict_linear_sv128_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "linear", 128, 16)); }
+    // #[bench]
+    // fn predict_linear_sv128_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "linear", 128, 16)); }
 
-    #[bench]
-    fn predict_linear_sv1024_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "linear", 1024, 16)); }
+    // #[bench]
+    // fn predict_linear_sv1024_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "linear", 1024, 16)); }
 
-    #[bench]
-    fn predict_linear_sv1024_attr1024(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "linear", 1024, 1024)); }
+    // #[bench]
+    // fn predict_linear_sv1024_attr1024(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "linear", 1024, 1024)); }
 
-    // Poly
+    // // Poly
 
-    #[bench]
-    fn predict_poly_sv128_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "polynomial", 128, 16)); }
+    // #[bench]
+    // fn predict_poly_sv128_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "polynomial", 128, 16)); }
 
-    #[bench]
-    fn predict_poly_sv1024_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "polynomial", 1024, 16)); }
+    // #[bench]
+    // fn predict_poly_sv1024_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "polynomial", 1024, 16)); }
 
-    #[bench]
-    fn predict_poly_sv1024_attr1024(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "polynomial", 1024, 1024)); }
+    // #[bench]
+    // fn predict_poly_sv1024_attr1024(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "polynomial", 1024, 1024)); }
 
-    // Sigmoid
+    // // Sigmoid
 
-    #[bench]
-    fn predict_sigmoid_sv128_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "sigmoid", 128, 16)); }
+    // #[bench]
+    // fn predict_sigmoid_sv128_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "sigmoid", 128, 16)); }
 
-    #[bench]
-    fn predict_sigmoid_sv1024_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "sigmoid", 1024, 16)); }
+    // #[bench]
+    // fn predict_sigmoid_sv1024_attr16(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "sigmoid", 1024, 16)); }
 
-    #[bench]
-    fn predict_sigmoid_sv1024_attr1024(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "sigmoid", 1024, 1024)); }
+    // #[bench]
+    // fn predict_sigmoid_sv1024_attr1024(b: &mut Bencher) { b.iter(produce_testcase("c_svc", "sigmoid", 1024, 1024)); }
 
 }
