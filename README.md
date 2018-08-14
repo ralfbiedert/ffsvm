@@ -77,7 +77,7 @@ Performance milestones during development.
 All performance numbers reported for the `DenseSVM`. We also have support for `SparseSVM`s, which are slower for "mostly dense" models, and faster for "mostly sparse" models (and generally on the performance level of libSVM).
 
 
-[See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/performance.adoc)
+[See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/performance.md)
 
 
 
