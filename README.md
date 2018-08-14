@@ -16,10 +16,9 @@ You trained a SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want
 * optimized for [SIMD](https://github.com/rust-lang/rfcs/pull/2366) and can be mixed seamlessly with [Rayon](https://github.com/rayon-rs/rayon)
 * written in 100% Rust, but can be loaded from any language (via FFI)
 * allocation-free during classification for dense SVMs
-* 2.5x - 14x faster than libSVM for dense SVMs
-* on-par performance with libSVM for sparse SVMs
+* **2.5x - 14x faster than libSVM for dense SVMs**
 * extremely low classification times for small models (e.g., 128 SV, 16 dense attributes, linear ~ 500ns)
-* successfully used in Unity and VR projects (Windows & Android)
+* successfully used in **Unity and VR** projects (Windows & Android)
 * free of `unsafe` code ;)
 
 

@@ -1,0 +1,10 @@
+svm_type c_svc
+kernel_type linear
+nr_class 2
+total_sv 2
+rho -0.25527
+label 21 42
+nr_sv 1 1
+SV
+0 0:0.0001 1:0.0001 2:0.0001 3:0.0001
+-1 0:1.2974607 1:1.0227317 2:1.2545854

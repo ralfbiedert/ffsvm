@@ -1,5 +1,5 @@
 //! FFSVM stands for "Really Fast Support Vector Machine", a
-//! [libSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) compatible classifier for dense RBF C-SVMs.
+//! [libSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) compatible classifier.
 //! It allows you to load models trained by libSVM's `svm-train`, and use them from your Rust
 //! code.
 
@@ -10,13 +10,6 @@
 //! * good generalization properties (making them good learners with limited data) and
 //! * overall good classification accuracy.
 //!
-//! An RBF C-SVM is a special type of SVM, and probably the most frequently used one for a wide
-//! range of problems.
-//!
-//! A *dense* SVM does not have any 'empty' features. In other words, for each
-//! problem, you know all of that problems's value during training and classification. An example
-//! could be classifying images, where each pixel value is known.
-//!
 //! [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) is a relatively portable, general purpose
 //! SVM implementation written in C++ that includes tools for training, as well as tools and code
 //! for classification.
@@ -26,16 +19,16 @@
 //!
 //! # Features
 //!
-//! FFSVM is:
-//! * **2.5x - 14x faster** than libSVM [according to our benchmarks](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/performance.adoc).
-//! * **allocation free** once the model is loaded
-//! * highly **cache and SIMD** optimized
-//! * trivially composable with [Rayon](https://github.com/rayon-rs/rayon) for even more performance
-//! * ideally suited for real-time applications such as **games and VR**
-//! * lightweight, and only comes with a few dependencies ([faster](https://github.com/AdamNiederer/faster) for SIMD, [nom](https://github.com/Geal/nom) for parsing libSVM models).
-//!
-//! For small to medium-sized problems FFSVM's execution speed is best measured in **nano-
-//! or microseconds** on modern architectures (e.g., AVX2), not milliseconds.
+//! FFSVM
+//! * loads almost all [libSVM](https://github.com/cjlin1/libsvm) types (C-SVC, ν-SVC, ε-SVR,  ν-SVR) and kernels (linear, poly, RBF and sigmoid)
+//! * produces practically same classification results as libSVM
+//! * optimized for [SIMD](https://github.com/rust-lang/rfcs/pull/2366) and can be mixed seamlessly with [Rayon](https://github.com/rayon-rs/rayon)
+//! * written in 100% Rust, but can be loaded from any language (via FFI)
+//! * allocation-free during classification for dense SVMs
+//! * **2.5x - 14x faster than libSVM for dense SVMs**
+//! * extremely low classification times for small models (e.g., 128 SV, 16 dense attributes, linear ~ 500ns)
+//! * successfully used in **Unity and VR** projects (Windows & Android)
+//! * free of `unsafe` code ;)
 //!
 //! FFSVM is not, however, a full libSVM replacement. Instead, it assumes you use `svm-train`
 //! *at home* (see [Usage](#usage) below), and ship a working model with your library or application.
@@ -47,28 +40,30 @@
 //! In this example we assume you already have a libSVM that was trained with
 //! `svm-train`. If you don't, skip to the next section.
 //!
-//! ```rust,ignore
-//! // Get this model from somewhere, e.g., a file.
-//! let model_str: &str = include_str!("my.model");
+//! ```rust
+//! #![feature(try_from)]
 //!
-//! // Parse the model, and create an actual SVM instance
-//! let model = ModelFile::try_from(model_str)!;
-//! let svm = RbfSVM::try_from(&model)!;
+//! use ffsvm::*;
+//! use std::convert::TryFrom;
 //!
-//! // Create a 'problem'. It will hold your features and, once classified, the label. Problems
-//! // are meant to be reused between calls (e.g., each frame in games).
-//! let mut problem = Problem::from(&svm);
+//! fn main() -> Result<(), SVMError> {
+//!     // Replace `SAMPLE_MODEL` with a `&str` to your model.
+//!     let svm = DenseSVM::try_from(SAMPLE_MODEL)?;
 //!
-//! // Next we set all features, based on your real-world problem.
-//! problem.features = vec![
-//!     -0.55838, -0.157895, 0.581292, -0.221184, 0.135713, -0.874396, -0.563197, -1.0, -1.0,
-//! ];
+//!     let mut problem = Problem::from(&svm);
+//!     let mut features = problem.features();
 //!
-//! // Here we ask the SVM to classify the problem. This will update the `.label` field.
-//! svm.predict_value(&mut problem)!
+//!     features[0] = 0.55838;
+//!     features[1] = -0.157895;
+//!     features[2] = 0.581292;
+//!     features[3] = -0.221184;
 //!
-//! // Assume the `.label` is what we expect.
-//! assert_eq!(problem.label, 123);
+//!     svm.predict_value(&mut problem)?;
+//!
+//!     assert_eq!(problem.result(), SVMResult::Label(42));
+//!
+//!     Ok(())
+//! }
 //! ```
 //!
 //! ### Creating a libSVM model
@@ -138,6 +133,8 @@ mod sparse;
 mod svm;
 mod util;
 mod vectors;
+
+pub static SAMPLE_MODEL: &str = include_str!("sample.model");
 
 pub use crate::{
     errors::SVMError,
