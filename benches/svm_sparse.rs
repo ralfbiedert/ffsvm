@@ -3,8 +3,8 @@
 extern crate ffsvm;
 extern crate test;
 
-mod svm_dense {
-    use ffsvm::{DenseSVM, Linear, ModelFile, Poly, Predict, Problem, Rbf, SVMType, Sigmoid};
+mod svm_sparse {
+    use ffsvm::{Linear, ModelFile, Poly, Predict, Problem, Rbf, SVMType, Sigmoid, SparseSVM};
     use std::convert::TryFrom;
     use test::Bencher;
 
@@ -12,9 +12,9 @@ mod svm_dense {
     #[allow(dead_code)]
     fn produce_testcase(svm_type: &str, kernel_type: &str, total_sv: u32, num_attributes: u32) -> impl FnMut() {
         let raw_model = ModelFile::random_dense(svm_type, kernel_type, total_sv, num_attributes);
-        let mut svm = DenseSVM::try_from(&raw_model).unwrap();
+        let mut svm = SparseSVM::try_from(&raw_model).unwrap();
         let mut problem = Problem::from(&svm);
-        let problem_mut = problem.features().as_slice_mut();
+        let problem_mut = problem.features();
 
         for i in 0 .. num_attributes {
             problem_mut[i as usize] = i as f32;
