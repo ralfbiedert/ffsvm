@@ -42,7 +42,7 @@ features[3] = -0.221184;
 
 svm.predict_value(&mut problem)?;
 
-assert_eq!(problem.result(), SVMResult::Label(42));
+assert_eq!(problem.result(), Outcome::Label(42));
 ```
 
 From C / FFI:

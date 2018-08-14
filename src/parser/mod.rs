@@ -7,7 +7,7 @@ pub use self::raw::*;
 use pest::Parser;
 use pest_derive::Parser;
 
-use crate::errors::SVMError;
+use crate::errors::Error;
 
 // Hack to make `pest` re-generate parser every time file changes.
 #[cfg(debug_assertions)]
@@ -43,10 +43,10 @@ macro_rules! convert {
 }
 
 impl<'a> TryFrom<&'a str> for ModelFile<'a> {
-    type Error = SVMError;
+    type Error = Error;
 
     /// Parses a string into a SVM model
-    fn try_from(input: &str) -> Result<ModelFile<'_>, SVMError> {
+    fn try_from(input: &str) -> Result<ModelFile<'_>, Error> {
         let parsed = LibSVMModel::parse(Rule::file, input)?.next()?;
 
         let mut svm_type = Option::None;

@@ -1,11 +1,11 @@
 #![feature(test)]
 #![feature(try_from)]
 
-use ffsvm::SVMResult;
+use ffsvm::Outcome;
 
-fn similar(a: SVMResult, b: SVMResult) -> bool {
+fn similar(a: Outcome, b: Outcome) -> bool {
     match (a, b) {
-        (SVMResult::Value(a), SVMResult::Value(b)) => (a - b).abs() < 0.001 * ((a + b) / 2.0),
+        (Outcome::Value(a), Outcome::Value(b)) => (a - b).abs() < 0.001 * ((a + b) / 2.0),
         _ => false,
     }
 }
@@ -13,7 +13,7 @@ fn similar(a: SVMResult, b: SVMResult) -> bool {
 macro_rules! test_model {
     ($name:ident, $file:expr, $prob:expr, $libsvm:expr, $libsvm_prob:expr) => {
         #[test]
-        fn $name() -> Result<(), SVMError> {
+        fn $name() -> Result<(), Error> {
             let model = include_str!(concat!("data_dense/", $file));
             let svm = DenseSVM::try_from(model)?;
 
@@ -46,15 +46,15 @@ macro_rules! test_model {
             svm.predict_value(&mut problem_0)?;
             svm.predict_value(&mut problem_7)?;
 
-            assert!(similar(problem_0.result(), SVMResult::Value($libsvm[0])));
-            assert!(similar(problem_7.result(), SVMResult::Value($libsvm[1])));
+            assert!(similar(problem_0.result(), Outcome::Value($libsvm[0])));
+            assert!(similar(problem_7.result(), Outcome::Value($libsvm[1])));
 
             if $prob {
                 svm.predict_probability(&mut problem_0)?;
                 svm.predict_probability(&mut problem_7)?;
 
-                assert!(similar(problem_0.result(), SVMResult::Value($libsvm_prob[0])));
-                assert!(similar(problem_7.result(), SVMResult::Value($libsvm_prob[1])));
+                assert!(similar(problem_0.result(), Outcome::Value($libsvm_prob[0])));
+                assert!(similar(problem_7.result(), Outcome::Value($libsvm_prob[1])));
             }
 
             Ok(())
@@ -65,7 +65,7 @@ macro_rules! test_model {
 #[cfg(test)]
 mod svm_dense_regression {
     use super::similar;
-    use ffsvm::{DenseSVM, Predict, Problem, SVMError, SVMResult};
+    use ffsvm::{DenseSVM, Predict, Problem, Error, Outcome};
     use std::convert::TryFrom;
 
     // E-SVR

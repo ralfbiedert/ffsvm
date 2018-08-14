@@ -3,7 +3,7 @@
 use ffsvm::*;
 use std::convert::TryFrom;
 
-fn main() -> Result<(), SVMError> {
+fn main() -> Result<(), Error> {
     let svm = DenseSVM::try_from(SAMPLE_MODEL)?;
 
     let mut problem = Problem::from(&svm);
@@ -16,7 +16,7 @@ fn main() -> Result<(), SVMError> {
 
     svm.predict_value(&mut problem)?;
 
-    assert_eq!(problem.result(), SVMResult::Label(12));
+    assert_eq!(problem.result(), Outcome::Label(12));
 
     Ok(())
 }

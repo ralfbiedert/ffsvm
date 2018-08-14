@@ -16,7 +16,7 @@ use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 
 /// The result of a classification
 #[derive(Copy, Debug, Clone, PartialEq)]
-pub enum SVMResult {
+pub enum Outcome {
     /// If classified this will hold the label.
     Label(u32),
 
@@ -81,11 +81,11 @@ pub struct Problem<V32> {
     crate probabilities: SimdVector<f64s>,
 
     /// Computed label that will be updated after this problem was processed by [Predict].
-    crate result: SVMResult,
+    crate result: Outcome,
 }
 
 impl<T> Problem<T> {
-    pub fn result(&self) -> SVMResult { self.result }
+    pub fn result(&self) -> Outcome { self.result }
 
     pub fn probabilities(&self) -> &[f64] { self.probabilities.flat() }
 
@@ -108,7 +108,7 @@ impl Problem<SimdVector<f32s>> {
             decision_values: Triangular::with_dimension(num_classes, Default::default()),
             vote: vec![Default::default(); num_classes],
             probabilities: SimdVector::with(0.0, num_classes),
-            result: SVMResult::None,
+            result: Outcome::None,
         }
     }
 }
@@ -125,7 +125,7 @@ impl Problem<SparseVector<f32>> {
             decision_values: Triangular::with_dimension(num_classes, Default::default()),
             vote: vec![Default::default(); num_classes],
             probabilities: SimdVector::with(0.0, num_classes),
-            result: SVMResult::None,
+            result: Outcome::None,
         }
     }
 }

@@ -5,13 +5,13 @@ use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 use std::{convert::TryFrom, marker::PhantomData};
 
 use crate::{
-    errors::SVMError,
+    errors::Error,
     parser::ModelFile,
     svm::{
         class::Class,
         kernel::{KernelDense, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
-        problem::{Problem, SVMResult},
+        problem::{Outcome, Problem},
         Probabilities, SVMType,
     },
     util::{find_max_index, set_all, sigmoid_predict},

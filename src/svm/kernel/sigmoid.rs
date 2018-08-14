@@ -2,7 +2,7 @@ use std::convert::{From, TryFrom};
 
 use super::{KernelDense, KernelSparse};
 use crate::{
-    errors::SVMError,
+    errors::Error,
     parser::ModelFile,
     sparse::{SparseMatrix, SparseVector},
 };
@@ -59,11 +59,11 @@ impl KernelSparse for Sigmoid {
 }
 
 impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for Sigmoid {
-    type Error = SVMError;
+    type Error = Error;
 
-    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<Sigmoid, SVMError> {
-        let gamma = raw_model.header.gamma.ok_or(SVMError::NoGamma)?;
-        let coef0 = raw_model.header.coef0.ok_or(SVMError::NoCoef0)?;
+    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<Sigmoid, Error> {
+        let gamma = raw_model.header.gamma.ok_or(Error::NoGamma)?;
+        let coef0 = raw_model.header.coef0.ok_or(Error::NoCoef0)?;
 
         Ok(Sigmoid { gamma, coef0 })
     }

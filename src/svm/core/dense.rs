@@ -2,14 +2,14 @@ use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 use std::{convert::TryFrom, marker::PhantomData};
 
 use crate::{
-    errors::SVMError,
+    errors::Error,
     parser::ModelFile,
     svm::{
         class::Class,
         core::SVMCore,
         kernel::{KernelDense, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
-        problem::{Problem, SVMResult},
+        problem::{Problem, Outcome},
         Probabilities, SVMType,
     },
     util::{find_max_index, set_all, sigmoid_predict},
@@ -36,7 +36,7 @@ impl SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, Simd
     // based on Method 2 from the paper "Probability Estimates for Multi-class
     // Classification by Pairwise Coupling", Journal of Machine Learning Research 5 (2004) 975-1005,
     // by Ting-Fan Wu, Chih-Jen Lin and Ruby C. Weng.
-    crate fn compute_multiclass_probabilities(&self, problem: &mut Problem<SimdVector<f32s>>) -> Result<(), SVMError> {
+    crate fn compute_multiclass_probabilities(&self, problem: &mut Problem<SimdVector<f32s>>) -> Result<(), Error> {
         let num_classes = self.classes.len();
         let max_iter = 100.max(num_classes);
         let mut q = problem.q.flat_mut();
@@ -96,7 +96,7 @@ impl SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, Simd
             // In case we are on the last iteration round past the threshold
             // we know something went wrong. Signal we exceeded the threshold.
             if i == max_iter {
-                return Err(SVMError::IterationsExceeded);
+                return Err(Error::IterationsExceeded);
             }
 
             // This seems to be the main function performing (23) and (24).
@@ -170,19 +170,19 @@ impl SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, Simd
 
         sum -= self.rho[0];
 
-        problem.result = SVMResult::Value(sum as f32);
+        problem.result = Outcome::Value(sum as f32);
     }
 }
 
 impl Predict<SimdVector<f32s>, SimdVector<f64s>> for SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
-    fn predict_probability(&self, problem: &mut Problem<SimdVector<f32s>>) -> Result<(), SVMError> {
+    fn predict_probability(&self, problem: &mut Problem<SimdVector<f32s>>) -> Result<(), Error> {
         match self.svm_type {
             SVMType::CSvc | SVMType::NuSvc => {
                 const MIN_PROB: f64 = 1e-7;
 
                 // Ensure we have probabilities set. If not, somebody used us the wrong way
                 if self.probabilities.is_none() {
-                    return Err(SVMError::NoProbabilities);
+                    return Err(Error::NoProbabilities);
                 }
 
                 let num_classes = self.classes.len();
@@ -217,7 +217,7 @@ impl Predict<SimdVector<f32s>, SimdVector<f64s>> for SVMCore<KernelDense, SimdMa
                 }
 
                 let max_index = find_max_index(problem.probabilities.flat());
-                problem.result = SVMResult::Label(self.classes[max_index].label);
+                problem.result = Outcome::Label(self.classes[max_index].label);
 
                 Ok(())
             }
@@ -227,7 +227,7 @@ impl Predict<SimdVector<f32s>, SimdVector<f64s>> for SVMCore<KernelDense, SimdMa
     }
 
     // Predict the value for one problem.
-    fn predict_value(&self, problem: &mut Problem<SimdVector<f32s>>) -> Result<(), SVMError> {
+    fn predict_value(&self, problem: &mut Problem<SimdVector<f32s>>) -> Result<(), Error> {
         match self.svm_type {
             SVMType::CSvc | SVMType::NuSvc => {
                 // Compute kernel, decision values and eventually the label
@@ -236,7 +236,7 @@ impl Predict<SimdVector<f32s>, SimdVector<f64s>> for SVMCore<KernelDense, SimdMa
 
                 // Compute highest vote
                 let highest_vote = find_max_index(&problem.vote);
-                problem.result = SVMResult::Label(self.classes[highest_vote].label);
+                problem.result = Outcome::Label(self.classes[highest_vote].label);
 
                 Ok(())
             }
@@ -250,18 +250,18 @@ impl Predict<SimdVector<f32s>, SimdVector<f64s>> for SVMCore<KernelDense, SimdMa
 }
 
 impl<'a, 'b> TryFrom<&'a str> for SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
-    type Error = SVMError;
+    type Error = Error;
 
-    fn try_from(input: &'a str) -> Result<SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>, SVMError> {
+    fn try_from(input: &'a str) -> Result<SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>, Error> {
         let raw_model = ModelFile::try_from(input)?;
         Self::try_from(&raw_model)
     }
 }
 
 impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>> {
-    type Error = SVMError;
+    type Error = Error;
 
-    fn try_from(raw_model: &'a ModelFile) -> Result<SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>, SVMError> {
+    fn try_from(raw_model: &'a ModelFile) -> Result<SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>, Error> {
         // To quickly check what broke again during parsing ...
         // println!("{:?}", raw_model);
 
@@ -361,7 +361,7 @@ impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for SVMCore<KernelDense, SimdMatrix<f32s
                         // In case we have seen an attribute already, this one must be strictly
                         // the successor attribute
                         if attribute.index != last + 1 {
-                            return Result::Err(SVMError::AttributesUnordered {
+                            return Result::Err(Error::AttributesUnordered {
                                 index: attribute.index,
                                 value: attribute.value,
                                 last_index: last,

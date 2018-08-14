@@ -2,7 +2,7 @@ use std::convert::{From, TryFrom};
 
 use super::{KernelDense, KernelSparse};
 use crate::{
-    errors::SVMError,
+    errors::Error,
     parser::ModelFile,
     sparse::{SparseMatrix, SparseVector},
 };
@@ -63,10 +63,10 @@ impl KernelSparse for Rbf {
 }
 
 impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for Rbf {
-    type Error = SVMError;
+    type Error = Error;
 
-    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<Rbf, SVMError> {
-        let gamma = raw_model.header.gamma.ok_or(SVMError::NoGamma)?;
+    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<Rbf, Error> {
+        let gamma = raw_model.header.gamma.ok_or(Error::NoGamma)?;
 
         Ok(Rbf { gamma })
     }

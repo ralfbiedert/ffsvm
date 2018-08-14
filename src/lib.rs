@@ -46,7 +46,7 @@
 //! use ffsvm::*;
 //! use std::convert::TryFrom;
 //!
-//! fn main() -> Result<(), SVMError> {
+//! fn main() -> Result<(), Error> {
 //!     // Replace `SAMPLE_MODEL` with a `&str` to your model.
 //!     let svm = DenseSVM::try_from(SAMPLE_MODEL)?;
 //!
@@ -60,7 +60,7 @@
 //!
 //!     svm.predict_value(&mut problem)?;
 //!
-//!     assert_eq!(problem.result(), SVMResult::Label(42));
+//!     assert_eq!(problem.result(), Outcome::Label(42));
 //!
 //!     Ok(())
 //! }
@@ -82,13 +82,13 @@ mod vectors;
 pub static SAMPLE_MODEL: &str = include_str!("sample.model");
 
 pub use crate::{
-    errors::SVMError,
+    errors::Error,
     parser::ModelFile,
     svm::{
         core::SVMCore,
         kernel::{KernelDense, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
-        problem::{Problem, SVMResult},
+        problem::{Outcome, Problem},
         DenseSVM, SVMType, SparseSVM,
     },
 };

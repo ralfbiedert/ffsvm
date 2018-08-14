@@ -2,7 +2,7 @@ use std::convert::{From, TryFrom};
 
 use super::{KernelDense, KernelSparse};
 use crate::{
-    errors::SVMError,
+    errors::Error,
     parser::ModelFile,
     sparse::{SparseMatrix, SparseVector},
 };
@@ -60,12 +60,12 @@ impl KernelSparse for Poly {
 }
 
 impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for Poly {
-    type Error = SVMError;
+    type Error = Error;
 
-    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<Poly, SVMError> {
-        let gamma = raw_model.header.gamma.ok_or(SVMError::NoGamma)?;
-        let coef0 = raw_model.header.coef0.ok_or(SVMError::NoCoef0)?;
-        let degree = raw_model.header.degree.ok_or(SVMError::NoDegree)?;
+    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<Poly, Error> {
+        let gamma = raw_model.header.gamma.ok_or(Error::NoGamma)?;
+        let coef0 = raw_model.header.coef0.ok_or(Error::NoCoef0)?;
+        let degree = raw_model.header.degree.ok_or(Error::NoDegree)?;
 
         Ok(Poly { gamma, coef0, degree })
     }
