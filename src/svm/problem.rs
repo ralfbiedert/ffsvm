@@ -1,22 +1,26 @@
-use std::{
-    marker::PhantomData,
-    ops::{Index, IndexMut},
-};
+use std::ops::{Index, IndexMut};
 
 use crate::{
-    sparse::{SparseMatrix, SparseVector},
-    svm::{
-        core::SVMCore,
-        kernel::{KernelDense, KernelSparse},
-    },
+    sparse::SparseVector,
+    svm::{DenseSVM, SparseSVM},
     vectors::Triangular,
 };
 
 use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 
+/// Problems produced for [DenseSVM]s.
+///
+/// Also see [Problem] for more methods for this type.
+pub type DenseProblem = Problem<SimdVector<f32s>>;
+
+/// Problems produced for [SparseSVM]s.
+///
+/// Also see [Problem] for more methods for this type.
+pub type SparseProblem = Problem<SparseVector<f32>>;
+
 /// The result of a classification
 #[derive(Copy, Debug, Clone, PartialEq)]
-pub enum Outcome {
+pub enum Solution {
     /// If classified this will hold the label.
     Label(u32),
 
@@ -34,24 +38,41 @@ pub struct Features<V32> {
 
 /// A single problem a [DenseSVM] or [SparseSVM] should classify.
 ///
-/// # Creating a problem
+/// # Creating a `Problem`
 ///
-/// Problems are created via the `Problem::from` method:
+/// Problems are created via the `Problem::from` method and match the SVM type they were created for:
 ///
-/// ```ignore
-/// let mut problem = Problem::from(&svm); 
+/// ```rust
+/// #![feature(try_from)]
+///
+/// use ffsvm::*;
+/// use std::convert::TryFrom;
+///
+/// fn main() -> Result<(), Error> {
+///     let svm = DenseSVM::try_from(SAMPLE_MODEL)?;
+///
+///     let mut problem = Problem::from(&svm);
+///
+///     Ok(())
+/// }
 /// ```
 ///
-/// # Classifying a problem
+/// # Setting Features
 ///
-/// A problem is an instance of the SVM's problem domain. To be classified, all `features` need
+/// A `Problem` is an instance of the SVM's problem domain. Before it can be classified, all `features` need
 /// to be set, for example by:
 ///
-/// ```ignore
-/// problem.features = vec![-0.55838, -0.157895, 0.581292, -0.221184, 0.135713, -0.874396, -0.563197, -1.0, -1.0]; 
+/// ```
+/// use ffsvm::*;
+///
+/// fn set_features(problem: &mut DenseProblem) {
+///     let features = problem.features();
+///     features[0] = -0.221184;
+///     features[3] = 0.135713;
+/// }
 /// ```
 ///
-/// It can then be handed over to the [SVM] (via the [Predict] trait).
+/// It can then be classified via the [Predict] trait.
 ///
 #[derive(Debug, Clone)]
 pub struct Problem<V32> {
@@ -77,24 +98,25 @@ pub struct Problem<V32> {
     crate qp: Vec<f64>,
 
     /// Probability estimates that will be updated after this problem was processed
-    /// by `predict_probability` in [Predict] if the model supports it.
+    /// by `predict_probability`.
     crate probabilities: SimdVector<f64s>,
 
-    /// Computed label that will be updated after this problem was processed by [Predict].
-    crate result: Outcome,
+    /// Computed label that will be updated after this problem was processed.
+    crate result: Solution,
 }
 
 impl<T> Problem<T> {
-    pub fn result(&self) -> Outcome { self.result }
+    /// After a [Problem] has been classified, this will hold the SVMs solution.
+    pub fn solution(&self) -> Solution { self.result }
 
+    /// Returns the probability estimates. Only really useful if the model was trained with probability estimates and you classified with them.
     pub fn probabilities(&self) -> &[f64] { self.probabilities.flat() }
 
-    pub fn probabilities_mut(&mut self) -> &mut [f64] { self.probabilities.flat_mut() }
-
+    /// Returns the features. You must set them first and classifiy the problem before you can get a solution.
     pub fn features(&mut self) -> &mut Features<T> { &mut self.features }
 }
 
-impl Problem<SimdVector<f32s>> {
+impl DenseProblem {
     /// Creates a new problem with the given parameters.
     crate fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem<SimdVector<f32s>> {
         Problem {
@@ -108,14 +130,17 @@ impl Problem<SimdVector<f32s>> {
             decision_values: Triangular::with_dimension(num_classes, Default::default()),
             vote: vec![Default::default(); num_classes],
             probabilities: SimdVector::with(0.0, num_classes),
-            result: Outcome::None,
+            result: Solution::None,
         }
     }
 }
 
-impl Problem<SparseVector<f32>> {
+impl SparseProblem {
+    /// Clears the [Problem] when reusing it between calls. Only needed for [SparseSVM] problems.
+    pub fn clear(&mut self) { self.features.data.clear(); }
+
     /// Creates a new problem with the given parameters.
-    crate fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem<SparseVector<f32>> {
+    crate fn with_dimension(total_sv: usize, num_classes: usize, _num_attributes: usize) -> Problem<SparseVector<f32>> {
         Problem {
             features: Features { data: SparseVector::new() },
             kernel_values: SimdMatrix::with_dimension(num_classes, total_sv),
@@ -125,21 +150,17 @@ impl Problem<SparseVector<f32>> {
             decision_values: Triangular::with_dimension(num_classes, Default::default()),
             vote: vec![Default::default(); num_classes],
             probabilities: SimdVector::with(0.0, num_classes),
-            result: Outcome::None,
+            result: Solution::None,
         }
     }
 }
 
-impl<'a> From<&'a SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>> for Problem<SimdVector<f32s>> {
-    fn from(svm: &SVMCore<KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>) -> Self {
-        Problem::<SimdVector<f32s>>::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes)
-    }
+impl<'a> From<&'a DenseSVM> for DenseProblem {
+    fn from(svm: &DenseSVM) -> Self { Problem::<SimdVector<f32s>>::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes) }
 }
 
-impl<'a> From<&'a SVMCore<KernelSparse, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>>> for Problem<SparseVector<f32>> {
-    fn from(svm: &SVMCore<KernelSparse, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>>) -> Self {
-        Problem::<SparseVector<f32>>::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes)
-    }
+impl<'a> From<&'a SparseSVM> for SparseProblem {
+    fn from(svm: &SparseSVM) -> Self { Problem::<SparseVector<f32>>::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes) }
 }
 
 impl<V32> Features<V32> {

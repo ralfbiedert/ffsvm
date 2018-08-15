@@ -7,7 +7,7 @@ fn main() -> Result<(), Error> {
     let svm = DenseSVM::try_from(SAMPLE_MODEL)?;
 
     let mut problem = Problem::from(&svm);
-    let mut features = problem.features();
+    let features = problem.features();
 
     features[0] = 0.55838;
     features[1] = -0.157895;
@@ -16,7 +16,7 @@ fn main() -> Result<(), Error> {
 
     svm.predict_value(&mut problem)?;
 
-    assert_eq!(problem.result(), Outcome::Label(12));
+    assert_eq!(problem.solution(), Solution::Label(12));
 
     Ok(())
 }

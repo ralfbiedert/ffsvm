@@ -1,11 +1,11 @@
 #![feature(test)]
 #![feature(try_from)]
 
-use ffsvm::Outcome;
+use ffsvm::Solution;
 
-fn similar(a: Outcome, b: Outcome) -> bool {
+fn similar(a: Solution, b: Solution) -> bool {
     match (a, b) {
-        (Outcome::Value(a), Outcome::Value(b)) => (a - b).abs() < 0.001 * ((a + b) / 2.0),
+        (Solution::Value(a), Solution::Value(b)) => (a - b).abs() < 0.001 * ((a + b) / 2.0),
         _ => false,
     }
 }
@@ -46,15 +46,15 @@ macro_rules! test_model {
             svm.predict_value(&mut problem_0)?;
             svm.predict_value(&mut problem_7)?;
 
-            assert!(similar(problem_0.result(), Outcome::Value($libsvm[0])));
-            assert!(similar(problem_7.result(), Outcome::Value($libsvm[1])));
+            assert!(similar(problem_0.solution(), Solution::Value($libsvm[0])));
+            assert!(similar(problem_7.solution(), Solution::Value($libsvm[1])));
 
             if $prob {
                 svm.predict_probability(&mut problem_0)?;
                 svm.predict_probability(&mut problem_7)?;
 
-                assert!(similar(problem_0.result(), Outcome::Value($libsvm_prob[0])));
-                assert!(similar(problem_7.result(), Outcome::Value($libsvm_prob[1])));
+                assert!(similar(problem_0.solution(), Solution::Value($libsvm_prob[0])));
+                assert!(similar(problem_7.solution(), Solution::Value($libsvm_prob[1])));
             }
 
             Ok(())
@@ -65,7 +65,7 @@ macro_rules! test_model {
 #[cfg(test)]
 mod svm_dense_regression {
     use super::similar;
-    use ffsvm::{DenseSVM, Predict, Problem, Error, Outcome};
+    use ffsvm::{DenseSVM, Error, Predict, Problem, Solution};
     use std::convert::TryFrom;
 
     // E-SVR

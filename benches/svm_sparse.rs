@@ -4,7 +4,7 @@ extern crate ffsvm;
 extern crate test;
 
 mod svm_sparse {
-    use ffsvm::{Linear, ModelFile, Poly, Predict, Problem, Rbf, SVMType, Sigmoid, SparseSVM};
+    use ffsvm::{ModelFile, Predict, Problem, SparseSVM};
     use std::convert::TryFrom;
     use test::Bencher;
 
@@ -20,7 +20,7 @@ mod svm_sparse {
             problem_mut[i as usize] = i as f32;
         }
 
-        move || (&mut svm).predict_value(&mut problem).expect("This should work")
+        move || (&svm).predict_value(&mut problem).expect("This should work")
     }
 
     // RBF

@@ -40,15 +40,15 @@ macro_rules! test_model {
             svm.predict_value(&mut problem_0)?;
             svm.predict_value(&mut problem_7)?;
 
-            assert_eq!(problem_0.result(), Outcome::Label($libsvm[0]), "predict_value(problem_0)");
-            assert_eq!(problem_7.result(), Outcome::Label($libsvm[1]), "predict_value(problem_7)");
+            assert_eq!(problem_0.solution(), Solution::Label($libsvm[0]), "predict_value(problem_0)");
+            assert_eq!(problem_7.solution(), Solution::Label($libsvm[1]), "predict_value(problem_7)");
 
             if $prob {
                 svm.predict_probability(&mut problem_0)?;
                 svm.predict_probability(&mut problem_7)?;
 
-                assert_eq!(problem_0.result(), Outcome::Label($libsvm_prob[0]), "predict_probability(problem_0)");
-                assert_eq!(problem_7.result(), Outcome::Label($libsvm_prob[1]), "predict_probability(problem_7)");
+                assert_eq!(problem_0.solution(), Solution::Label($libsvm_prob[0]), "predict_probability(problem_0)");
+                assert_eq!(problem_7.solution(), Solution::Label($libsvm_prob[1]), "predict_probability(problem_7)");
             }
 
             Ok(())
@@ -58,7 +58,7 @@ macro_rules! test_model {
 
 #[cfg(test)]
 mod svm_dense_class {
-    use ffsvm::{DenseSVM, Error, Outcome, Predict, Problem};
+    use ffsvm::{DenseSVM, Error, Predict, Problem, Solution};
     use std::convert::TryFrom;
 
     // CSVM

@@ -32,7 +32,7 @@ impl Class<SimdMatrix<f32s, RowOptimized>> {
 
 impl Class<SparseMatrix<f32>> {
     /// Creates a new class with the given parameters.
-    pub fn with_parameters(classes: usize, support_vectors: usize, attributes: usize, label: u32) -> Class<SparseMatrix<f32>> {
+    pub fn with_parameters(classes: usize, support_vectors: usize, _attributes: usize, label: u32) -> Class<SparseMatrix<f32>> {
         Class {
             label,
             num_support_vectors: support_vectors,

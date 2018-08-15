@@ -60,7 +60,7 @@
 //!
 //!     svm.predict_value(&mut problem)?;
 //!
-//!     assert_eq!(problem.result(), Outcome::Label(42));
+//!     assert_eq!(problem.solution(), Solution::Label(42));
 //!
 //!     Ok(())
 //! }
@@ -86,9 +86,9 @@ pub use crate::{
     parser::ModelFile,
     svm::{
         core::SVMCore,
-        kernel::{KernelDense, Linear, Poly, Rbf, Sigmoid},
+        kernel::{KernelDense, KernelSparse, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
-        problem::{Outcome, Problem},
+        problem::{DenseProblem, Problem, Solution, SparseProblem},
         DenseSVM, SVMType, SparseSVM,
     },
 };

@@ -1,28 +1,25 @@
-use std::{
-    collections::{btree_map::Iter, BTreeMap},
-    ops::{Index, IndexMut},
-};
+use std::ops::{Index, IndexMut};
 
 #[derive(Clone, Debug)]
 struct Entry<T>
 where
-    T: Copy,
+    T: Copy + Clone + Default,
 {
     index: u32,
     value: T,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct SparseVector<T>
 where
-    T: Clone + Copy,
+    T: Clone + Copy + Default,
 {
     entries: Vec<Entry<T>>,
 }
 
 impl<T> SparseVector<T>
 where
-    T: Clone + Copy,
+    T: Clone + Copy + Default,
 {
     pub fn new() -> Self { SparseVector { entries: Vec::new() } }
 
@@ -35,7 +32,7 @@ where
 #[derive(Clone, Debug)]
 pub struct SparseVectorIter<'a, T: 'a>
 where
-    T: Clone + Copy,
+    T: Clone + Copy + Default,
 {
     /// Reference to the matrix we iterate over.
     crate vector: &'a SparseVector<T>,
@@ -46,7 +43,7 @@ where
 
 impl<'a, T> Iterator for SparseVectorIter<'a, T>
 where
-    T: Clone + Copy,
+    T: Clone + Copy + Default,
 {
     type Item = (u32, T);
 
@@ -64,14 +61,14 @@ where
 
 impl<T> Index<usize> for SparseVector<T>
 where
-    T: Copy + Sized,
+    T: Copy + Sized + Default,
 {
     type Output = T;
 
     fn index(&self, index: usize) -> &T {
         // TODO: Beautify me
 
-        for (i, e) in self.entries.iter().enumerate() {
+        for e in self.entries.iter() {
             if e.index == index as u32 {
                 return &e.value;
             }
@@ -111,14 +108,14 @@ where
 #[derive(Clone, Debug)]
 pub struct SparseMatrix<T>
 where
-    T: Clone + Copy,
+    T: Clone + Copy + Default,
 {
     vectors: Vec<SparseVector<T>>,
 }
 
 impl<T> SparseMatrix<T>
 where
-    T: Clone + Copy,
+    T: Clone + Copy + Default,
 {
     pub fn with(rows: usize) -> Self {
         SparseMatrix {
@@ -134,7 +131,7 @@ where
 
 impl<T> Index<(usize, usize)> for SparseMatrix<T>
 where
-    T: Copy + Sized,
+    T: Copy + Sized + Default,
 {
     type Output = T;
 
@@ -152,7 +149,7 @@ where
 #[derive(Clone, Debug)]
 pub struct SparseMatrixIter<'a, T: 'a>
 where
-    T: Clone + Copy,
+    T: Clone + Copy + Default,
 {
     /// Reference to the matrix we iterate over.
     crate matrix: &'a SparseMatrix<T>,
@@ -163,7 +160,7 @@ where
 
 impl<'a, T> Iterator for SparseMatrixIter<'a, T>
 where
-    T: Clone + Copy,
+    T: Clone + Copy + Default,
 {
     type Item = &'a SparseVector<T>;
 

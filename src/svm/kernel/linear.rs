@@ -46,7 +46,7 @@ impl KernelSparse for Linear {
                     }
                     (Some((i_a, _)), Some((i_b, _))) if i_a < i_b => a = a_iter.next(),
                     (Some((i_a, _)), Some((i_b, _))) if i_a > i_b => b = b_iter.next(),
-                    _ => break sum as f64,
+                    _ => break f64::from(sum),
                 }
             }
         }

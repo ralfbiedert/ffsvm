@@ -22,7 +22,7 @@ You trained a SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want
 * free of `unsafe` code ;)
 
 
-# Principal Usage
+# Usage
 
 Train with [libSVM](https://github.com/cjlin1/libsvm) (e.g., using the tool `svm-train`), then classify with `ffsvm-rust`.
 
@@ -42,7 +42,7 @@ features[3] = -0.221184;
 
 svm.predict_value(&mut problem)?;
 
-assert_eq!(problem.result(), Outcome::Label(42));
+assert_eq!(problem.solution(), Solution::Label(42));
 ```
 
 From C / FFI:

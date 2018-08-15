@@ -1,14 +1,19 @@
 use crate::{errors::Error, svm::problem::Problem};
 
-/// Implemented by [SVM]s to predict a [Problem].
+/// Implemented by [DenseSVM] and [SparseSVM] to predict a [Problem].
 ///
 /// # Predicting a label
 ///
 /// To predict a label, first make sure the [Problem] has all features set. Then calling
-/// ```ignore
-/// svm.predict_value(&mut problem)!
 /// ```
-/// will update the `.label` field to correspond to the class label with the highest likelihood.
+/// use ffsvm::*;
+///
+/// fn set_features(svm: &DenseSVM, problem: &mut DenseProblem) {
+///     // Predicts the value.
+///     svm.predict_value(problem);
+/// }
+/// ```
+/// will update the [Problem::solution] to correspond to the class label with the highest likelihood.
 ///
 /// # Predicting a label and obtaining probability estimates.
 ///
@@ -18,13 +23,18 @@ use crate::{errors::Error, svm::problem::Problem};
 ///
 /// Probabilities are estimated like this:
 ///
-/// ```ignore
-/// svm.predict_probability(&mut problem)!
+/// ```
+/// use ffsvm::*;
+///
+/// fn set_features(svm: &DenseSVM, problem: &mut DenseProblem) {
+///     // Predicts the value.
+///     svm.predict_probability(problem);
+/// }
 /// ```
 ///
-/// Predicting probabilities automatically predicts the best label. In addition `.probabilities`
-/// will be updated accordingly. The class labels for each `.probabilities` entry can be obtained
-/// by [SVM]'s `class_label_for_index` and `class_index_for_label` methods.
+/// Predicting probabilities automatically predicts the best label. In addition [Problem::probabilities]
+/// will be updated accordingly. The class labels for each probablity entry can be obtained
+/// by the [SVMCore::class_label_for_index] and [SVMCore::class_index_for_label] methods.
 ///
 pub trait Predict<V32, V64>
 where
@@ -32,14 +42,14 @@ where
 {
     /// Predict a single value for a [Problem].
     ///
-    /// The problem needs to have all `.features` set. Once this method returns,
-    /// the [Problem]'s field `.label` will be set.
-    fn predict_value(&self, _: &mut Problem<V32>) -> Result<(), Error>;
+    /// The problem needs to have all features set. Once this method returns,
+    /// the [Problem::solution] will be set.
+    fn predict_value(&self, problem: &mut Problem<V32>) -> Result<(), Error>;
 
     /// Predict a probability value for a problem.
     ///
-    /// The problem needs to have all `.features` set. Once this method returns,
-    /// both the [Problem]'s field `.label` will be set, and all `.probabilities` will
-    /// be set accordingly.
-    fn predict_probability(&self, _: &mut Problem<V32>) -> Result<(), Error>;
+    /// The problem needs to have all features set. Once this method returns,
+    /// both [Problem::solution] will be set, and all [Problem::probabilities] will
+    /// be available accordingly.
+    fn predict_probability(&self, problem: &mut Problem<V32>) -> Result<(), Error>;
 }

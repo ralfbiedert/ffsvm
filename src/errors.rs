@@ -40,7 +40,7 @@ pub enum Error {
     /// If the model does not have a `degree` set this error may be raised.
     NoDegree,
 
-    /// Wrapper for [ModelError] when unifiying error handling.
+    /// Wrapper for internal parsing error when unifiying error handling.
     ParsingError(String),
 }
 

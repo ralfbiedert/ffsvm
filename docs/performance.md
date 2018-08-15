@@ -2,7 +2,7 @@
 
 # Performance vs. LibSVM
 
-Benchmarks are a tricky thing, but for classifying dense RBF-C-SVMs `ffsvm` should be between 2.5x and 14x faster than `libSVM` on reasonably modern x86 CPUs (supporting AVX2).
+Benchmarks are a tricky thing, but for classifying dense SVMs `ffsvm` should be between 2.5x and 14x faster than `libSVM` on reasonably modern x86 CPUs (supporting AVX2).
 
 ![performance](performance_absolute.v3.png)
 
@@ -14,7 +14,7 @@ There are 3 major factors contributing to this:
 
 * no allocation during classification
 * cache-friendly memory layout
-* usage of SIMD / AVX
+* usage of SIMD
 
 In addition, ffsvm mixes seamlessly with Rayon for _batch classification_, providing even higher speed ups if you classify more than one problem at a time.
 

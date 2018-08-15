@@ -7,7 +7,6 @@ use crate::{
     sparse::{SparseMatrix, SparseVector},
 };
 
-use rand::random;
 use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};
 
 #[derive(Copy, Clone, Debug, Default)]
