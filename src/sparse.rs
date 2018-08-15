@@ -68,7 +68,7 @@ where
     fn index(&self, index: usize) -> &T {
         // TODO: Beautify me
 
-        for e in self.entries.iter() {
+        for e in &self.entries {
             if e.index == index as u32 {
                 return &e.value;
             }
