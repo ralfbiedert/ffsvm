@@ -21,8 +21,8 @@ maintenance = { status = "experimental" }
 
 
 [dependencies]
-# simd_aligned = "0.1.1"
-simd_aligned = { path = "../simd_aligned" }
+simd_aligned = "0.1.2"
+# simd_aligned = { path = "../simd_aligned" }
 packed_simd = "0.1"
 rand = "0.5"
 pest = "1.0"
