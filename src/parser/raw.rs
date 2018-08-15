@@ -83,8 +83,8 @@ crate struct SupportVector {
     pub features: Vec<Attribute>,
 }
 
-impl ModelFile<'a> {
-    pub fn random_dense(svm_type: &'svm str, kernel_type: &'svm str, total_sv: u32, attr: u32) -> ModelFile<'svm> {
+impl<'a> ModelFile<'a> {
+    pub fn random_dense<'b>(svm_type: &'b str, kernel_type: &'b str, total_sv: u32, attr: u32) -> ModelFile<'b> {
         let mut rng = rand::thread_rng();
 
         ModelFile {
