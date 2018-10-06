@@ -14,24 +14,20 @@
 // 0.0625 0:0.5861949 1:0.5556895 2:0.619291 3:0 4:0 5:0 6:0 7:0 8:0 9:0 10:0 11:0.5977631 12:0 13:0 14:0 15:0.6203156 16:0 17:0 18:0 19:0.1964417 20:0
 // ------------------
 
-
 // Basic
-alpha = _{ 'a'..'z' | 'A'..'Z' }
-digit = _{ '0' .. '9' }
 float = _{ "e" | "." | "-" }
 id = _{ "_" }
-line_break = _{ "\r\n" | "\n" }
-whitespace = _{ " " | "\t" }
+WHITESPACE = _{ " " | "\t" }
 
 // Elements
-identifier = @{ alpha ~ (alpha | id | digit)+ }
-number = @{ (digit | float)+ }
+identifier = @{ ASCII_ALPHA  ~ (ASCII_ALPHA | id | ASCII_DIGIT )+ }
+number = @{ (ASCII_DIGIT | float)+ }
 sv = { number ~ ":" ~ number }
 sv_or_number = _{ sv | number }
 
 // Lines
-line_sv = { sv_or_number+ ~ line_break }
-line_multiple = { identifier ~ (identifier | number)* ~ line_break }
+line_multiple = { identifier ~ (identifier | number)* ~ NEWLINE }
+line_sv = { sv_or_number+ ~ (NEWLINE | EOI) }
 
 // File
 file = { (line_sv | line_multiple)+ }

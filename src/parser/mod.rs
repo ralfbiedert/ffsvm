@@ -87,15 +87,21 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
                         "degree" => degree = Some(next!(line_pairs, u32)),
                         "nr_class" => nr_class = Some(next!(line_pairs, u32)),
                         "total_sv" => total_sv = Some(next!(line_pairs, u32)),
-                        "rho" => while let Some(x) = line_pairs.next() {
-                            rho.push(convert!(x, f64))
-                        },
-                        "label" => while let Some(x) = line_pairs.next() {
-                            label.push(convert!(x, u32))
-                        },
-                        "nr_sv" => while let Some(x) = line_pairs.next() {
-                            nr_sv.push(convert!(x, u32))
-                        },
+                        "rho" => {
+                            while let Some(x) = line_pairs.next() {
+                                rho.push(convert!(x, f64))
+                            }
+                        }
+                        "label" => {
+                            while let Some(x) = line_pairs.next() {
+                                label.push(convert!(x, u32))
+                            }
+                        }
+                        "nr_sv" => {
+                            while let Some(x) = line_pairs.next() {
+                                nr_sv.push(convert!(x, u32))
+                            }
+                        }
                         "probA" => {
                             let mut v = Vec::<f64>::new();
                             while let Some(x) = line_pairs.next() {
@@ -136,6 +142,7 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
                                 sv.features.push(Attribute { index, value })
                             }
                             Rule::number => sv.coefs.push(convert!(element, f32)),
+                            Rule::EOI => {}
                             _ => unreachable!(),
                         }
                     }

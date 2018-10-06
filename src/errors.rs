@@ -50,18 +50,26 @@ pub enum Error {
 //     }
 // }
 
-impl<'a> From<pest::Error<'a, crate::parser::Rule>> for Error {
-    fn from(e: pest::Error<'a, crate::parser::Rule>) -> Self { Error::ParsingError(format!("{}", e)) }
+impl From<pest::error::Error<crate::parser::Rule>> for Error {
+    fn from(e: pest::error::Error<crate::parser::Rule>) -> Self {
+        Error::ParsingError(format!("{}", e))
+    }
 }
 
 impl From<NoneError> for Error {
-    fn from(_: NoneError) -> Self { Error::ParsingError("NoneError".to_owned()) }
+    fn from(_: NoneError) -> Self {
+        Error::ParsingError("NoneError".to_owned())
+    }
 }
 
 impl From<ParseFloatError> for Error {
-    fn from(_e: ParseFloatError) -> Self { Error::ParsingError("ParseFloatError".to_owned()) }
+    fn from(_e: ParseFloatError) -> Self {
+        Error::ParsingError("ParseFloatError".to_owned())
+    }
 }
 
 impl From<ParseIntError> for Error {
-    fn from(_: ParseIntError) -> Self { Error::ParsingError("ParseIntError".to_owned()) }
+    fn from(_: ParseIntError) -> Self {
+        Error::ParsingError("ParseIntError".to_owned())
+    }
 }
