@@ -21,16 +21,27 @@ impl<T> SparseVector<T>
 where
     T: Clone + Copy + Default,
 {
-    pub fn new() -> Self { SparseVector { entries: Vec::new() } }
+    pub fn new() -> Self {
+        SparseVector {
+            entries: Vec::new(),
+        }
+    }
 
-    pub fn clear(&mut self) { self.entries.clear(); }
+    pub fn clear(&mut self) {
+        self.entries.clear();
+    }
 
-    pub fn iter(&self) -> SparseVectorIter<'_, T> { SparseVectorIter { vector: self, index: 0 } }
+    pub fn iter(&self) -> SparseVectorIter<'_, T> {
+        SparseVectorIter {
+            vector: self,
+            index: 0,
+        }
+    }
 }
 
 /// Basic iterator struct to go over matrix
 #[derive(Clone, Debug)]
-pub struct SparseVectorIter<'a, T: 'a>
+pub struct SparseVectorIter<'a, T>
 where
     T: Clone + Copy + Default,
 {
@@ -123,10 +134,17 @@ where
         }
     }
 
-    pub fn row(&self, row: usize) -> &SparseVector<T> { &self.vectors[row] }
+    pub fn row(&self, row: usize) -> &SparseVector<T> {
+        &self.vectors[row]
+    }
 
     #[inline]
-    pub fn row_iter(&self) -> SparseMatrixIter<'_, T> { SparseMatrixIter { matrix: &self, index: 0 } }
+    pub fn row_iter(&self) -> SparseMatrixIter<'_, T> {
+        SparseMatrixIter {
+            matrix: &self,
+            index: 0,
+        }
+    }
 }
 
 impl<T> Index<(usize, usize)> for SparseMatrix<T>
@@ -135,19 +153,23 @@ where
 {
     type Output = T;
 
-    fn index(&self, index: (usize, usize)) -> &T { &self.vectors[index.0][index.1] }
+    fn index(&self, index: (usize, usize)) -> &T {
+        &self.vectors[index.0][index.1]
+    }
 }
 
 impl<T> IndexMut<(usize, usize)> for SparseMatrix<T>
 where
     T: Copy + Sized + Default,
 {
-    fn index_mut(&mut self, index: (usize, usize)) -> &mut T { &mut self.vectors[index.0][index.1] }
+    fn index_mut(&mut self, index: (usize, usize)) -> &mut T {
+        &mut self.vectors[index.0][index.1]
+    }
 }
 
 /// Basic iterator struct to go over matrix
 #[derive(Clone, Debug)]
-pub struct SparseMatrixIter<'a, T: 'a>
+pub struct SparseMatrixIter<'a, T>
 where
     T: Clone + Copy + Default,
 {

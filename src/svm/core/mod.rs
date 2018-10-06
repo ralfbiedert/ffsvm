@@ -55,10 +55,14 @@ where
     K: ?Sized,
 {
     /// Returns number of attributes, reflecting the libSVM model.
-    pub fn attributes(&self) -> usize { self.num_attributes }
+    pub fn attributes(&self) -> usize {
+        self.num_attributes
+    }
 
     /// Returns number of classes, reflecting the libSVM model.
-    pub fn classes(&self) -> usize { self.classes.len() }
+    pub fn classes(&self) -> usize {
+        self.classes.len()
+    }
 }
 
 macro_rules! impl_common_svm {
@@ -395,13 +399,19 @@ macro_rules! prepare_svm {
             // Construct vector of classes
             let classes = match svm_type {
                 // TODO: CLEAN THIS UP ... We can probably unify the logic
-                SVMType::CSvc | SVMType::NuSvc => (0 .. num_classes)
+                SVMType::CSvc | SVMType::NuSvc => (0..num_classes)
                     .map(|c| {
                         let label = header.label[c];
                         let num_sv = nr_sv[c] as usize;
                         Class::<$m32>::with_parameters(num_classes, num_sv, num_attributes, label)
-                    }).collect::<Vec<Class<$m32>>>(),
-                SVMType::ESvr | SVMType::NuSvr => vec![Class::<$m32>::with_parameters(2, num_total_sv, num_attributes, 0)],
+                    })
+                    .collect::<Vec<Class<$m32>>>(),
+                SVMType::ESvr | SVMType::NuSvr => vec![Class::<$m32>::with_parameters(
+                    2,
+                    num_total_sv,
+                    num_attributes,
+                    0,
+                )],
             };
 
             let probabilities = match (&$raw_model.header.prob_a, &$raw_model.header.prob_b) {
