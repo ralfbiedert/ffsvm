@@ -1,5 +1,6 @@
 [![Latest Version]][crates.io]
 [![Travis-CI Status]][travis]
+[![deps.svg]][deps]
 [![docs]][docs.rs]
 ![MIT]
 
@@ -88,3 +89,5 @@ All performance numbers reported for the `DenseSVM`. We also have support for `S
 [MIT]: https://img.shields.io/badge/license-MIT-blue.svg
 [docs]: https://docs.rs/ffsvm/badge.svg
 [docs.rs]: https://docs.rs/crate/ffsvm/
+[deps]: https://deps.rs/repo/github/ralfbiedert/ffsvm-rust
+[deps.svg]: https://deps.rs/repo/github/ralfbiedert/ffsvm-rust/status.svg

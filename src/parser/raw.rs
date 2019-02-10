@@ -94,7 +94,7 @@ impl<'a> ModelFile<'a> {
                 total_sv,
                 gamma: Some(rng.gen::<f32>()),
                 coef0: Some(rng.gen::<f32>()),
-                degree: Some(rng.gen_range::<u32>(1, 10)),
+                degree: Some(rng.gen_range(1, 10)),
                 nr_class: 2,
                 rho: vec![rng.gen::<f64>()],
                 label: vec![0, 1],
