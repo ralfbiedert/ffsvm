@@ -49,7 +49,6 @@ use crate::errors::Error;
 /// * All support vectors (past the `SV` line) must have **strictly** increasing attribute
 /// identifiers, without skipping an attribute.
 ///
-#[doc(hidden)]
 #[derive(Clone, Debug, Default)]
 pub struct ModelFile<'a> {
     pub header: Header<'a>,
