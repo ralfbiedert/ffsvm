@@ -100,12 +100,12 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
                     };
                     
                     let (features, coefs): (Vec<&str>, Vec<&str>) = tokens.iter().partition(|x| {
-                        x.contains(":")
+                        x.contains(':')
                     });
                     
                     sv.coefs = coefs.iter().filter_map(|x| x.parse::<f32>().ok()).collect();
                     sv.features = features.iter().filter_map(|x| {
-                        let split = x.split(":").collect::<Vec<&str>>();
+                        let split = x.split(':').collect::<Vec<&str>>();
                         
                         Some(Attribute {
                             index: split.get(0)?.parse::<u32>().ok()?,
