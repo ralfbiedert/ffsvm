@@ -16,7 +16,7 @@ fn main() -> Result<(), Error> {
 
     svm.predict_value(&mut problem)?;
 
-    assert_eq!(problem.solution(), Solution::Label(12));
+    assert_eq!(problem.solution(), Solution::Label(42));
 
     Ok(())
 }
