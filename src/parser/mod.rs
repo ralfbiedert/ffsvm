@@ -77,10 +77,10 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
                 Some(x) if *x == "nr_sv" => {
                     nr_sv = tokens.iter().skip(1).filter_map(|x| x.parse::<u32>().ok()).collect()
                 },
-                Some(x) if *x == "prob_a" => {
+                Some(x) if *x == "probA" => {
                     prob_a = Some(tokens.iter().skip(1).filter_map(|x| x.parse::<f64>().ok()).collect())
                 },
-                Some(x) if *x == "prob_b" => {
+                Some(x) if *x == "probB" => {
                     prob_b = Some(tokens.iter().skip(1).filter_map(|x| x.parse::<f64>().ok()).collect())
                 },
                 //
@@ -126,80 +126,6 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
             
         }
         
-//        for line in parsed.into_inner() {
-//            match line.as_rule() {
-//                Rule::line_multiple => {
-//                    let mut line_pairs = line.into_inner();
-//                    match next!(line_pairs, str) {
-//                        "svm_type" => svm_type = Some(next!(line_pairs, str)),
-//                        "kernel_type" => kernel_type = Some(next!(line_pairs, str)),
-//                        "gamma" => gamma = Some(next!(line_pairs, f32)),
-//                        "coef0" => coef0 = Some(next!(line_pairs, f32)),
-//                        "degree" => degree = Some(next!(line_pairs, u32)),
-//                        "nr_class" => nr_class = Some(next!(line_pairs, u32)),
-//                        "total_sv" => total_sv = Some(next!(line_pairs, u32)),
-//                        "rho" => {
-//                            while let Some(x) = line_pairs.next() {
-//                                rho.push(convert!(x, f64))
-//                            }
-//                        }
-//                        "label" => {
-//                            while let Some(x) = line_pairs.next() {
-//                                label.push(convert!(x, u32))
-//                            }
-//                        }
-//                        "nr_sv" => {
-//                            while let Some(x) = line_pairs.next() {
-//                                nr_sv.push(convert!(x, u32))
-//                            }
-//                        }
-//                        "probA" => {
-//                            let mut v = Vec::<f64>::new();
-//                            while let Some(x) = line_pairs.next() {
-//                                v.push(convert!(x, f64))
-//                            }
-//                            prob_a = Option::Some(v);
-//                        }
-//                        "probB" => {
-//                            let mut v = Vec::<f64>::new();
-//                            while let Some(x) = line_pairs.next() {
-//                                v.push(convert!(x, f64))
-//                            }
-//                            prob_b = Option::Some(v);
-//                        }
-//                        "SV" => (),
-//                        unknown => panic!("Unknown header `{}`!", unknown),
-//                    };
-//                }
-//
-//                Rule::line_sv => {
-//                    let line_pairs = line.into_inner();
-//
-//                    let mut sv = SupportVector {
-//                        coefs: Vec::new(),
-//                        features: Vec::new(),
-//                    };
-//
-//                    for element in line_pairs {
-//                        match element.as_rule() {
-//                            Rule::sv => {
-//                                let mut sv_pairs = element.into_inner();
-//                                let index = next!(sv_pairs, u32);
-//                                let value = next!(sv_pairs, f32);
-//
-//                                sv.features.push(Attribute { index, value })
-//                            }
-//                            Rule::number => sv.coefs.push(convert!(element, f32)),
-//                            Rule::EOI => {}
-//                            _ => unreachable!(),
-//                        }
-//                    }
-//
-//                    vectors.push(sv);
-//                }
-//                _ => unreachable!(),
-//            };
-//        }
 
         Ok(ModelFile {
             header: Header {
