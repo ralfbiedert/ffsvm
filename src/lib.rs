@@ -70,11 +70,8 @@
 #![feature(
     try_from,
     stdsimd,
-    crate_visibility_modifier,
     try_trait,
-    tool_lints
 )]
-#![warn(rust_2018_idioms, explicit_outlives_requirements)]
 #![allow(clippy::unreadable_literal)]
 
 mod errors;

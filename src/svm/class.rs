@@ -4,18 +4,18 @@ use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix};
 /// Represents one class of the SVM model.
 #[derive(Clone, Debug)]
 #[doc(hidden)]
-crate struct Class<M32> {
+pub(crate) struct Class<M32> {
     /// The label of this class
-    crate label: u32,
+    pub(crate) label: u32,
 
     /// The number of support vectors in this class
-    crate num_support_vectors: usize,
+    pub(crate) num_support_vectors: usize,
 
     /// Coefficients between this class and n-1 other classes.
-    crate coefficients: SimdMatrix<f64s, RowOptimized>,
+    pub(crate) coefficients: SimdMatrix<f64s, RowOptimized>,
 
     /// All support vectors in this class.
-    crate support_vectors: M32,
+    pub(crate) support_vectors: M32,
 }
 
 impl Class<SimdMatrix<f32s, RowOptimized>> {

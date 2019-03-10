@@ -28,22 +28,22 @@ where
     K: ?Sized,
 {
     /// Total number of support vectors
-    crate num_total_sv: usize,
+    pub(crate) num_total_sv: usize,
 
     /// Number of attributes per support vector
-    crate num_attributes: usize,
+    pub(crate) num_attributes: usize,
 
-    crate rho: Triangular<f64>,
+    pub(crate) rho: Triangular<f64>,
 
-    crate probabilities: Option<Probabilities>,
+    pub(crate) probabilities: Option<Probabilities>,
 
-    crate svm_type: SVMType,
+    pub(crate) svm_type: SVMType,
 
     /// SVM specific data needed for classification
-    crate kernel: Box<K>,
+    pub(crate) kernel: Box<K>,
 
     /// All classes
-    crate classes: Vec<Class<M32>>,
+    pub(crate) classes: Vec<Class<M32>>,
 
     phantom_v32: PhantomData<V32>,
 
@@ -114,7 +114,7 @@ macro_rules! impl_common_svm {
         }
 
         /// Computes the kernel values for this problem
-        crate fn compute_kernel_values(&self, problem: &mut Problem<$v32>) {
+        pub(crate) fn compute_kernel_values(&self, problem: &mut Problem<$v32>) {
             // Get current problem and decision values array
             let features = &problem.features;
             let kernel_values = &mut problem.kernel_values;
@@ -133,7 +133,7 @@ macro_rules! impl_common_svm {
         // based on Method 2 from the paper "Probability Estimates for Multi-class
         // Classification by Pairwise Coupling", Journal of Machine Learning Research 5 (2004) 975-1005,
         // by Ting-Fan Wu, Chih-Jen Lin and Ruby C. Weng.
-        crate fn compute_multiclass_probabilities(&self, problem: &mut Problem<$v32>) -> Result<(), Error> {
+        pub(crate) fn compute_multiclass_probabilities(&self, problem: &mut Problem<$v32>) -> Result<(), Error> {
             let num_classes = self.classes.len();
             let max_iter = 100.max(num_classes);
             let mut q = problem.q.flat_mut();
@@ -214,7 +214,7 @@ macro_rules! impl_common_svm {
         }
 
         /// Based on kernel values, computes the decision values for this problem.
-        crate fn compute_classification_values(&self, problem: &mut Problem<$v32>) {
+        pub(crate) fn compute_classification_values(&self, problem: &mut Problem<$v32>) {
             // Reset all votes
             set_all(&mut problem.vote, 0);
 
@@ -258,7 +258,7 @@ macro_rules! impl_common_svm {
         }
 
         /// Based on kernel values, computes the decision values for this problem.
-        crate fn compute_regression_values(&self, problem: &mut Problem<$v32>) {
+        pub(crate) fn compute_regression_values(&self, problem: &mut Problem<$v32>) {
             let class = &self.classes[0];
             let coef = class.coefficients.row(0);
             let kvalues = problem.kernel_values.row(0);

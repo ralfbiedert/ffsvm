@@ -77,32 +77,32 @@ pub struct Features<V32> {
 #[derive(Debug, Clone)]
 pub struct Problem<V32> {
     /// A vector of all features.
-    crate features: Features<V32>,
+    pub(crate) features: Features<V32>,
 
     /// KernelDense values. A vector for each class.
-    crate kernel_values: SimdMatrix<f64s, RowOptimized>,
+    pub(crate) kernel_values: SimdMatrix<f64s, RowOptimized>,
 
     /// All votes for a given class label.
-    crate vote: Vec<u32>,
+    pub(crate) vote: Vec<u32>,
 
     /// Decision values.
-    crate decision_values: Triangular<f64>,
+    pub(crate) decision_values: Triangular<f64>,
 
     /// Pairwise probabilities
-    crate pairwise: SimdMatrix<f64s, RowOptimized>,
+    pub(crate) pairwise: SimdMatrix<f64s, RowOptimized>,
 
     /// Needed for multi-class probability estimates replicating libSVM.
-    crate q: SimdMatrix<f64s, RowOptimized>,
+    pub(crate) q: SimdMatrix<f64s, RowOptimized>,
 
     /// Needed for multi-class probability estimates replicating libSVM.
-    crate qp: Vec<f64>,
+    pub(crate) qp: Vec<f64>,
 
     /// Probability estimates that will be updated after this problem was processed
     /// by `predict_probability`.
-    crate probabilities: SimdVector<f64s>,
+    pub(crate) probabilities: SimdVector<f64s>,
 
     /// Computed label that will be updated after this problem was processed.
-    crate result: Solution,
+    pub(crate) result: Solution,
 }
 
 impl<T> Problem<T> {
@@ -118,7 +118,7 @@ impl<T> Problem<T> {
 
 impl DenseProblem {
     /// Creates a new problem with the given parameters.
-    crate fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem<SimdVector<f32s>> {
+    pub(crate) fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem<SimdVector<f32s>> {
         Problem {
             features: Features {
                 data: SimdVector::with(0.0, num_attributes),
@@ -140,7 +140,7 @@ impl SparseProblem {
     pub fn clear(&mut self) { self.features.data.clear(); }
 
     /// Creates a new problem with the given parameters.
-    crate fn with_dimension(total_sv: usize, num_classes: usize, _num_attributes: usize) -> Problem<SparseVector<f32>> {
+    pub(crate) fn with_dimension(total_sv: usize, num_classes: usize, _num_attributes: usize) -> Problem<SparseVector<f32>> {
         Problem {
             features: Features { data: SparseVector::new() },
             kernel_values: SimdMatrix::with_dimension(num_classes, total_sv),

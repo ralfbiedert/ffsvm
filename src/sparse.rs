@@ -46,10 +46,10 @@ where
     T: Clone + Copy + Default,
 {
     /// Reference to the matrix we iterate over.
-    crate vector: &'a SparseVector<T>,
+    pub(crate) vector: &'a SparseVector<T>,
 
     /// Current index of vector iteration.
-    crate index: usize,
+    pub(crate) index: usize,
 }
 
 impl<'a, T> Iterator for SparseVectorIter<'a, T>
@@ -174,10 +174,10 @@ where
     T: Clone + Copy + Default,
 {
     /// Reference to the matrix we iterate over.
-    crate matrix: &'a SparseMatrix<T>,
+    pub(crate) matrix: &'a SparseMatrix<T>,
 
     /// Current index of vector iteration.
-    crate index: usize,
+    pub(crate) index: usize,
 }
 
 impl<'a, T> Iterator for SparseMatrixIter<'a, T>

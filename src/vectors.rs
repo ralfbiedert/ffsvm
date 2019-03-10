@@ -20,10 +20,10 @@ where
     T: Copy + Sized,
 {
     /// Width and height of the matrix
-    crate dimension: usize,
+    pub(crate) dimension: usize,
 
     /// Actual data, see comment above for how indices are stored.
-    crate data: Vec<T>,
+    pub(crate) data: Vec<T>,
 }
 
 impl<T> Triangular<T>

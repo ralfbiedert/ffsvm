@@ -1,8 +1,8 @@
-crate mod class;
-crate mod core;
-crate mod kernel;
-crate mod predict;
-crate mod problem;
+pub(crate) mod class;
+pub(crate) mod core;
+pub(crate) mod kernel;
+pub(crate) mod predict;
+pub(crate) mod problem;
 
 use self::kernel::{KernelDense, KernelSparse};
 use crate::{
@@ -13,10 +13,10 @@ use crate::{
 use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 
 #[derive(Clone, Debug, Default)]
-crate struct Probabilities {
-    crate a: Triangular<f64>,
+pub(crate) struct Probabilities {
+    pub(crate) a: Triangular<f64>,
 
-    crate b: Triangular<f64>,
+    pub(crate) b: Triangular<f64>,
 }
 
 /// Classifier type.

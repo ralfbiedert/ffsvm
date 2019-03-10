@@ -51,34 +51,34 @@ use rand::Rng;
 #[doc(hidden)]
 #[derive(Clone, Debug, Default)]
 pub struct ModelFile<'a> {
-    crate header: Header<'a>,
-    crate vectors: Vec<SupportVector>,
+    pub(crate) header: Header<'a>,
+    pub(crate) vectors: Vec<SupportVector>,
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct Header<'a> {
-    crate svm_type: &'a str,
-    crate kernel_type: &'a str,
-    crate gamma: Option<f32>,
-    crate coef0: Option<f32>,
-    crate degree: Option<u32>,
-    crate nr_class: u32,
-    crate total_sv: u32,
-    crate rho: Vec<f64>,
-    crate label: Vec<u32>,
-    crate prob_a: Option<Vec<f64>>,
-    crate prob_b: Option<Vec<f64>>,
-    crate nr_sv: Vec<u32>,
+    pub(crate) svm_type: &'a str,
+    pub(crate) kernel_type: &'a str,
+    pub(crate) gamma: Option<f32>,
+    pub(crate) coef0: Option<f32>,
+    pub(crate) degree: Option<u32>,
+    pub(crate) nr_class: u32,
+    pub(crate) total_sv: u32,
+    pub(crate) rho: Vec<f64>,
+    pub(crate) label: Vec<u32>,
+    pub(crate) prob_a: Option<Vec<f64>>,
+    pub(crate) prob_b: Option<Vec<f64>>,
+    pub(crate) nr_sv: Vec<u32>,
 }
 
 #[derive(Copy, Clone, Debug, Default)]
-crate struct Attribute {
-    crate index: u32,
-    crate value: f32,
+pub(crate) struct Attribute {
+    pub(crate) index: u32,
+    pub(crate) value: f32,
 }
 
 #[derive(Clone, Debug, Default)]
-crate struct SupportVector {
+pub(crate) struct SupportVector {
     pub coefs: Vec<f32>,
     pub features: Vec<Attribute>,
 }

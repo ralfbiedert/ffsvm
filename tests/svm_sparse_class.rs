@@ -1,7 +1,6 @@
 #![feature(test)]
 #![feature(try_from)]
 
-extern crate ffsvm;
 extern crate test;
 
 macro_rules! test_model {
