@@ -9,7 +9,6 @@
 You trained a SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want the highest possible performance during (real-time) classification, like games or VR.
 
 
-
 # Highlights
 
 * loads almost all [libSVM](https://github.com/cjlin1/libsvm) types (C-SVC, ν-SVC, ε-SVR,  ν-SVR) and kernels (linear, poly, RBF and sigmoid)
@@ -22,6 +21,8 @@ You trained a SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want
 * successfully used in **Unity and VR** projects (Windows & Android)
 * free of `unsafe` code ;)
 
+
+Note: Currently requires Rust nightly (March 2019 and later), because we depend on RFC 2366 (portable SIMD). Once that stabilizes we'll also go stable. 
 
 # Usage
 
@@ -52,7 +53,7 @@ Please see [FFSVM-FFI](https://github.com/ralfbiedert/ffsvm-ffi)
 
 
 # Status
-
+* **March 10, 2019**: As soon as we can move away from nightly we'll go beta.  
 * **Aug 5, 2018**: Still in alpha, but finally on crates.io.
 * **May 27, 2018**: We're in alpha. Successfully used internally on Windows, Mac, Android and Linux
 on various machines and devices. Once SIMD stabilizes and we can cross-compile to WASM
