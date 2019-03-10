@@ -5,6 +5,8 @@
 // for details
 extern crate test;
 
+mod util;
+
 mod svm_dense {
     use crate::test::Bencher;
     use ffsvm::{DenseSVM, ModelFile, Predict, Problem};
@@ -18,7 +20,7 @@ mod svm_dense {
         total_sv: u32,
         num_attributes: u32,
     ) -> impl FnMut() {
-        let raw_model = ModelFile::random_dense(svm_type, kernel_type, total_sv, num_attributes);
+        let raw_model = super::util::random_dense(svm_type, kernel_type, total_sv, num_attributes);
         let svm = DenseSVM::try_from(&raw_model).unwrap();
         let mut problem = Problem::from(&svm);
         let problem_mut = problem.features().as_slice_mut();

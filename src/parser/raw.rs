@@ -1,4 +1,3 @@
-use rand::Rng;
 
 /// Parsing result of a model file used to instantiate a [SVM].
 ///
@@ -51,66 +50,38 @@ use rand::Rng;
 #[doc(hidden)]
 #[derive(Clone, Debug, Default)]
 pub struct ModelFile<'a> {
-    pub(crate) header: Header<'a>,
-    pub(crate) vectors: Vec<SupportVector>,
+    pub header: Header<'a>,
+    pub vectors: Vec<SupportVector>,
 }
 
+#[doc(hidden)]
 #[derive(Clone, Debug, Default)]
 pub struct Header<'a> {
-    pub(crate) svm_type: &'a str,
-    pub(crate) kernel_type: &'a str,
-    pub(crate) gamma: Option<f32>,
-    pub(crate) coef0: Option<f32>,
-    pub(crate) degree: Option<u32>,
-    pub(crate) nr_class: u32,
-    pub(crate) total_sv: u32,
-    pub(crate) rho: Vec<f64>,
-    pub(crate) label: Vec<u32>,
-    pub(crate) prob_a: Option<Vec<f64>>,
-    pub(crate) prob_b: Option<Vec<f64>>,
-    pub(crate) nr_sv: Vec<u32>,
+    pub svm_type: &'a str,
+    pub kernel_type: &'a str,
+    pub gamma: Option<f32>,
+    pub coef0: Option<f32>,
+    pub degree: Option<u32>,
+    pub nr_class: u32,
+    pub total_sv: u32,
+    pub rho: Vec<f64>,
+    pub label: Vec<u32>,
+    pub prob_a: Option<Vec<f64>>,
+    pub prob_b: Option<Vec<f64>>,
+    pub nr_sv: Vec<u32>,
 }
 
+#[doc(hidden)]
 #[derive(Copy, Clone, Debug, Default)]
-pub(crate) struct Attribute {
-    pub(crate) index: u32,
-    pub(crate) value: f32,
+pub struct Attribute {
+    pub value: f32,
+    pub index: u32,
 }
 
+#[doc(hidden)]
 #[derive(Clone, Debug, Default)]
-pub(crate) struct SupportVector {
+pub struct SupportVector {
     pub coefs: Vec<f32>,
     pub features: Vec<Attribute>,
 }
 
-impl<'a> ModelFile<'a> {
-    pub fn random_dense<'b>(svm_type: &'b str, kernel_type: &'b str, total_sv: u32, attr: u32) -> ModelFile<'b> {
-        let mut rng = rand::thread_rng();
-
-        ModelFile {
-            header: Header {
-                svm_type,
-                kernel_type,
-                total_sv,
-                gamma: Some(rng.gen::<f32>()),
-                coef0: Some(rng.gen::<f32>()),
-                degree: Some(rng.gen_range(1, 10)),
-                nr_class: 2,
-                rho: vec![rng.gen::<f64>()],
-                label: vec![0, 1],
-                prob_a: Some(vec![rng.gen::<f64>(), rng.gen::<f64>()]),
-                prob_b: Some(vec![rng.gen::<f64>(), rng.gen::<f64>()]),
-                nr_sv: vec![total_sv / 2, total_sv / 2],
-            },
-            vectors: (0 .. total_sv)
-                .map(|_| SupportVector {
-                    coefs: vec![rng.gen::<f32>()],
-                    features: (0 .. attr)
-                        .map(|i| Attribute {
-                            index: i,
-                            value: rng.gen::<f32>(),
-                        }).collect(),
-                }).collect(),
-        }
-    }
-}

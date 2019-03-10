@@ -1,7 +1,7 @@
 [package]
 name = "ffsvm"
 description="A libSVM compatible support vector machine, but up to 10x faster, for games or VR."
-version = "0.6.4"
+version = "0.6.5"
 repository = "https://github.com/ralfbiedert/ffsvm-rust"
 authors = ["Ralf Biedert <rb@xr.io>"]
 readme = "README.md"
@@ -24,8 +24,9 @@ crate-type = [ "rlib" ]
 
 [dependencies]
 simd_aligned = "0.1.3"
-# simd_aligned = { path = "../simd_aligned" }
 packed_simd = "0.3"
+
+[dev-dependencies]
 rand = "0.6"
 
 [profile.release]

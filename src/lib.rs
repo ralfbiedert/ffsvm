@@ -86,7 +86,7 @@ pub static SAMPLE_MODEL: &str = include_str!("sample.model");
 
 pub use crate::{
     errors::Error,
-    parser::ModelFile,
+    parser::{ModelFile, SupportVector, Attribute, Header},
     svm::{
         core::SVMCore,
         kernel::{KernelDense, KernelSparse, Linear, Poly, Rbf, Sigmoid},
@@ -95,3 +95,4 @@ pub use crate::{
         DenseSVM, SVMType, SparseSVM,
     },
 };
+
