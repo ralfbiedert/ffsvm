@@ -1,53 +1,15 @@
 mod raw;
 
 use std::{convert::TryFrom, str};
-
-pub use self::raw::*;
-
-use pest::Parser;
-use pest_derive::Parser;
-
 use crate::errors::Error;
 
-// Hack to make `pest` re-generate parser every time file changes.
-#[cfg(debug_assertions)]
-const _GRAMMAR: &str = include_str!("model.pest");
-
-#[derive(Parser)]
-#[grammar = "parser/model.pest"]
-struct LibSVMModel;
-
-// We keep this here just in case I have to touch the parser ever again ...
-#[allow(non_snake_case)]
-fn JUST_FUCKING_DEBUG_IT<T>(t: T) -> T
-where
-    T: std::fmt::Debug,
-{
-    // println!("{:?}", t);
-    t
-}
-
-macro_rules! next {
-    ($p:expr,str) => {
-        $p.next()?.as_str()
-    };
-    ($p:expr, $t:ty) => {
-        JUST_FUCKING_DEBUG_IT($p.next()?.as_str()).parse::<$t>()?
-    };
-}
-
-macro_rules! convert {
-    ($p:expr, $t:ty) => {
-        JUST_FUCKING_DEBUG_IT($p.as_str()).parse::<$t>()?
-    };
-}
+pub use self::raw::*;
 
 impl<'a> TryFrom<&'a str> for ModelFile<'a> {
     type Error = Error;
 
     /// Parses a string into a SVM model
     fn try_from(input: &str) -> Result<ModelFile<'_>, Error> {
-        let parsed = LibSVMModel::parse(Rule::file, input)?.next()?;
 
         let mut svm_type = Option::None;
         let mut kernel_type = Option::None;
@@ -61,11 +23,16 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
         let mut prob_a = Option::None;
         let mut prob_b = Option::None;
         let mut nr_sv = Vec::new();
-
+        
         let mut vectors = Vec::new();
 
-        for line in parsed.into_inner() {
-            match line.as_rule() {
+        for line in input.lines() {
+            let tokens = line.split_whitespace().collect::<Vec<_>>();
+            
+            match tokens.get(0) {
+                //
+                // Single value headers
+                //
                 // svm_type c_svc
                 // kernel_type rbf
                 // gamma 0.5
@@ -77,81 +44,162 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
                 // probB 0.135634 0.570051 -0.114691 -0.397667 0.0687938 0.839527 -0.310816 -0.787629 0.0335196 0.15079 -0.389211 0.288416 0.186429 0.46585 0.547398
                 // nr_sv 50 56 17 11 7 12
                 // SV
-                Rule::line_multiple => {
-                    let mut line_pairs = line.into_inner();
-                    match next!(line_pairs, str) {
-                        "svm_type" => svm_type = Some(next!(line_pairs, str)),
-                        "kernel_type" => kernel_type = Some(next!(line_pairs, str)),
-                        "gamma" => gamma = Some(next!(line_pairs, f32)),
-                        "coef0" => coef0 = Some(next!(line_pairs, f32)),
-                        "degree" => degree = Some(next!(line_pairs, u32)),
-                        "nr_class" => nr_class = Some(next!(line_pairs, u32)),
-                        "total_sv" => total_sv = Some(next!(line_pairs, u32)),
-                        "rho" => {
-                            while let Some(x) = line_pairs.next() {
-                                rho.push(convert!(x, f64))
-                            }
-                        }
-                        "label" => {
-                            while let Some(x) = line_pairs.next() {
-                                label.push(convert!(x, u32))
-                            }
-                        }
-                        "nr_sv" => {
-                            while let Some(x) = line_pairs.next() {
-                                nr_sv.push(convert!(x, u32))
-                            }
-                        }
-                        "probA" => {
-                            let mut v = Vec::<f64>::new();
-                            while let Some(x) = line_pairs.next() {
-                                v.push(convert!(x, f64))
-                            }
-                            prob_a = Option::Some(v);
-                        }
-                        "probB" => {
-                            let mut v = Vec::<f64>::new();
-                            while let Some(x) = line_pairs.next() {
-                                v.push(convert!(x, f64))
-                            }
-                            prob_b = Option::Some(v);
-                        }
-                        "SV" => (),
-                        unknown => panic!("Unknown header `{}`!", unknown),
-                    };
-                }
-
+                Some(x) if *x == "svm_type" => {
+                    svm_type = Some(tokens[1]);
+                },
+                Some(x) if *x == "kernel_type" => {
+                    kernel_type = Some(tokens[1]);
+                },
+                Some(x) if *x == "gamma" => {
+                    gamma = tokens[1].parse::<f32>().ok();
+                },
+                Some(x) if *x == "coef0" => {
+                    coef0 = tokens[1].parse::<f32>().ok();
+                },
+                Some(x) if *x == "degree" => {
+                    degree = tokens[1].parse::<u32>().ok();
+                },
+                Some(x) if *x == "nr_class" => {
+                    nr_class = tokens[1].parse::<u32>().ok();
+                },
+                Some(x) if *x == "total_sv" => {
+                    total_sv = tokens[1].parse::<u32>().ok();
+                },
+                //
+                // Multi value headers
+                //
+                Some(x) if *x == "rho" => {
+                    rho = tokens.iter().skip(1).filter_map(|x| x.parse::<f64>().ok()).collect()
+                },
+                Some(x) if *x == "label" => {
+                    label = tokens.iter().skip(1).filter_map(|x| x.parse::<u32>().ok()).collect()
+                },
+                Some(x) if *x == "nr_sv" => {
+                    nr_sv = tokens.iter().skip(1).filter_map(|x| x.parse::<u32>().ok()).collect()
+                },
+                Some(x) if *x == "prob_a" => {
+                    prob_a = Some(tokens.iter().skip(1).filter_map(|x| x.parse::<f64>().ok()).collect())
+                },
+                Some(x) if *x == "prob_b" => {
+                    prob_b = Some(tokens.iter().skip(1).filter_map(|x| x.parse::<f64>().ok()).collect())
+                },
+                //
+                // Header separator
+                //
+                Some(x) if *x == "SV" => {},
+                //
+                // These are all regular lines without a clear header (after SV) ...
+                //
                 // 0.0625 0:0.6619648 1:0.8464851 2:0.4801146 3:0 4:0 5:0.02131653 6:0 7:0 8:0 9:0 10:0 11:0 12:0 13:0 14:0 15:0.5579834 16:0.1106567 17:0 18:0 19:0 20:0
                 // 0.0625 0:0.5861949 1:0.5556895 2:0.619291 3:0 4:0 5:0 6:0 7:0 8:0 9:0 10:0 11:0.5977631 12:0 13:0 14:0 15:0.6203156 16:0 17:0 18:0 19:0.1964417 20:0
                 // 0.0625 0:0.44675 1:0.4914977 2:0.4227562 3:0.2904663 4:0.2904663 5:0.268158 6:0 7:0 8:0 9:0 10:0 11:0.6202393 12:0.0224762 13:0 14:0 15:0.6427917 16:0.0224762 17:0 18:0 19:0.1739655 20:0
-                Rule::line_sv => {
-                    let line_pairs = line.into_inner();
-
+                Some(_) => {
                     let mut sv = SupportVector {
                         coefs: Vec::new(),
                         features: Vec::new(),
                     };
-
-                    for element in line_pairs {
-                        match element.as_rule() {
-                            Rule::sv => {
-                                let mut sv_pairs = element.into_inner();
-                                let index = next!(sv_pairs, u32);
-                                let value = next!(sv_pairs, f32);
-
-                                sv.features.push(Attribute { index, value })
-                            }
-                            Rule::number => sv.coefs.push(convert!(element, f32)),
-                            Rule::EOI => {}
-                            _ => unreachable!(),
-                        }
-                    }
-
+                    
+                    let (features, coefs): (Vec<&str>, Vec<&str>) = tokens.iter().partition(|x| {
+                        x.contains(":")
+                    });
+                    
+                    sv.coefs = coefs.iter().filter_map(|x| x.parse::<f32>().ok()).collect();
+                    sv.features = features.iter().filter_map(|x| {
+                        let split = x.split(":").collect::<Vec<&str>>();
+                        
+                        Some(Attribute {
+                            index: split.get(0)?.parse::<u32>().ok()?,
+                            value: split.get(1)?.parse::<f32>().ok()?
+                        })
+                        
+                    }).collect();
+                    
                     vectors.push(sv);
-                }
-                _ => unreachable!(),
-            };
+                },
+    
+                //
+                // Empty end of file
+                //
+                None => break
+                
+            }
+            
         }
+        
+//        for line in parsed.into_inner() {
+//            match line.as_rule() {
+//                Rule::line_multiple => {
+//                    let mut line_pairs = line.into_inner();
+//                    match next!(line_pairs, str) {
+//                        "svm_type" => svm_type = Some(next!(line_pairs, str)),
+//                        "kernel_type" => kernel_type = Some(next!(line_pairs, str)),
+//                        "gamma" => gamma = Some(next!(line_pairs, f32)),
+//                        "coef0" => coef0 = Some(next!(line_pairs, f32)),
+//                        "degree" => degree = Some(next!(line_pairs, u32)),
+//                        "nr_class" => nr_class = Some(next!(line_pairs, u32)),
+//                        "total_sv" => total_sv = Some(next!(line_pairs, u32)),
+//                        "rho" => {
+//                            while let Some(x) = line_pairs.next() {
+//                                rho.push(convert!(x, f64))
+//                            }
+//                        }
+//                        "label" => {
+//                            while let Some(x) = line_pairs.next() {
+//                                label.push(convert!(x, u32))
+//                            }
+//                        }
+//                        "nr_sv" => {
+//                            while let Some(x) = line_pairs.next() {
+//                                nr_sv.push(convert!(x, u32))
+//                            }
+//                        }
+//                        "probA" => {
+//                            let mut v = Vec::<f64>::new();
+//                            while let Some(x) = line_pairs.next() {
+//                                v.push(convert!(x, f64))
+//                            }
+//                            prob_a = Option::Some(v);
+//                        }
+//                        "probB" => {
+//                            let mut v = Vec::<f64>::new();
+//                            while let Some(x) = line_pairs.next() {
+//                                v.push(convert!(x, f64))
+//                            }
+//                            prob_b = Option::Some(v);
+//                        }
+//                        "SV" => (),
+//                        unknown => panic!("Unknown header `{}`!", unknown),
+//                    };
+//                }
+//
+//                Rule::line_sv => {
+//                    let line_pairs = line.into_inner();
+//
+//                    let mut sv = SupportVector {
+//                        coefs: Vec::new(),
+//                        features: Vec::new(),
+//                    };
+//
+//                    for element in line_pairs {
+//                        match element.as_rule() {
+//                            Rule::sv => {
+//                                let mut sv_pairs = element.into_inner();
+//                                let index = next!(sv_pairs, u32);
+//                                let value = next!(sv_pairs, f32);
+//
+//                                sv.features.push(Attribute { index, value })
+//                            }
+//                            Rule::number => sv.coefs.push(convert!(element, f32)),
+//                            Rule::EOI => {}
+//                            _ => unreachable!(),
+//                        }
+//                    }
+//
+//                    vectors.push(sv);
+//                }
+//                _ => unreachable!(),
+//            };
+//        }
 
         Ok(ModelFile {
             header: Header {

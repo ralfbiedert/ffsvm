@@ -50,11 +50,6 @@ pub enum Error {
 //     }
 // }
 
-impl From<pest::error::Error<crate::parser::Rule>> for Error {
-    fn from(e: pest::error::Error<crate::parser::Rule>) -> Self {
-        Error::ParsingError(format!("{}", e))
-    }
-}
 
 impl From<NoneError> for Error {
     fn from(_: NoneError) -> Self {
