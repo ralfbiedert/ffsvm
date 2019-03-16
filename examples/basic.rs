@@ -1,5 +1,3 @@
-#![feature(try_from)]
-
 use ffsvm::*;
 use std::convert::TryFrom;
 

@@ -1,5 +1,4 @@
 #![feature(test)]
-#![feature(try_from)]
 
 use ffsvm::Solution;
 

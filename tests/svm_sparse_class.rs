@@ -1,5 +1,4 @@
 #![feature(test)]
-#![feature(try_from)]
 
 extern crate test;
 

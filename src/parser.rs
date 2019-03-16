@@ -27,7 +27,7 @@ use std::{convert::TryFrom, str};
 /// For FFSVM to load a model, it needs to approximately look like below. Note that you cannot
 /// reasonably create this model by hand, it needs to come from [libSVM](https://github.com/cjlin1/libsvm).
 ///
-/// ```ignore
+/// ```text
 /// svm_type c_svc
 /// kernel_type rbf
 /// gamma 1

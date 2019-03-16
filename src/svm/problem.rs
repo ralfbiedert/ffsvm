@@ -43,8 +43,6 @@ pub struct Features<V32> {
 /// Problems are created via the `Problem::from` method and match the SVM type they were created for:
 ///
 /// ```rust
-/// #![feature(try_from)]
-///
 /// use ffsvm::*;
 /// use std::convert::TryFrom;
 ///

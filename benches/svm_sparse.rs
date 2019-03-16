@@ -1,4 +1,4 @@
-#![feature(test, try_from)]
+#![feature(test)]
 
 // This is a little weird, see
 // https://github.com/rust-lang/rust/pull/54116#issuecomment-422294107

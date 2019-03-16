@@ -41,8 +41,6 @@
 //! `svm-train`. If you haven't created a model yet, [check out the FAQ on how to get started](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/FAQ.md).
 //!
 //! ```rust
-//! #![feature(try_from)]
-//!
 //! use ffsvm::*;
 //! use std::convert::TryFrom;
 //!
@@ -67,7 +65,7 @@
 //! ```
 
 // Opt in to unstable features expected for Rust 2018
-#![feature(try_from, stdsimd, try_trait)]
+#![feature(stdsimd, try_trait)]
 #![allow(clippy::unreadable_literal)]
 
 mod errors;

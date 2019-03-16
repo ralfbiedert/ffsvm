@@ -15,22 +15,18 @@ use crate::{
     vectors::Triangular,
 };
 
-/// Generic support vector machine core, used by both SVM types.
+/// A SVM using [SIMD](https://en.wikipedia.org/wiki/SIMD) intrinsics optimized for speed.
 ///
-/// The SVM holds a kernel, class information and all other numerical data read from
-/// the model.
 ///
 /// # Creating a SVM
 ///
-/// Models can be constructed like this:
+/// This SVM can be created by passing a [`ModelFile`](crate::ModelFile) into `try_from`, or a `&str`:
 ///
 /// ```
-/// #![feature(try_from)]
-///
 /// use ffsvm::*;
 /// use std::convert::TryFrom;
 ///
-/// let svm = SparseSVM::try_from("...");
+/// let svm = DenseSVM::try_from("...");
 /// ```
 pub struct DenseSVM {
     /// Total number of support vectors
@@ -59,12 +55,12 @@ impl DenseSVM {
     ///
     /// This method takes a `label` as defined in the libSVM training model
     /// and returns the internal `index` where this label resides. The index
-    /// equals [Problem::probabilities] index where that label's
+    /// equals [`Problem::probabilities`] index where that label's
     /// probability can be found.
     ///
     /// # Returns
     ///
-    /// If the label was found its index returned in the [Option]. Otherwise `None`
+    /// If the label was found its index returned in the [`Option`]. Otherwise `None`
     /// is returned.
     pub fn class_index_for_label(&self, label: i32) -> Option<usize> {
         for (i, class) in self.classes.iter().enumerate() {
@@ -82,13 +78,13 @@ impl DenseSVM {
     ///
     /// # Description
     ///
-    /// The inverse of [SVMCore::class_index_for_label], this function returns the class label
-    /// associated with a certain internal index. The index equals the [Problem]'s
-    /// `.probabilities` index where a label's probability can be found.
+    /// The inverse of [`DenseSVM::class_index_for_label`], this function returns the class label
+    /// associated with a certain internal index. The index equals the [`Problem::probabilities`]
+    /// index where a label's probability can be found.
     ///
     /// # Returns
     ///
-    /// If the index was found it is returned in the [Option]. Otherwise `None`
+    /// If the index was found it is returned in the [`Option`]. Otherwise `None`
     /// is returned.
     pub fn class_label_for_index(&self, index: usize) -> Option<i32> {
         if index >= self.classes.len() {
@@ -148,6 +144,7 @@ impl DenseSVM {
     /// Returns number of classes, reflecting the libSVM model.
     pub fn classes(&self) -> usize { self.classes.len() }
 }
+
 
 impl Predict<SimdVector<f32s>, SimdVector<f64s>> for DenseSVM {
     fn predict_probability(&self, problem: &mut Problem<SimdVector<f32s>>) -> Result<(), Error> {
