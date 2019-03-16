@@ -4,9 +4,9 @@ pub(crate) mod kernel;
 pub(crate) mod predict;
 pub(crate) mod problem;
 
-use self::kernel::{KernelDense, KernelSparse};
+use self::kernel::{KernelSparse};
 use crate::{
-    sparse::{SparseMatrix, SparseVector},
+    sparse::{SparseVector},
     vectors::Triangular,
 };
 
@@ -28,8 +28,5 @@ pub enum SVMType {
     NuSvr,
 }
 
-/// **Start here** to classify dense models with highest performance.
-pub type DenseSVM = core::SVMCore<dyn KernelDense, SimdMatrix<f32s, RowOptimized>, SimdVector<f32s>, SimdVector<f64s>>;
-
-/// Use this to load any `libSVM` model with normal performance.
-pub type SparseSVM = core::SVMCore<dyn KernelSparse, SparseMatrix<f32>, SparseVector<f32>, SparseVector<f64>>;
+pub use self::core::dense::DenseSVM;
+pub use self::core::sparse::SparseSVM;

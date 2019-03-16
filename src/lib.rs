@@ -88,7 +88,6 @@ pub use crate::{
     errors::Error,
     parser::{ModelFile, SupportVector, Attribute, Header},
     svm::{
-        core::SVMCore,
         kernel::{KernelDense, KernelSparse, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
         problem::{DenseProblem, Problem, Solution, SparseProblem},
