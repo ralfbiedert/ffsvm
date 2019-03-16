@@ -1,10 +1,10 @@
 use crate::{errors::Error, svm::problem::Problem};
 
-/// Implemented by [DenseSVM] and [SparseSVM] to predict a [Problem].
+/// Implemented by [`DenseSVM`](crate::DenseSVM) and [`SparseSVM`](crate::SparseSVM) to predict a [`Problem`].
 ///
 /// # Predicting a label
 ///
-/// To predict a label, first make sure the [Problem] has all features set. Then calling
+/// To predict a label, first make sure the [`Problem`](crate::Problem) has all features set. Then calling
 /// ```
 /// use ffsvm::*;
 ///
@@ -13,7 +13,7 @@ use crate::{errors::Error, svm::problem::Problem};
 ///     svm.predict_value(problem);
 /// }
 /// ```
-/// will update the [Problem::solution] to correspond to the class label with the highest likelihood.
+/// will update the [`Problem::solution`] to correspond to the class label with the highest likelihood.
 ///
 /// # Predicting a label and obtaining probability estimates.
 ///
@@ -32,24 +32,24 @@ use crate::{errors::Error, svm::problem::Problem};
 /// }
 /// ```
 ///
-/// Predicting probabilities automatically predicts the best label. In addition [Problem::probabilities]
+/// Predicting probabilities automatically predicts the best label. In addition [`Problem::probabilities`]
 /// will be updated accordingly. The class labels for each probablity entry can be obtained
-/// by the [SVMCore::class_label_for_index] and [SVMCore::class_index_for_label] methods.
+/// by the SVM's `class_label_for_index` and `class_index_for_label` methods.
 ///
 pub trait Predict<V32, V64>
 where
     Self: Sync,
 {
-    /// Predict a single value for a [Problem].
+    /// Predict a single value for a [`Problem`].
     ///
     /// The problem needs to have all features set. Once this method returns,
-    /// the [Problem::solution] will be set.
+    /// the [`Problem::solution`] will be set.
     fn predict_value(&self, problem: &mut Problem<V32>) -> Result<(), Error>;
 
     /// Predict a probability value for a problem.
     ///
     /// The problem needs to have all features set. Once this method returns,
-    /// both [Problem::solution] will be set, and all [Problem::probabilities] will
+    /// both [`Problem::solution`] will be set, and all [`Problem::probabilities`] will
     /// be available accordingly.
     fn predict_probability(&self, problem: &mut Problem<V32>) -> Result<(), Error>;
 }

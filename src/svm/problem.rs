@@ -8,14 +8,14 @@ use crate::{
 
 use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 
-/// Problems produced for [DenseSVM]s.
+/// Problems produced for [`DenseSVM`]s.
 ///
-/// Also see [Problem] for more methods for this type.
+/// Also see [`Problem`] for more methods for this type.
 pub type DenseProblem = Problem<SimdVector<f32s>>;
 
-/// Problems produced for [SparseSVM]s.
+/// Problems produced for [`SparseSVM`]s.
 ///
-/// Also see [Problem] for more methods for this type.
+/// Also see [`Problem`] for more methods for this type.
 pub type SparseProblem = Problem<SparseVector<f32>>;
 
 /// The result of a classification
@@ -36,7 +36,7 @@ pub struct Features<V32> {
     data: V32,
 }
 
-/// A single problem a [DenseSVM] or [SparseSVM] should classify.
+/// A single problem a SVM should classify.
 ///
 /// # Creating a `Problem`
 ///
@@ -72,7 +72,7 @@ pub struct Features<V32> {
 /// }
 /// ```
 ///
-/// It can then be classified via the [Predict] trait.
+/// It can then be classified via the [`Predict`](crate::Predict) trait.
 ///
 #[derive(Debug, Clone)]
 pub struct Problem<V32> {
@@ -106,7 +106,7 @@ pub struct Problem<V32> {
 }
 
 impl<T> Problem<T> {
-    /// After a [Problem] has been classified, this will hold the SVMs solution.
+    /// After a [`Problem`](crate::Problem) has been classified, this will hold the SVMs solution.
     pub fn solution(&self) -> Solution { self.result }
 
     /// Returns the probability estimates. Only really useful if the model was trained with probability estimates and you classified with them.

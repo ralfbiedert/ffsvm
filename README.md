@@ -14,7 +14,7 @@ You trained a SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want
 * loads almost all [libSVM](https://github.com/cjlin1/libsvm) types (C-SVC, ν-SVC, ε-SVR,  ν-SVR) and kernels (linear, poly, RBF and sigmoid)
 * produces practically same classification results as libSVM
 * optimized for [SIMD](https://github.com/rust-lang/rfcs/pull/2366) and can be mixed seamlessly with [Rayon](https://github.com/rayon-rs/rayon)
-* written in 100% Rust, but can be loaded from any language (via FFI)
+* written in 100% Rust
 * allocation-free during classification for dense SVMs
 * **2.5x - 14x faster than libSVM for dense SVMs**
 * extremely low classification times for small models (e.g., 128 SV, 16 dense attributes, linear ~ 500ns)
@@ -46,10 +46,6 @@ svm.predict_value(&mut problem)?;
 
 assert_eq!(problem.solution(), Solution::Label(42));
 ```
-
-From C / FFI:
-
-Please see [FFSVM-FFI](https://github.com/ralfbiedert/ffsvm-ffi)
 
 
 # Status

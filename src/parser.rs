@@ -1,7 +1,7 @@
 use std::{convert::TryFrom, str};
 use crate::errors::Error;
 
-/// Parsing result of a model file used to instantiate a [SVM].
+/// Parsing result of a model file used to instantiate a [`DenseSVM`](`crate::DenseSVM`) or [`SparseSVM`](`crate::SparseSVM`).
 ///
 /// # Obtaining a model
 /// A model file is produced by [libSVM](https://github.com/cjlin1/libsvm). For details
@@ -12,12 +12,15 @@ use crate::errors::Error;
 ///
 /// Model are generally produced by parsing a `&str` using the `ModelFile::try_from` function:
 ///
-/// ```ignore
-/// let model = ModelFile::try_from(model_str)!
+/// ```rust
+/// use ffsvm::*;
+/// use std::convert::TryFrom;
+///
+/// let model_result = ModelFile::try_from(SAMPLE_MODEL);
 /// ```
 ///
-/// Should anything be wrong with the model format, a [ModelError] will be returned. Once you have
-/// your model, you can use it to create a [SVM] (in particular an [RbfSVM]).
+/// Should anything be wrong with the model format, an [`Error`] will be returned. Once you have
+/// your model, you can use it to create a SVM, for example by invoking `DenseSVM::try_from(model)`.
 ///
 /// # Model format
 ///
@@ -42,12 +45,13 @@ use crate::errors::Error;
 /// 256 0:0.4933203 1:0.1098869 2:0.1048947 3:0.1069601 4:0.2152338 5:0 6:0 7:0 8:1 9:1
 /// ```
 ///
-/// In particular:
+/// Apart from "one-class SVM" (`-s 2` in libSVM) and "precomputed kernel" (`-t 4`) all
+/// generated libSVM models should be supported.
 ///
-/// * `svm_type` must be `c_svc`.
-/// * `kernel_type` must be `rbf` or `linear`
-/// * All support vectors (past the `SV` line) must have **strictly** increasing attribute
-/// identifiers, without skipping an attribute.
+/// However, note that for the [`DenseSVM`](`crate::DenseSVM`) to work, all support vectors
+/// (past the `SV` line) must have **strictly** increasing attribute identifiers starting at `0`,
+/// without skipping an attribute. In other words, your attributes have to be named `0:`, `1:`,
+/// `2:`, ... `n:` and not, say, `0:`, `1:`, `4:`, ... `n:`.
 ///
 #[derive(Clone, Debug, Default)]
 pub struct ModelFile<'a> {

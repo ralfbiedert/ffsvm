@@ -5,10 +5,10 @@ use crate::{
     vectors::Triangular,
 };
 
-/// Generic support vector machine core, used by [DenseSVM] and [SparseSVM].
+/// Generic support vector machine core, used by both SVM types.
 ///
 /// The SVM holds a kernel, class information and all other numerical data read from
-/// the model. It implements [Predict] to predict [Problem] instances.
+/// the model.
 ///
 /// # Creating a SVM
 ///
