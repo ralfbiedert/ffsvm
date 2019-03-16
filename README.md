@@ -91,6 +91,6 @@ All performance numbers reported for the `DenseSVM`. We also have support for `S
 [crates.io]: https://crates.io/crates/ffsvm
 [MIT]: https://img.shields.io/badge/license-MIT-blue.svg
 [docs]: https://docs.rs/ffsvm/badge.svg
-[docs.rs]: https://docs.rs/crate/ffsvm/
+[docs.rs]: https://docs.rs/ffsvm/
 [deps]: https://deps.rs/repo/github/ralfbiedert/ffsvm-rust
 [deps.svg]: https://deps.rs/repo/github/ralfbiedert/ffsvm-rust/status.svg
