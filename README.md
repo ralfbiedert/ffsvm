@@ -59,11 +59,11 @@ we'll move to beta.
 
 # Performance 
 
-![performance](docs/performance_relative.v3.png)
+![performance](https://raw.githubusercontent.com/ralfbiedert/ffsvm-rust/master/docs/performance_relative.v3.png)
 
 Classification time vs. libSVM for dense models.
 
-![performance](docs/performance_history.v4.png)
+![performance](https://raw.githubusercontent.com/ralfbiedert/ffsvm-rust/master/docs/performance_history.v4.png)
 
 Performance milestones during development.
 

@@ -1,7 +1,7 @@
 [package]
 name = "ffsvm"
 description="A libSVM compatible support vector machine, but up to 10x faster, for games or VR."
-version = "0.7.0"
+version = "0.7.1"
 repository = "https://github.com/ralfbiedert/ffsvm-rust"
 authors = ["Ralf Biedert <rb@xr.io>"]
 readme = "README.md"
