@@ -40,15 +40,14 @@ Then make sure you have labeled training data in a libSVM compatible file format
 
 ```ignore
 > cat ./my.training-data
-+1 1:0.708333 2:1 3:1 4:-0.320755 5:-0.105023 6:-1 7:1 8:-0.419847
--1 1:0.583333 2:-1 3:0.333333 4:-0.603774 5:1 6:-1 7:1 8:0.358779
-+1 1:0.166667 2:1 3:-0.333333 4:-0.433962 5:-0.383562 6:-1 7:-1 8:0.0687023
--1 1:0.458333 2:1 3:1 4:-0.358491 5:-0.374429 6:-1 7:-1 8:-0.480916
++1 0:0.708333 1:1 2:1 3:-0.320755 4:-0.105023 5:-1 6:1 7:-0.419847
+-1 0:0.583333 1:-1 2:0.333333 3:-0.603774 4:1 5:-1 6:1 7:0.358779
++1 0:0.166667 1:1 2:-0.333333 3:-0.433962 4:-0.383562 5:-1 6:-1 7:0.0687023
+-1 0:0.458333 1:1 2:1 3:-0.358491 4:-0.374429 5:-1 6:-1 7:-0.480916
 
 ```
-If you want to use a [DenseSVM] you **must make sure** all attributes
-for each sample are present, and **all attributes are numbered in sequential, increasing**
-order! For [SparseSVM]s these restrictions don't apply.
+If you want to use a `DenseSVM` you **must make sure** all attributes
+for each sample are present, and **all attributes are numbered in sequential, increasing order starting with `0`**! For `SparseSVM`s these restrictions don't apply.
 
 Next, run `svm-train` on your data:
 
