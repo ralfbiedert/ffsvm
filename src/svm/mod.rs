@@ -4,11 +4,8 @@ pub(crate) mod kernel;
 pub(crate) mod predict;
 pub(crate) mod problem;
 
-use self::kernel::{KernelSparse};
-use crate::{
-    sparse::{SparseVector},
-    vectors::Triangular,
-};
+use self::kernel::KernelSparse;
+use crate::{sparse::SparseVector, vectors::Triangular};
 
 use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
 
@@ -28,5 +25,4 @@ pub enum SVMType {
     NuSvr,
 }
 
-pub use self::core::dense::DenseSVM;
-pub use self::core::sparse::SparseSVM;
+pub use self::core::{dense::DenseSVM, sparse::SparseSVM};

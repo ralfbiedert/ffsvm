@@ -103,7 +103,10 @@ where
         //
         let dimension = (((2 * vec.len()) as f32).sqrt() as usize) + 1;
 
-        Triangular { dimension, data: vec.clone() }
+        Triangular {
+            dimension,
+            data: vec.clone(),
+        }
     }
 }
 

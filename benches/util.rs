@@ -1,9 +1,9 @@
+use ffsvm::{Attribute, Header, ModelFile, SupportVector};
 use rand::Rng;
-use ffsvm::{ModelFile, Header, SupportVector, Attribute};
 
 pub fn random_dense<'b>(svm_type: &'b str, kernel_type: &'b str, total_sv: u32, attr: u32) -> ModelFile<'b> {
     let mut rng = rand::thread_rng();
-    
+
     ModelFile {
         header: Header {
             svm_type,
@@ -26,7 +26,9 @@ pub fn random_dense<'b>(svm_type: &'b str, kernel_type: &'b str, total_sv: u32, 
                     .map(|i| Attribute {
                         index: i,
                         value: rng.gen::<f32>(),
-                    }).collect(),
-            }).collect(),
+                    })
+                    .collect(),
+            })
+            .collect(),
     }
 }

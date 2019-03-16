@@ -1,5 +1,5 @@
-use std::{convert::TryFrom, str};
 use crate::errors::Error;
+use std::{convert::TryFrom, str};
 
 /// Parsing result of a model file used to instantiate a [`DenseSVM`](`crate::DenseSVM`) or [`SparseSVM`](`crate::SparseSVM`).
 ///
@@ -52,7 +52,6 @@ use crate::errors::Error;
 /// (past the `SV` line) must have **strictly** increasing attribute identifiers starting at `0`,
 /// without skipping an attribute. In other words, your attributes have to be named `0:`, `1:`,
 /// `2:`, ... `n:` and not, say, `0:`, `1:`, `4:`, ... `n:`.
-///
 #[derive(Clone, Debug, Default)]
 pub struct ModelFile<'a> {
     pub header: Header<'a>,
@@ -95,7 +94,6 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
 
     /// Parses a string into a SVM model
     fn try_from(input: &str) -> Result<ModelFile<'_>, Error> {
-
         let mut svm_type = Option::None;
         let mut kernel_type = Option::None;
         let mut gamma = Option::None;
@@ -108,14 +106,13 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
         let mut prob_a = Option::None;
         let mut prob_b = Option::None;
         let mut nr_sv = Vec::new();
-        
+
         let mut vectors = Vec::new();
 
         for line in input.lines() {
             let tokens = line.split_whitespace().collect::<Vec<_>>();
-            
+
             match tokens.get(0) {
-                //
                 // Single value headers
                 //
                 // svm_type c_svc
@@ -131,48 +128,41 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
                 // SV
                 Some(x) if *x == "svm_type" => {
                     svm_type = Some(tokens[1]);
-                },
+                }
                 Some(x) if *x == "kernel_type" => {
                     kernel_type = Some(tokens[1]);
-                },
+                }
                 Some(x) if *x == "gamma" => {
                     gamma = tokens[1].parse::<f32>().ok();
-                },
+                }
                 Some(x) if *x == "coef0" => {
                     coef0 = tokens[1].parse::<f32>().ok();
-                },
+                }
                 Some(x) if *x == "degree" => {
                     degree = tokens[1].parse::<u32>().ok();
-                },
+                }
                 Some(x) if *x == "nr_class" => {
                     nr_class = tokens[1].parse::<u32>().ok();
-                },
+                }
                 Some(x) if *x == "total_sv" => {
                     total_sv = tokens[1].parse::<u32>().ok();
-                },
-                //
+                }
                 // Multi value headers
-                //
-                Some(x) if *x == "rho" => {
-                    rho = tokens.iter().skip(1).filter_map(|x| x.parse::<f64>().ok()).collect()
-                },
+                Some(x) if *x == "rho" => rho = tokens.iter().skip(1).filter_map(|x| x.parse::<f64>().ok()).collect(),
                 Some(x) if *x == "label" => {
                     label = tokens.iter().skip(1).filter_map(|x| x.parse::<i32>().ok()).collect()
-                },
+                }
                 Some(x) if *x == "nr_sv" => {
                     nr_sv = tokens.iter().skip(1).filter_map(|x| x.parse::<u32>().ok()).collect()
-                },
+                }
                 Some(x) if *x == "probA" => {
                     prob_a = Some(tokens.iter().skip(1).filter_map(|x| x.parse::<f64>().ok()).collect())
-                },
+                }
                 Some(x) if *x == "probB" => {
                     prob_b = Some(tokens.iter().skip(1).filter_map(|x| x.parse::<f64>().ok()).collect())
-                },
-                //
+                }
                 // Header separator
-                //
-                Some(x) if *x == "SV" => {},
-                //
+                Some(x) if *x == "SV" => {}
                 // These are all regular lines without a clear header (after SV) ...
                 //
                 // 0.0625 0:0.6619648 1:0.8464851 2:0.4801146 3:0 4:0 5:0.02131653 6:0 7:0 8:0 9:0 10:0 11:0 12:0 13:0 14:0 15:0.5579834 16:0.1106567 17:0 18:0 19:0 20:0
@@ -183,34 +173,29 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
                         coefs: Vec::new(),
                         features: Vec::new(),
                     };
-                    
-                    let (features, coefs): (Vec<&str>, Vec<&str>) = tokens.iter().partition(|x| {
-                        x.contains(':')
-                    });
-                    
+
+                    let (features, coefs): (Vec<&str>, Vec<&str>) = tokens.iter().partition(|x| x.contains(':'));
+
                     sv.coefs = coefs.iter().filter_map(|x| x.parse::<f32>().ok()).collect();
-                    sv.features = features.iter().filter_map(|x| {
-                        let split = x.split(':').collect::<Vec<&str>>();
-                        
-                        Some(Attribute {
-                            index: split.get(0)?.parse::<u32>().ok()?,
-                            value: split.get(1)?.parse::<f32>().ok()?
+                    sv.features = features
+                        .iter()
+                        .filter_map(|x| {
+                            let split = x.split(':').collect::<Vec<&str>>();
+
+                            Some(Attribute {
+                                index: split.get(0)?.parse::<u32>().ok()?,
+                                value: split.get(1)?.parse::<f32>().ok()?,
+                            })
                         })
-                        
-                    }).collect();
-                    
+                        .collect();
+
                     vectors.push(sv);
-                },
-    
-                //
+                }
+
                 // Empty end of file
-                //
-                None => break
-                
+                None => break,
             }
-            
         }
-        
 
         Ok(ModelFile {
             header: Header {

@@ -39,15 +39,31 @@ macro_rules! test_model {
             svm.predict_value(&mut problem_0)?;
             svm.predict_value(&mut problem_7)?;
 
-            assert_eq!(problem_0.solution(), Solution::Label($libsvm[0]), "predict_value(problem_0)");
-            assert_eq!(problem_7.solution(), Solution::Label($libsvm[1]), "predict_value(problem_7)");
+            assert_eq!(
+                problem_0.solution(),
+                Solution::Label($libsvm[0]),
+                "predict_value(problem_0)"
+            );
+            assert_eq!(
+                problem_7.solution(),
+                Solution::Label($libsvm[1]),
+                "predict_value(problem_7)"
+            );
 
             if $prob {
                 svm.predict_probability(&mut problem_0)?;
                 svm.predict_probability(&mut problem_7)?;
 
-                assert_eq!(problem_0.solution(), Solution::Label($libsvm_prob[0]), "predict_probability(problem_0)");
-                assert_eq!(problem_7.solution(), Solution::Label($libsvm_prob[1]), "predict_probability(problem_7)");
+                assert_eq!(
+                    problem_0.solution(),
+                    Solution::Label($libsvm_prob[0]),
+                    "predict_probability(problem_0)"
+                );
+                assert_eq!(
+                    problem_7.solution(),
+                    Solution::Label($libsvm_prob[1]),
+                    "predict_probability(problem_7)"
+                );
             }
 
             Ok(())
@@ -78,7 +94,13 @@ mod svm_dense_class {
     test_model!(m_nusvm_linear_prob, "m_nusvm_linear_prob.libsvm", true, [0, 7], [0, 7]);
     test_model!(m_nusvm_poly_prob, "m_nusvm_poly_prob.libsvm", true, [0, 7], [0, 7]);
     test_model!(m_nusvm_rbf_prob, "m_nusvm_rbf_prob.libsvm", true, [0, 7], [0, 7]);
-    test_model!(m_nusvm_sigmoid_prob, "m_nusvm_sigmoid_prob.libsvm", true, [0, 7], [0, 7]);
+    test_model!(
+        m_nusvm_sigmoid_prob,
+        "m_nusvm_sigmoid_prob.libsvm",
+        true,
+        [0, 7],
+        [0, 7]
+    );
 
     // Temporarily disabled as they trigger ICE in Rust Nightly
     // test_model!(m_nusvm_linear, "m_nusvm_linear.libsvm", false, [0, 7], []);

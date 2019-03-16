@@ -67,11 +67,7 @@
 //! ```
 
 // Opt in to unstable features expected for Rust 2018
-#![feature(
-    try_from,
-    stdsimd,
-    try_trait,
-)]
+#![feature(try_from, stdsimd, try_trait)]
 #![allow(clippy::unreadable_literal)]
 
 mod errors;
@@ -86,7 +82,7 @@ pub static SAMPLE_MODEL: &str = include_str!("sample.model");
 
 pub use crate::{
     errors::Error,
-    parser::{ModelFile, SupportVector, Attribute, Header},
+    parser::{Attribute, Header, ModelFile, SupportVector},
     svm::{
         kernel::{KernelDense, KernelSparse, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
@@ -94,4 +90,3 @@ pub use crate::{
         DenseSVM, SVMType, SparseSVM,
     },
 };
-

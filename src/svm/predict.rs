@@ -35,7 +35,6 @@ use crate::{errors::Error, svm::problem::Problem};
 /// Predicting probabilities automatically predicts the best label. In addition [`Problem::probabilities`]
 /// will be updated accordingly. The class labels for each probablity entry can be obtained
 /// by the SVM's `class_label_for_index` and `class_index_for_label` methods.
-///
 pub trait Predict<V32, V64>
 where
     Self: Sync,
