@@ -66,7 +66,7 @@ pub struct Header<'a> {
     pub nr_class: u32,
     pub total_sv: u32,
     pub rho: Vec<f64>,
-    pub label: Vec<u32>,
+    pub label: Vec<i32>,
     pub prob_a: Option<Vec<f64>>,
     pub prob_b: Option<Vec<f64>>,
     pub nr_sv: Vec<u32>,
@@ -153,7 +153,7 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
                     rho = tokens.iter().skip(1).filter_map(|x| x.parse::<f64>().ok()).collect()
                 },
                 Some(x) if *x == "label" => {
-                    label = tokens.iter().skip(1).filter_map(|x| x.parse::<u32>().ok()).collect()
+                    label = tokens.iter().skip(1).filter_map(|x| x.parse::<i32>().ok()).collect()
                 },
                 Some(x) if *x == "nr_sv" => {
                     nr_sv = tokens.iter().skip(1).filter_map(|x| x.parse::<u32>().ok()).collect()

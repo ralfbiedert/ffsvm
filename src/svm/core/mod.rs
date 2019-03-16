@@ -81,7 +81,7 @@ macro_rules! impl_common_svm {
         /// If the label was found its index returned in the [Option]. Otherwise `None`
         /// is returned.
         ///
-        pub fn class_index_for_label(&self, label: u32) -> Option<usize> {
+        pub fn class_index_for_label(&self, label: i32) -> Option<usize> {
             for (i, class) in self.classes.iter().enumerate() {
                 if class.label != label {
                     continue;
@@ -105,7 +105,7 @@ macro_rules! impl_common_svm {
         ///
         /// If the index was found it is returned in the [Option]. Otherwise `None`
         /// is returned.
-        pub fn class_label_for_index(&self, index: usize) -> Option<u32> {
+        pub fn class_label_for_index(&self, index: usize) -> Option<i32> {
             if index >= self.classes.len() {
                 None
             } else {

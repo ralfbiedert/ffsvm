@@ -22,7 +22,7 @@ pub type SparseProblem = Problem<SparseVector<f32>>;
 #[derive(Copy, Debug, Clone, PartialEq)]
 pub enum Solution {
     /// If classified this will hold the label.
-    Label(u32),
+    Label(i32),
 
     /// If regression was performed contains regression result.
     Value(f32),

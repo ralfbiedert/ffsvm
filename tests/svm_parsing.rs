@@ -15,4 +15,12 @@ mod svm_performance {
         
         Ok(())
     }
+    
+    #[test]
+    fn load_label_negative() -> Result<(), Error> {
+        let model = include_str!("data_misc/model_label_negative.libsvm");
+        let svm = DenseSVM::try_from(model)?;
+        
+        Ok(())
+    }
 }
