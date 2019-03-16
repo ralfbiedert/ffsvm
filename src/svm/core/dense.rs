@@ -1,5 +1,5 @@
 use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
-use std::{convert::TryFrom, marker::PhantomData};
+use std::{convert::TryFrom};
 
 use crate::{
     errors::Error,

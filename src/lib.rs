@@ -62,10 +62,18 @@
 //!
 //!     Ok(())
 //! }
+//!
 //! ```
+//!
+//! # Performance Tips
+//!
+//! * For a ~50% performance boost consider compiling your application with more aggressive CPU flags (e.g., `export RUSTFLAGS="-C target-feature=+avx2"` in case you run on a modern x86 CPU).
+//! * For a further x-fold performance increase, create a number of [`Problem`] structures, and process them with [Rayon's](https://docs.rs/rayon/1.0.3/rayon/) `par_iter`.
+//!
+//!
+//!
 
-// Opt in to unstable features expected for Rust 2018
-#![feature(stdsimd, try_trait)]
+#![feature(try_trait)]
 #![allow(clippy::unreadable_literal)]
 
 mod errors;

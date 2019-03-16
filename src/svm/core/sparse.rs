@@ -1,6 +1,6 @@
 use crate::sparse::{SparseMatrix, SparseVector};
 
-use std::{convert::TryFrom, marker::PhantomData};
+use std::{convert::TryFrom};
 
 use crate::{
     errors::Error,

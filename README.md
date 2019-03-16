@@ -22,7 +22,8 @@ You trained a SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want
 * free of `unsafe` code ;)
 
 
-Note: Currently requires Rust nightly (March 2019 and later), because we depend on RFC 2366 (portable SIMD). Once that stabilizes we'll also go stable. 
+Note: Currently **requires Rust nightly** (March 2019 and later), because we depend on RFC 2366 (portable SIMD). Once that stabilizes we'll also go stable. 
+
 
 # Usage
 
@@ -47,7 +48,6 @@ svm.predict_value(&mut problem)?;
 assert_eq!(problem.solution(), Solution::Label(42));
 ```
 
-
 # Status
 * **March 10, 2019**: As soon as we can move away from nightly we'll go beta.  
 * **Aug 5, 2018**: Still in alpha, but finally on crates.io.
@@ -57,7 +57,7 @@ we'll move to beta.
 * **December 16, 2017**: We're in pre-alpha. It will probably not even work on your machine.
 
 
-# Performance
+# Performance 
 
 ![performance](docs/performance_relative.v3.png)
 
@@ -72,6 +72,12 @@ All performance numbers reported for the `DenseSVM`. We also have support for `S
 
 [See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/performance.md)
 
+
+### Tips
+
+* For a ~50% performance boost **consider compiling your application with more aggressive CPU flags** (e.g., `export RUSTFLAGS="-C target-feature=+avx2"` in case you run on a modern x86 CPU).
+
+* For a further x-fold performance increase, create a number of `Problem` structures, and process them with [Rayon's](https://docs.rs/rayon/1.0.3/rayon/) `par_iter`.    
 
 
 # FAQ

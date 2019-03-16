@@ -1,4 +1,4 @@
-use crate::{svm::SVMType, vectors::Triangular};
+
 
 macro_rules! prepare_svm {
     ($raw_model:expr, $k:ty, $m32:ty, $svm:tt) => {

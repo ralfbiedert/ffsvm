@@ -9,7 +9,7 @@ mod util;
 
 mod svm_dense {
     use crate::test::Bencher;
-    use ffsvm::{DenseSVM, ModelFile, Predict, Problem};
+    use ffsvm::{DenseSVM, Predict, Problem};
     use std::convert::TryFrom;
 
     /// Produces a test case run for benchmarking

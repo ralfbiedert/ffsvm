@@ -9,14 +9,14 @@ mod util;
 
 mod svm_sparse {
     use crate::test::Bencher;
-    use ffsvm::{ModelFile, Predict, Problem, SparseSVM};
+    use ffsvm::{Predict, Problem, SparseSVM};
     use std::convert::TryFrom;
 
     /// Produces a test case run for benchmarking
     #[allow(dead_code)]
     fn produce_testcase(svm_type: &str, kernel_type: &str, total_sv: u32, num_attributes: u32) -> impl FnMut() {
         let raw_model = super::util::random_dense(svm_type, kernel_type, total_sv, num_attributes);
-        let mut svm = SparseSVM::try_from(&raw_model).unwrap();
+        let svm = SparseSVM::try_from(&raw_model).unwrap();
         let mut problem = Problem::from(&svm);
         let problem_mut = problem.features();
 
