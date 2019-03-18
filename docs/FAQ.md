@@ -46,8 +46,11 @@ Then make sure you have labeled training data in a libSVM compatible file format
 -1 0:0.458333 1:1 2:1 3:-0.358491 4:-0.374429 5:-1 6:-1 7:-0.480916
 
 ```
-If you want to use a `DenseSVM` you **must make sure** all attributes
+
+* If you want to use a `DenseSVM` you **must make sure** all attributes
 for each sample are present, and **all attributes are numbered in sequential, increasing order starting with `0`**! For `SparseSVM`s these restrictions don't apply.
+* In any case, make sure your **data is scaled**. That means each attribute is **in the range \[0; 1\], or \[-1; 1\]** respectively. If you do not scale your data, you will get poor accuracy and lots of "obviously wrong" classification results. Whatever scaling you apply, don't forget you have to apply the same scaling when you then classify with ffsvm.   
+
 
 Next, run `svm-train` on your data:
 
