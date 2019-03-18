@@ -21,7 +21,7 @@ impl<T> SparseVector<T>
 where
     T: Clone + Copy + Default,
 {
-    pub fn new() -> Self { SparseVector { entries: Vec::new() } }
+    pub fn new() -> Self { Self { entries: Vec::new() } }
 
     pub fn clear(&mut self) { self.entries.clear(); }
 
@@ -118,7 +118,7 @@ where
     T: Clone + Copy + Default,
 {
     pub fn with(rows: usize) -> Self {
-        SparseMatrix {
+        Self {
             vectors: vec![SparseVector::new(); rows],
         }
     }
@@ -126,12 +126,7 @@ where
     pub fn row(&self, row: usize) -> &SparseVector<T> { &self.vectors[row] }
 
     #[inline]
-    pub fn row_iter(&self) -> SparseMatrixIter<'_, T> {
-        SparseMatrixIter {
-            matrix: &self,
-            index: 0,
-        }
-    }
+    pub fn row_iter(&self) -> SparseMatrixIter<'_, T> { SparseMatrixIter { matrix: self, index: 0 } }
 }
 
 impl<T> Index<(usize, usize)> for SparseMatrix<T>

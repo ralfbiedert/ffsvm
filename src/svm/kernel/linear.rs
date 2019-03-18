@@ -16,7 +16,7 @@ impl KernelDense for Linear {
     fn compute(&self, vectors: &SimdMatrix<f32s, RowOptimized>, feature: &SimdVector<f32s>, output: &mut [f64]) {
         for (i, sv) in vectors.row_iter().enumerate() {
             let mut sum = f32s::splat(0.0);
-            let feature: &[f32s] = &feature;
+            let feature: &[f32s] = feature;
 
             for (a, b) in sv.iter().zip(feature) {
                 sum += *a * *b;
@@ -54,5 +54,5 @@ impl KernelSparse for Linear {
 }
 
 impl<'a> From<&'a ModelFile<'a>> for Linear {
-    fn from(_model: &'a ModelFile<'a>) -> Self { Linear {} }
+    fn from(_model: &'a ModelFile<'a>) -> Self { Self {} }
 }

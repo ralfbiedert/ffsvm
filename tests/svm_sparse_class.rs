@@ -11,61 +11,45 @@ macro_rules! test_model {
 
             let mut problem_0 = Problem::from(&svm);
             let features_0 = problem_0.features();
-            features_0[3] = 0.0001000000007146063;
-            features_0[4] = 0.00010000000018581445;
-            features_0[7] = 0.00010000000043775396;
-            features_0[12] = 0.00010000000060915153;
-            features_0[18] = 0.00010000000016903845;
-            features_0[21] = 0.00010000000089347425;
-            features_0[32] = 0.00010000000034352026;
-            features_0[34] = 0.00010000000018032126;
-            features_0[50] = 0.00010000000020026886;
-            features_0[73] = 0.00010000000000769077;
-            features_0[123] = 0.0001000000003393198;
-            features_0[127] = 0.0001000000002766062;
+            features_0[3] = 0.000_1;
+            features_0[4] = 0.000_1;
+            features_0[7] = 0.000_1;
+            features_0[12] = 0.000_1;
+            features_0[18] = 0.000_1;
+            features_0[21] = 0.000_1;
+            features_0[32] = 0.000_1;
+            features_0[34] = 0.000_1;
+            features_0[50] = 0.000_1;
+            features_0[73] = 0.000_1;
+            features_0[123] = 0.000_1;
+            features_0[127] = 0.000_1;
 
             let mut problem_7 = Problem::from(&svm);
             let features_7 = problem_7.features();
-            features_7[3] = 0.9309075801528132;
-            features_7[4] = 1.26439892382077;
-            features_7[6] = 1.4175005579408642;
-            features_7[32] = 1.0904757546581592;
-            features_7[46] = 1.4750749887406807;
-            features_7[54] = 0.9028985536152319;
-            features_7[74] = 1.504974343097001;
-            features_7[92] = 0.9089026148123164;
-            features_7[95] = 1.2749374770851736;
-            features_7[98] = 1.234927191914445;
-            features_7[110] = 1.5009990007593412;
+            features_7[3] = 0.930_907_6;
+            features_7[4] = 1.264_398_9;
+            features_7[6] = 1.417_500_6;
+            features_7[32] = 1.090_475_8;
+            features_7[46] = 1.475_075;
+            features_7[54] = 0.902_898_55;
+            features_7[74] = 1.504_974_4;
+            features_7[92] = 0.908_902_6;
+            features_7[95] = 1.274_937_5;
+            features_7[98] = 1.234_927_2;
+            features_7[110] = 1.500_999;
 
             svm.predict_value(&mut problem_0)?;
             svm.predict_value(&mut problem_7)?;
 
-            assert_eq!(
-                problem_0.solution(),
-                Solution::Label($libsvm[0]),
-                "predict_value(problem_0)"
-            );
-            assert_eq!(
-                problem_7.solution(),
-                Solution::Label($libsvm[1]),
-                "predict_value(problem_7)"
-            );
+            assert_eq!(problem_0.solution(), Solution::Label($libsvm[0]), "predict_value(problem_0)");
+            assert_eq!(problem_7.solution(), Solution::Label($libsvm[1]), "predict_value(problem_7)");
 
             if $prob {
                 svm.predict_probability(&mut problem_0)?;
                 svm.predict_probability(&mut problem_7)?;
 
-                assert_eq!(
-                    problem_0.solution(),
-                    Solution::Label($libsvm_prob[0]),
-                    "predict_probability(problem_0)"
-                );
-                assert_eq!(
-                    problem_7.solution(),
-                    Solution::Label($libsvm_prob[1]),
-                    "predict_probability(problem_7)"
-                );
+                assert_eq!(problem_0.solution(), Solution::Label($libsvm_prob[0]), "predict_probability(problem_0)");
+                assert_eq!(problem_7.solution(), Solution::Label($libsvm_prob[1]), "predict_probability(problem_7)");
             }
 
             Ok(())
@@ -79,7 +63,6 @@ mod svm_sparse_class {
     use std::convert::TryFrom;
 
     // CSVM
-
     test_model!(m_csvm_linear_prob, "m_csvm_linear_prob.libsvm", true, [0, 7], [1, 6]);
     test_model!(m_csvm_poly_prob, "m_csvm_poly_prob.libsvm", true, [0, 7], [0, 6]);
     test_model!(m_csvm_rbf_prob, "m_csvm_rbf_prob.libsvm", true, [7, 7], [1, 0]);
@@ -92,7 +75,6 @@ mod svm_sparse_class {
     // test_model!(m_csvm_sigmoid, "m_csvm_sigmoid.libsvm", false, [0, 5], []);
 
     // NUSVM
-
     // test_model!(m_nusvm_linear_prob, "m_nusvm_linear_prob.libsvm", true, [0, 7], [1, 6]);
     // test_model!(m_nusvm_poly_prob, "m_nusvm_poly_prob.libsvm", true, [0, 7], [0, 7]);
     // test_model!(m_nusvm_rbf_prob, "m_nusvm_rbf_prob.libsvm", true, [0, 7], [0, 7]);

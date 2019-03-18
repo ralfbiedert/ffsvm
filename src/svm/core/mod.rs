@@ -1,5 +1,3 @@
-
-
 macro_rules! prepare_svm {
     ($raw_model:expr, $k:ty, $m32:ty, $svm:tt) => {
         // To quickly check what broke again during parsing ...
@@ -52,9 +50,7 @@ macro_rules! prepare_svm {
                         Class::<$m32>::with_parameters(num_classes, num_sv, num_attributes, label)
                     })
                     .collect::<Vec<Class<$m32>>>(),
-                SVMType::ESvr | SVMType::NuSvr => {
-                    vec![Class::<$m32>::with_parameters(2, num_total_sv, num_attributes, 0)]
-                }
+                SVMType::ESvr | SVMType::NuSvr => vec![Class::<$m32>::with_parameters(2, num_total_sv, num_attributes, 0)],
             };
 
             let probabilities = match (&$raw_model.header.prob_a, &$raw_model.header.prob_b) {
@@ -242,10 +238,10 @@ macro_rules! predict_probability_impl {
                         let a = probabilities.a[(i, j)];
                         let b = probabilities.b[(i, j)];
 
-                        let sigmoid = sigmoid_predict(decision_value, a, b).max(MIN_PROB).min(1f64 - MIN_PROB);
+                        let sigmoid = sigmoid_predict(decision_value, a, b).max(MIN_PROB).min(1_f64 - MIN_PROB);
 
                         pairwise[(i, j)] = sigmoid;
-                        pairwise[(j, i)] = 1f64 - sigmoid;
+                        pairwise[(j, i)] = 1_f64 - sigmoid;
                     }
                 }
 

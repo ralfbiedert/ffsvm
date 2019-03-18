@@ -21,7 +21,7 @@ impl KernelDense for Rbf {
         // CPU time is spent in this loop.
         for (i, sv) in vectors.row_iter().enumerate() {
             let mut sum = f32s::splat(0.0);
-            let feature: &[f32s] = &feature;
+            let feature: &[f32s] = feature;
 
             for (a, b) in sv.iter().zip(feature) {
                 sum += (*a - *b) * (*a - *b);
@@ -64,9 +64,9 @@ impl KernelSparse for Rbf {
 impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for Rbf {
     type Error = Error;
 
-    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<Rbf, Error> {
+    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<Self, Error> {
         let gamma = raw_model.header.gamma.ok_or(Error::NoGamma)?;
 
-        Ok(Rbf { gamma })
+        Ok(Self { gamma })
     }
 }

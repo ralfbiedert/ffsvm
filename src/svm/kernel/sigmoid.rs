@@ -20,7 +20,7 @@ impl KernelDense for Sigmoid {
     fn compute(&self, vectors: &SimdMatrix<f32s, RowOptimized>, feature: &SimdVector<f32s>, output: &mut [f64]) {
         for (i, sv) in vectors.row_iter().enumerate() {
             let mut sum = f32s::splat(0.0);
-            let feature: &[f32s] = &feature;
+            let feature: &[f32s] = feature;
 
             for (a, b) in sv.iter().zip(feature) {
                 sum += *a * *b;
@@ -60,10 +60,10 @@ impl KernelSparse for Sigmoid {
 impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for Sigmoid {
     type Error = Error;
 
-    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<Sigmoid, Error> {
+    fn try_from(raw_model: &'a ModelFile<'b>) -> Result<Self, Error> {
         let gamma = raw_model.header.gamma.ok_or(Error::NoGamma)?;
         let coef0 = raw_model.header.coef0.ok_or(Error::NoCoef0)?;
 
-        Ok(Sigmoid { gamma, coef0 })
+        Ok(Self { gamma, coef0 })
     }
 }

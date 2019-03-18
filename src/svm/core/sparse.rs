@@ -1,6 +1,6 @@
 use crate::sparse::{SparseMatrix, SparseVector};
 
-use std::{convert::TryFrom};
+use std::convert::TryFrom;
 
 use crate::{
     errors::Error,
@@ -51,18 +51,18 @@ pub struct SparseSVM {
 
 impl SparseSVM {
     /// Finds the class index for a given label.
-     ///
-     /// # Description
-     ///
-     /// This method takes a `label` as defined in the libSVM training model
-     /// and returns the internal `index` where this label resides. The index
-     /// equals [`Problem::probabilities`] index where that label's
-     /// probability can be found.
-     ///
-     /// # Returns
-     ///
-     /// If the label was found its index returned in the [`Option`]. Otherwise `None`
-     /// is returned.
+    ///
+    /// # Description
+    ///
+    /// This method takes a `label` as defined in the libSVM training model
+    /// and returns the internal `index` where this label resides. The index
+    /// equals [`Problem::probabilities`] index where that label's
+    /// probability can be found.
+    ///
+    /// # Returns
+    ///
+    /// If the label was found its index returned in the [`Option`]. Otherwise `None`
+    /// is returned.
     pub fn class_index_for_label(&self, label: i32) -> Option<usize> {
         for (i, class) in self.classes.iter().enumerate() {
             if class.label != label {
@@ -74,7 +74,7 @@ impl SparseSVM {
 
         None
     }
-    
+
     /// Returns the class label for a given index.
     ///
     /// # Description
@@ -114,17 +114,10 @@ impl SparseSVM {
     // based on Method 2 from the paper "Probability Estimates for Multi-class
     // Classification by Pairwise Coupling", Journal of Machine Learning Research 5 (2004) 975-1005,
     // by Ting-Fan Wu, Chih-Jen Lin and Ruby C. Weng.
-    pub(crate) fn compute_multiclass_probabilities(
-        &self,
-        problem: &mut Problem<SparseVector<f32>>,
-    ) -> Result<(), Error> {
-        compute_multiclass_probabilities_impl!(self, problem)
-    }
+    pub(crate) fn compute_multiclass_probabilities(&self, problem: &mut Problem<SparseVector<f32>>) -> Result<(), Error> { compute_multiclass_probabilities_impl!(self, problem) }
 
     /// Based on kernel values, computes the decision values for this problem.
-    pub(crate) fn compute_classification_values(&self, problem: &mut Problem<SparseVector<f32>>) {
-        compute_classification_values_impl!(self, problem)
-    }
+    pub(crate) fn compute_classification_values(&self, problem: &mut Problem<SparseVector<f32>>) { compute_classification_values_impl!(self, problem) }
 
     /// Based on kernel values, computes the decision values for this problem.
     pub(crate) fn compute_regression_values(&self, problem: &mut Problem<SparseVector<f32>>) {
@@ -140,16 +133,14 @@ impl SparseSVM {
     }
 
     /// Returns number of attributes, reflecting the libSVM model.
-    pub fn attributes(&self) -> usize { self.num_attributes }
+    pub const fn attributes(&self) -> usize { self.num_attributes }
 
     /// Returns number of classes, reflecting the libSVM model.
     pub fn classes(&self) -> usize { self.classes.len() }
 }
 
 impl Predict<SparseVector<f32>, SparseVector<f64>> for SparseSVM {
-    fn predict_probability(&self, problem: &mut Problem<SparseVector<f32>>) -> Result<(), Error> {
-        predict_probability_impl!(self, problem)
-    }
+    fn predict_probability(&self, problem: &mut Problem<SparseVector<f32>>) -> Result<(), Error> { predict_probability_impl!(self, problem) }
 
     // Predict the value for one problem.
     fn predict_value(&self, problem: &mut Problem<SparseVector<f32>>) -> Result<(), Error> {
@@ -177,7 +168,7 @@ impl Predict<SparseVector<f32>, SparseVector<f64>> for SparseSVM {
 impl<'a, 'b> TryFrom<&'a str> for SparseSVM {
     type Error = Error;
 
-    fn try_from(input: &'a str) -> Result<SparseSVM, Error> {
+    fn try_from(input: &'a str) -> Result<Self, Error> {
         let raw_model = ModelFile::try_from(input)?;
         Self::try_from(&raw_model)
     }
@@ -186,8 +177,8 @@ impl<'a, 'b> TryFrom<&'a str> for SparseSVM {
 impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for SparseSVM {
     type Error = Error;
 
-    fn try_from(raw_model: &'a ModelFile<'_>) -> Result<SparseSVM, Error> {
-        let (mut svm, nr_sv) = prepare_svm!(raw_model, dyn KernelSparse, SparseMatrix<f32>, SparseSVM);
+    fn try_from(raw_model: &'a ModelFile<'_>) -> Result<Self, Error> {
+        let (mut svm, nr_sv) = prepare_svm!(raw_model, dyn KernelSparse, SparseMatrix<f32>, Self);
 
         let vectors = &raw_model.vectors;
 

@@ -4,10 +4,7 @@ pub(crate) mod kernel;
 pub(crate) mod predict;
 pub(crate) mod problem;
 
-
-use crate::{vectors::Triangular};
-
-
+use crate::vectors::Triangular;
 
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Probabilities {

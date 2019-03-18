@@ -93,6 +93,7 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
     type Error = Error;
 
     /// Parses a string into a SVM model
+    #[allow(clippy::similar_names)]
     fn try_from(input: &str) -> Result<ModelFile<'_>, Error> {
         let mut svm_type = Option::None;
         let mut kernel_type = Option::None;
@@ -149,18 +150,10 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
                 }
                 // Multi value headers
                 Some(x) if *x == "rho" => rho = tokens.iter().skip(1).filter_map(|x| x.parse::<f64>().ok()).collect(),
-                Some(x) if *x == "label" => {
-                    label = tokens.iter().skip(1).filter_map(|x| x.parse::<i32>().ok()).collect()
-                }
-                Some(x) if *x == "nr_sv" => {
-                    nr_sv = tokens.iter().skip(1).filter_map(|x| x.parse::<u32>().ok()).collect()
-                }
-                Some(x) if *x == "probA" => {
-                    prob_a = Some(tokens.iter().skip(1).filter_map(|x| x.parse::<f64>().ok()).collect())
-                }
-                Some(x) if *x == "probB" => {
-                    prob_b = Some(tokens.iter().skip(1).filter_map(|x| x.parse::<f64>().ok()).collect())
-                }
+                Some(x) if *x == "label" => label = tokens.iter().skip(1).filter_map(|x| x.parse::<i32>().ok()).collect(),
+                Some(x) if *x == "nr_sv" => nr_sv = tokens.iter().skip(1).filter_map(|x| x.parse::<u32>().ok()).collect(),
+                Some(x) if *x == "probA" => prob_a = Some(tokens.iter().skip(1).filter_map(|x| x.parse::<f64>().ok()).collect()),
+                Some(x) if *x == "probB" => prob_b = Some(tokens.iter().skip(1).filter_map(|x| x.parse::<f64>().ok()).collect()),
                 // Header separator
                 Some(x) if *x == "SV" => {}
                 // These are all regular lines without a clear header (after SV) ...

@@ -32,10 +32,10 @@ pub fn sigmoid_predict(decision_value: f64, a: f64, b: f64) -> f64 {
 
     // Citing from the original libSVM implementation:
     // "1-p used later; avoid catastrophic cancellation"
-    if fapb >= 0f64 {
-        (-fapb).exp() / (1f64 + (-fapb).exp())
+    if fapb >= 0_f64 {
+        (-fapb).exp() / (1_f64 + (-fapb).exp())
     } else {
-        1f64 / (1f64 + fapb.exp())
+        1_f64 / (1_f64 + fapb.exp())
     }
 }
 

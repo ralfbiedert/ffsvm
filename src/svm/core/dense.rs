@@ -1,5 +1,5 @@
 use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
-use std::{convert::TryFrom};
+use std::convert::TryFrom;
 
 use crate::{
     errors::Error,
@@ -113,17 +113,10 @@ impl DenseSVM {
     // based on Method 2 from the paper "Probability Estimates for Multi-class
     // Classification by Pairwise Coupling", Journal of Machine Learning Research 5 (2004) 975-1005,
     // by Ting-Fan Wu, Chih-Jen Lin and Ruby C. Weng.
-    pub(crate) fn compute_multiclass_probabilities(
-        &self,
-        problem: &mut Problem<SimdVector<f32s>>,
-    ) -> Result<(), Error> {
-        compute_multiclass_probabilities_impl!(self, problem)
-    }
+    pub(crate) fn compute_multiclass_probabilities(&self, problem: &mut Problem<SimdVector<f32s>>) -> Result<(), Error> { compute_multiclass_probabilities_impl!(self, problem) }
 
     /// Based on kernel values, computes the decision values for this problem.
-    pub(crate) fn compute_classification_values(&self, problem: &mut Problem<SimdVector<f32s>>) {
-        compute_classification_values_impl!(self, problem)
-    }
+    pub(crate) fn compute_classification_values(&self, problem: &mut Problem<SimdVector<f32s>>) { compute_classification_values_impl!(self, problem) }
 
     /// Based on kernel values, computes the decision values for this problem.
     pub(crate) fn compute_regression_values(&self, problem: &mut Problem<SimdVector<f32s>>) {
@@ -139,17 +132,14 @@ impl DenseSVM {
     }
 
     /// Returns number of attributes, reflecting the libSVM model.
-    pub fn attributes(&self) -> usize { self.num_attributes }
+    pub const fn attributes(&self) -> usize { self.num_attributes }
 
     /// Returns number of classes, reflecting the libSVM model.
     pub fn classes(&self) -> usize { self.classes.len() }
 }
 
-
 impl Predict<SimdVector<f32s>, SimdVector<f64s>> for DenseSVM {
-    fn predict_probability(&self, problem: &mut Problem<SimdVector<f32s>>) -> Result<(), Error> {
-        predict_probability_impl!(self, problem)
-    }
+    fn predict_probability(&self, problem: &mut Problem<SimdVector<f32s>>) -> Result<(), Error> { predict_probability_impl!(self, problem) }
 
     // Predict the value for one problem.
     fn predict_value(&self, problem: &mut Problem<SimdVector<f32s>>) -> Result<(), Error> {
@@ -177,7 +167,7 @@ impl Predict<SimdVector<f32s>, SimdVector<f64s>> for DenseSVM {
 impl<'a, 'b> TryFrom<&'a str> for DenseSVM {
     type Error = Error;
 
-    fn try_from(input: &'a str) -> Result<DenseSVM, Error> {
+    fn try_from(input: &'a str) -> Result<Self, Error> {
         let raw_model = ModelFile::try_from(input)?;
         Self::try_from(&raw_model)
     }
@@ -186,8 +176,8 @@ impl<'a, 'b> TryFrom<&'a str> for DenseSVM {
 impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for DenseSVM {
     type Error = Error;
 
-    fn try_from(raw_model: &'a ModelFile<'_>) -> Result<DenseSVM, Error> {
-        let (mut svm, nr_sv) = prepare_svm!(raw_model, dyn KernelDense, SimdMatrix<f32s, RowOptimized>, DenseSVM);
+    fn try_from(raw_model: &'a ModelFile<'_>) -> Result<Self, Error> {
+        let (mut svm, nr_sv) = prepare_svm!(raw_model, dyn KernelDense, SimdMatrix<f32s, RowOptimized>, Self);
 
         let vectors = &raw_model.vectors;
 

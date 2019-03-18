@@ -41,7 +41,7 @@ pub enum Error {
     NoDegree,
 
     /// Wrapper for internal parsing error when unifiying error handling.
-    ParsingError(String),
+    Parsing(String),
 }
 
 // impl<'a, T> From<Error<'a, T>> for Error {
@@ -51,13 +51,13 @@ pub enum Error {
 // }
 
 impl From<NoneError> for Error {
-    fn from(_: NoneError) -> Self { Error::ParsingError("NoneError".to_owned()) }
+    fn from(_: NoneError) -> Self { Error::Parsing("NoneError".to_owned()) }
 }
 
 impl From<ParseFloatError> for Error {
-    fn from(_e: ParseFloatError) -> Self { Error::ParsingError("ParseFloatError".to_owned()) }
+    fn from(_e: ParseFloatError) -> Self { Error::Parsing("ParseFloatError".to_owned()) }
 }
 
 impl From<ParseIntError> for Error {
-    fn from(_: ParseIntError) -> Self { Error::ParsingError("ParseIntError".to_owned()) }
+    fn from(_: ParseIntError) -> Self { Error::Parsing("ParseIntError".to_owned()) }
 }

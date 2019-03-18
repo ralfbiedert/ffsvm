@@ -31,13 +31,13 @@ where
     T: Copy + Sized,
 {
     /// Creates a triangular with the given dimension.
-    pub fn with_dimension(dimension: usize, default: T) -> Triangular<T> {
+    pub fn with_dimension(dimension: usize, default: T) -> Self {
         let len = match dimension {
             0 => 0,
             _ => (dimension * (dimension - 1)) / 2,
         };
 
-        Triangular {
+        Self {
             dimension,
             data: vec![default; len],
         }
@@ -93,6 +93,7 @@ impl<'a, T> From<&'a Vec<T>> for Triangular<T>
 where
     T: Copy + Sized,
 {
+    #[allow(clippy::cast_sign_loss)]
     fn from(vec: &Vec<T>) -> Self {
         // len  1:   dim: 2
         // len  3:   dim: 3
@@ -103,10 +104,7 @@ where
         //
         let dimension = (((2 * vec.len()) as f32).sqrt() as usize) + 1;
 
-        Triangular {
-            dimension,
-            data: vec.clone(),
-        }
+        Self { dimension, data: vec.clone() }
     }
 }
 

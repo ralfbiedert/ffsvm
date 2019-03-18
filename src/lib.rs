@@ -2,7 +2,7 @@
 //! [libSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) compatible classifier.
 //! It allows you to load models trained by libSVM's `svm-train`, and use them from your Rust
 //! code.
-
+//!
 //! # Background
 //! [Support Vector Machines](https://en.wikipedia.org/wiki/Support_Vector_Machine) (SVMs) are a
 //! class of relatively simple and fast machine learning algorithms. They have
@@ -62,19 +62,23 @@
 //!
 //!     Ok(())
 //! }
-//!
 //! ```
 //!
 //! # Performance Tips
 //!
 //! * For a ~50% performance boost consider compiling your application with more aggressive CPU flags (e.g., `export RUSTFLAGS="-C target-feature=+avx2"` in case you run on a modern x86 CPU).
 //! * For a further x-fold performance increase, create a number of [`Problem`] structures, and process them with [Rayon's](https://docs.rs/rayon/1.0.3/rayon/) `par_iter`.
-//!
-//!
-//!
 
 #![feature(try_trait)]
-#![allow(clippy::unreadable_literal)]
+#![warn(clippy::all)] // Enable ALL the warnings ...
+#![warn(clippy::nursery)]
+#![warn(clippy::pedantic)]
+#![warn(clippy::cargo)]
+#![allow(clippy::cast_possible_truncation)] // All our casts are in a range where this doesn't matter.
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_possible_wrap)]
+#![allow(clippy::module_name_repetitions)] // We do that way too often
+#![allow(clippy::doc_markdown)] // Mainly for `libSVM` in the docs.
 
 mod errors;
 mod parser;

@@ -104,7 +104,7 @@ pub struct Problem<V32> {
 
 impl<T> Problem<T> {
     /// After a [`Problem`](crate::Problem) has been classified, this will hold the SVMs solution.
-    pub fn solution(&self) -> Solution { self.result }
+    pub const fn solution(&self) -> Solution { self.result }
 
     /// Returns the probability estimates. Only really useful if the model was trained with probability estimates and you classified with them.
     pub fn probabilities(&self) -> &[f64] { self.probabilities.flat() }
@@ -115,11 +115,7 @@ impl<T> Problem<T> {
 
 impl DenseProblem {
     /// Creates a new problem with the given parameters.
-    pub(crate) fn with_dimension(
-        total_sv: usize,
-        num_classes: usize,
-        num_attributes: usize,
-    ) -> Problem<SimdVector<f32s>> {
+    pub(crate) fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem<SimdVector<f32s>> {
         Problem {
             features: Features {
                 data: SimdVector::with(0.0, num_attributes),
@@ -141,15 +137,9 @@ impl SparseProblem {
     pub fn clear(&mut self) { self.features.data.clear(); }
 
     /// Creates a new problem with the given parameters.
-    pub(crate) fn with_dimension(
-        total_sv: usize,
-        num_classes: usize,
-        _num_attributes: usize,
-    ) -> Problem<SparseVector<f32>> {
+    pub(crate) fn with_dimension(total_sv: usize, num_classes: usize, _num_attributes: usize) -> Problem<SparseVector<f32>> {
         Problem {
-            features: Features {
-                data: SparseVector::new(),
-            },
+            features: Features { data: SparseVector::new() },
             kernel_values: SimdMatrix::with_dimension(num_classes, total_sv),
             pairwise: SimdMatrix::with_dimension(num_classes, num_classes),
             q: SimdMatrix::with_dimension(num_classes, num_classes),
@@ -163,19 +153,15 @@ impl SparseProblem {
 }
 
 impl<'a> From<&'a DenseSVM> for DenseProblem {
-    fn from(svm: &DenseSVM) -> Self {
-        Problem::<SimdVector<f32s>>::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes)
-    }
+    fn from(svm: &DenseSVM) -> Self { Problem::<SimdVector<f32s>>::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes) }
 }
 
 impl<'a> From<&'a SparseSVM> for SparseProblem {
-    fn from(svm: &SparseSVM) -> Self {
-        Problem::<SparseVector<f32>>::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes)
-    }
+    fn from(svm: &SparseSVM) -> Self { Problem::<SparseVector<f32>>::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes) }
 }
 
 impl<V32> Features<V32> {
-    pub fn as_raw(&self) -> &V32 { &self.data }
+    pub const fn as_raw(&self) -> &V32 { &self.data }
 }
 
 impl Features<SimdVector<f32s>> {
