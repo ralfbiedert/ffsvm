@@ -2,12 +2,13 @@ use std::convert::{From, TryFrom};
 
 use super::{KernelDense, KernelSparse};
 use crate::{
+    f32s,
     errors::Error,
     parser::ModelFile,
     sparse::{SparseMatrix, SparseVector},
 };
 
-use simd_aligned::{f32s, Rows, MatrixD, VectorD};
+use simd_aligned::{Rows, MatrixD, VectorD};
 
 #[derive(Copy, Clone, Debug, Default)]
 #[doc(hidden)]

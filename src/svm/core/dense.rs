@@ -1,7 +1,8 @@
-use simd_aligned::{f32s, f64s, Rows, MatrixD, VectorD};
+use simd_aligned::{Rows, MatrixD, VectorD};
 use std::convert::TryFrom;
 
 use crate::{
+    f32s, f64s,
     errors::Error,
     parser::ModelFile,
     svm::{

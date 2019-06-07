@@ -87,6 +87,9 @@ mod svm;
 mod util;
 mod vectors;
 
+pub type f32s = simd_aligned::arch::x256::f32s;
+pub type f64s = simd_aligned::arch::x256::f64s;
+
 #[doc(hidden)]
 pub static SAMPLE_MODEL: &str = include_str!("sample.model");
 

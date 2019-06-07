@@ -1,12 +1,13 @@
 use std::ops::{Index, IndexMut};
 
 use crate::{
+    f32s, f64s,
     sparse::SparseVector,
     svm::{DenseSVM, SparseSVM},
     vectors::Triangular,
 };
 
-use simd_aligned::{f32s, f64s, Rows, MatrixD, VectorD};
+use simd_aligned::{Rows, MatrixD, VectorD};
 
 /// Problems produced for [`DenseSVM`]s.
 ///

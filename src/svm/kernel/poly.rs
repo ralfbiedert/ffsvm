@@ -2,12 +2,13 @@ use std::convert::{From, TryFrom};
 
 use super::{KernelDense, KernelSparse};
 use crate::{
+    f32s,
     errors::Error,
     parser::ModelFile,
     sparse::{SparseMatrix, SparseVector},
 };
 
-use simd_aligned::{f32s, Rows, MatrixD, VectorD};
+use simd_aligned::{Rows, MatrixD, VectorD};
 
 #[derive(Copy, Clone, Debug, Default)]
 #[doc(hidden)]
@@ -49,7 +50,7 @@ impl KernelSparse for Poly {
                         a = a_iter.next();
                         b = b_iter.next();
                     }
-                    (Some((i_a, _)), Some((i_b, _))) if i_a < i_b => a = a_iter.next(),
+                     (Some((i_a, _)), Some((i_b, _))) if i_a < i_b => a = a_iter.next(),
                     (Some((i_a, _)), Some((i_b, _))) if i_a > i_b => b = b_iter.next(),
                     _ => break crate::util::powi(f64::from(self.gamma * sum + self.coef0), self.degree),
                 }
