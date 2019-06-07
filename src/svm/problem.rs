@@ -6,12 +6,12 @@ use crate::{
     vectors::Triangular,
 };
 
-use simd_aligned::{f32s, f64s, RowOptimized, SimdMatrix, SimdVector};
+use simd_aligned::{f32s, f64s, Rows, MatrixD, VectorD};
 
 /// Problems produced for [`DenseSVM`]s.
 ///
 /// Also see [`Problem`] for more methods for this type.
-pub type DenseProblem = Problem<SimdVector<f32s>>;
+pub type DenseProblem = Problem<VectorD<f32s>>;
 
 /// Problems produced for [`SparseSVM`]s.
 ///
@@ -77,7 +77,7 @@ pub struct Problem<V32> {
     pub(crate) features: Features<V32>,
 
     /// KernelDense values. A vector for each class.
-    pub(crate) kernel_values: SimdMatrix<f64s, RowOptimized>,
+    pub(crate) kernel_values: MatrixD<f64s, Rows>,
 
     /// All votes for a given class label.
     pub(crate) vote: Vec<u32>,
@@ -86,17 +86,17 @@ pub struct Problem<V32> {
     pub(crate) decision_values: Triangular<f64>,
 
     /// Pairwise probabilities
-    pub(crate) pairwise: SimdMatrix<f64s, RowOptimized>,
+    pub(crate) pairwise: MatrixD<f64s, Rows>,
 
     /// Needed for multi-class probability estimates replicating libSVM.
-    pub(crate) q: SimdMatrix<f64s, RowOptimized>,
+    pub(crate) q: MatrixD<f64s, Rows>,
 
     /// Needed for multi-class probability estimates replicating libSVM.
     pub(crate) qp: Vec<f64>,
 
     /// Probability estimates that will be updated after this problem was processed
     /// by `predict_probability`.
-    pub(crate) probabilities: SimdVector<f64s>,
+    pub(crate) probabilities: VectorD<f64s>,
 
     /// Computed label that will be updated after this problem was processed.
     pub(crate) result: Solution,
@@ -115,18 +115,18 @@ impl<T> Problem<T> {
 
 impl DenseProblem {
     /// Creates a new problem with the given parameters.
-    pub(crate) fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem<SimdVector<f32s>> {
+    pub(crate) fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Problem<VectorD<f32s>> {
         Problem {
             features: Features {
-                data: SimdVector::with(0.0, num_attributes),
+                data: VectorD::with(0.0, num_attributes),
             },
-            kernel_values: SimdMatrix::with_dimension(num_classes, total_sv),
-            pairwise: SimdMatrix::with_dimension(num_classes, num_classes),
-            q: SimdMatrix::with_dimension(num_classes, num_classes),
+            kernel_values: MatrixD::with_dimension(num_classes, total_sv),
+            pairwise: MatrixD::with_dimension(num_classes, num_classes),
+            q: MatrixD::with_dimension(num_classes, num_classes),
             qp: vec![Default::default(); num_classes],
             decision_values: Triangular::with_dimension(num_classes, Default::default()),
             vote: vec![Default::default(); num_classes],
-            probabilities: SimdVector::with(0.0, num_classes),
+            probabilities: VectorD::with(0.0, num_classes),
             result: Solution::None,
         }
     }
@@ -140,20 +140,20 @@ impl SparseProblem {
     pub(crate) fn with_dimension(total_sv: usize, num_classes: usize, _num_attributes: usize) -> Problem<SparseVector<f32>> {
         Problem {
             features: Features { data: SparseVector::new() },
-            kernel_values: SimdMatrix::with_dimension(num_classes, total_sv),
-            pairwise: SimdMatrix::with_dimension(num_classes, num_classes),
-            q: SimdMatrix::with_dimension(num_classes, num_classes),
+            kernel_values: MatrixD::with_dimension(num_classes, total_sv),
+            pairwise: MatrixD::with_dimension(num_classes, num_classes),
+            q: MatrixD::with_dimension(num_classes, num_classes),
             qp: vec![Default::default(); num_classes],
             decision_values: Triangular::with_dimension(num_classes, Default::default()),
             vote: vec![Default::default(); num_classes],
-            probabilities: SimdVector::with(0.0, num_classes),
+            probabilities: VectorD::with(0.0, num_classes),
             result: Solution::None,
         }
     }
 }
 
 impl<'a> From<&'a DenseSVM> for DenseProblem {
-    fn from(svm: &DenseSVM) -> Self { Problem::<SimdVector<f32s>>::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes) }
+    fn from(svm: &DenseSVM) -> Self { Problem::<VectorD<f32s>>::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes) }
 }
 
 impl<'a> From<&'a SparseSVM> for SparseProblem {
@@ -164,18 +164,18 @@ impl<V32> Features<V32> {
     pub const fn as_raw(&self) -> &V32 { &self.data }
 }
 
-impl Features<SimdVector<f32s>> {
+impl Features<VectorD<f32s>> {
     pub fn as_slice_mut(&mut self) -> &mut [f32] { self.data.flat_mut() }
 }
 
-impl Index<usize> for Features<SimdVector<f32s>> // where
+impl Index<usize> for Features<VectorD<f32s>> // where
 {
     type Output = f32;
 
     fn index(&self, index: usize) -> &f32 { &self.data.flat()[index] }
 }
 
-impl IndexMut<usize> for Features<SimdVector<f32s>> {
+impl IndexMut<usize> for Features<VectorD<f32s>> {
     fn index_mut(&mut self, index: usize) -> &mut f32 { &mut self.data.flat_mut()[index] }
 }
 

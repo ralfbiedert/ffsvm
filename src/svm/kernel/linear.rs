@@ -6,14 +6,14 @@ use crate::{
     sparse::{SparseMatrix, SparseVector},
 };
 
-use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};
+use simd_aligned::{f32s, Rows, MatrixD, VectorD};
 
 #[derive(Copy, Clone, Debug, Default)]
 #[doc(hidden)]
 pub struct Linear {}
 
 impl KernelDense for Linear {
-    fn compute(&self, vectors: &SimdMatrix<f32s, RowOptimized>, feature: &SimdVector<f32s>, output: &mut [f64]) {
+    fn compute(&self, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) {
         for (i, sv) in vectors.row_iter().enumerate() {
             let mut sum = f32s::splat(0.0);
             let feature: &[f32s] = feature;

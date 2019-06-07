@@ -7,7 +7,7 @@ use crate::{
     sparse::{SparseMatrix, SparseVector},
 };
 
-use simd_aligned::{f32s, RowOptimized, SimdMatrix, SimdVector};
+use simd_aligned::{f32s, Rows, MatrixD, VectorD};
 
 #[derive(Copy, Clone, Debug, Default)]
 #[doc(hidden)]
@@ -16,7 +16,7 @@ pub struct Rbf {
 }
 
 impl KernelDense for Rbf {
-    fn compute(&self, vectors: &SimdMatrix<f32s, RowOptimized>, feature: &SimdVector<f32s>, output: &mut [f64]) {
+    fn compute(&self, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) {
         // According to Instruments, for realistic SVMs and problems, the VAST majority of our
         // CPU time is spent in this loop.
         for (i, sv) in vectors.row_iter().enumerate() {
