@@ -16,22 +16,44 @@ pub struct Rbf {
     pub gamma: f32,
 }
 
+
+fn compute_generic(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) {
+    // According to Instruments, for realistic SVMs and problems, the VAST majority of our
+    // CPU time is spent in this loop.
+    for (i, sv) in vectors.row_iter().enumerate() {
+        let mut sum = f32s::splat(0.0);
+        let feature: &[f32s] = feature;
+        
+        for (a, b) in sv.iter().zip(feature) {
+            sum += (*a - *b) * (*a - *b);
+        }
+        
+        // This seems to be the single-biggest CPU spike: saving back kernel_values,
+        // and computing exp() (saving back seems to have 3x time impact over exp(),
+        // but I might misread "Instruments" for that particular one).
+        output[i] = f64::from((-rbf.gamma * sum.sum()).exp());
+    }
+}
+
+#[target_feature(enable = "avx")]
+unsafe fn compute_avx(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) {
+    compute_generic(rbf, vectors, feature, output);
+}
+
+#[target_feature(enable = "avx2")]
+unsafe fn compute_avx2(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) {
+    compute_generic(rbf, vectors, feature, output);
+}
+
+
 impl KernelDense for Rbf {
     fn compute(&self, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) {
-        // According to Instruments, for realistic SVMs and problems, the VAST majority of our
-        // CPU time is spent in this loop.
-        for (i, sv) in vectors.row_iter().enumerate() {
-            let mut sum = f32s::splat(0.0);
-            let feature: &[f32s] = feature;
-
-            for (a, b) in sv.iter().zip(feature) {
-                sum += (*a - *b) * (*a - *b);
-            }
-
-            // This seems to be the single-biggest CPU spike: saving back kernel_values,
-            // and computing exp() (saving back seems to have 3x time impact over exp(),
-            // but I might misread "Instruments" for that particular one).
-            output[i] = f64::from((-self.gamma * sum.sum()).exp());
+        if is_x86_feature_detected!("avx2") {
+            unsafe { compute_avx2(*self, vectors, feature, output) }
+        } else if is_x86_feature_detected!("avx") {
+            unsafe { compute_avx(*self, vectors, feature, output) }
+        } else {
+            compute_generic(*self, vectors, feature, output)
         }
     }
 }
