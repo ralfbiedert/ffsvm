@@ -69,7 +69,7 @@
 //! * For a ~50% performance boost consider compiling your application with more aggressive CPU flags (e.g., `export RUSTFLAGS="-C target-feature=+avx2"` in case you run on a modern x86 CPU).
 //! * For a further x-fold performance increase, create a number of [`Problem`] structures, and process them with [Rayon's](https://docs.rs/rayon/1.0.3/rayon/) `par_iter`.
 
-#![feature(try_trait)]
+#![feature(try_trait, aarch64_target_feature, stdsimd)]
 #![warn(clippy::all)] // Enable ALL the warnings ...
 #![warn(clippy::nursery)]
 #![warn(clippy::pedantic)]
@@ -87,7 +87,12 @@ mod svm;
 mod util;
 mod vectors;
 
+// Set float types to largest width we support instructions sets
+// (important to make sure we get max alignment of target_feature) when selecting
+// dynamically.
+#[allow(non_camel_case_types)]
 pub type f32s = simd_aligned::arch::x256::f32s;
+#[allow(non_camel_case_types)]
 pub type f64s = simd_aligned::arch::x256::f64s;
 
 #[doc(hidden)]

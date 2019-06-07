@@ -1,6 +1,5 @@
-use crate::sparse::SparseMatrix;
-use crate::{f32s, f64s};
-use simd_aligned::{Rows, MatrixD};
+use crate::{f32s, f64s, sparse::SparseMatrix};
+use simd_aligned::{MatrixD, Rows};
 
 /// Represents one class of the SVM model.
 #[derive(Clone, Debug)]

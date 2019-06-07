@@ -1,9 +1,9 @@
-use simd_aligned::{Rows, MatrixD, VectorD};
+use simd_aligned::{MatrixD, Rows, VectorD};
 use std::convert::TryFrom;
 
 use crate::{
-    f32s, f64s,
     errors::Error,
+    f32s, f64s,
     parser::ModelFile,
     svm::{
         class::Class,

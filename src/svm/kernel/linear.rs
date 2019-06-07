@@ -7,7 +7,7 @@ use crate::{
     sparse::{SparseMatrix, SparseVector},
 };
 
-use simd_aligned::{Rows, MatrixD, VectorD};
+use simd_aligned::{MatrixD, Rows, VectorD};
 
 #[derive(Copy, Clone, Debug, Default)]
 #[doc(hidden)]

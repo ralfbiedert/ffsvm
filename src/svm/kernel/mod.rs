@@ -3,9 +3,11 @@ mod poly;
 mod rbf;
 mod sigmoid;
 
-use crate::sparse::{SparseMatrix, SparseVector};
-use crate::f32s;
-use simd_aligned::{Rows, MatrixD, VectorD};
+use crate::{
+    f32s,
+    sparse::{SparseMatrix, SparseVector},
+};
+use simd_aligned::{MatrixD, Rows, VectorD};
 
 pub use self::{linear::*, poly::*, rbf::*, sigmoid::*};
 

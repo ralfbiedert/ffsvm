@@ -7,7 +7,7 @@ use crate::{
     vectors::Triangular,
 };
 
-use simd_aligned::{Rows, MatrixD, VectorD};
+use simd_aligned::{MatrixD, Rows, VectorD};
 
 /// Problems produced for [`DenseSVM`]s.
 ///

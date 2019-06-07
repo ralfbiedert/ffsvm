@@ -49,7 +49,7 @@ Then make sure you have labeled training data in a libSVM compatible file format
 
 * If you want to use a `DenseSVM` you **must make sure** all attributes
 for each sample are present, and **all attributes are numbered in sequential, increasing order starting with `0`**! For `SparseSVM`s these restrictions don't apply.
-* In any case, make sure your **data is scaled**. That means each attribute is **in the range \[0; 1\], or \[-1; 1\]** respectively. If you do not scale your data, you will get poor accuracy and lots of "obviously wrong" classification results. Whatever scaling you apply, don't forget you have to apply the same scaling when you then classify with ffsvm.   
+* In any case, make sure your **data is scaled**. That means each attribute is **in the range \[0; 1\], or \[-1; 1\]** respectively. If you do not scale your data, you will get poor accuracy and lots of "obviously wrong" classification results. Whatever scaling you apply, don't forget you have to apply the same scaling when you then classify with ffsvm.
 
 
 Next, run `svm-train` on your data:
@@ -92,9 +92,3 @@ Since version 0.6 we should be able to load practically all `libSVM` models. Two
 * For "regular speed" classification with any model use the provided `SparseSVM`.
 * For "high speed" classification you can use `DenseSVM`. However, then all attributes must start with index `0`, have the same length and there must be no "holes".
 
-
-## Development
-
-### How do I enable AVX2 support?
-
-Set the `RUSTFLAGS` environment variable to `-C target-feature=+avx2`.
