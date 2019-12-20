@@ -129,7 +129,7 @@
 //!
 
 // Opt in to unstable features expected for Rust 2018
-#![feature(try_from, stdsimd, rust_2018_preview, try_trait)]
+#![feature(try_from, stdsimd, rust_2018_preview, try_trait, crate_visibility_modifier)]
 #![warn(rust_2018_idioms)]
 
 mod errors;

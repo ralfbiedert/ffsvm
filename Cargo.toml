@@ -22,7 +22,7 @@ maintenance = { status = "experimental" }
 
 [dependencies]
 simd_aligned = "0.1.1"
-packed_simd = "0.1"
+packed_simd = "0.3"
 rand = "0.5"
 pest = "1.0"
 pest_derive = "1.0"
