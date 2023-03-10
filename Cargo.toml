@@ -13,9 +13,6 @@ exclude = [
     "docs/*",
 ]
 
-[badges]
-maintenance = { status = "experimental" }
-
 [lib]
 name = "ffsvm"
 path = "src/lib.rs"

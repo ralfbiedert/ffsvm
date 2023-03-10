@@ -1,5 +1,3 @@
-![Maintenance](https://img.shields.io/badge/maintenance-experimental-blue.svg)
-
 [![Latest Version]][crates.io]
 [![Rust](https://github.com/ralfbiedert/ffsvm-rust/actions/workflows/rust.yml/badge.svg?branch=master)](https://github.com/ralfbiedert/ffsvm-rust/actions/workflows/rust.yml)
 [![deps.svg]][deps]
