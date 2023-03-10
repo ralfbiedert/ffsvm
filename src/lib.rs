@@ -1,73 +1,94 @@
-//! FFSVM stands for "Really Fast Support Vector Machine", a
-//! [libSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) compatible classifier.
-//! It allows you to load models trained by libSVM's `svm-train`, and use them from your Rust
-//! code.
+//! [![Latest Version]][crates.io]
+//! [![Rust](https://github.com/ralfbiedert/ffsvm-rust/actions/workflows/rust.yml/badge.svg?branch=master)](https://github.com/ralfbiedert/ffsvm-rust/actions/workflows/rust.yml)
+//! [![deps.svg]][deps]
+//! [![docs]][docs.rs]
+//! ![MIT]
 //!
-//! # Background
-//! [Support Vector Machines](https://en.wikipedia.org/wiki/Support_Vector_Machine) (SVMs) are a
-//! class of relatively simple and fast machine learning algorithms. They have
-//! * few parameters (making them easy to tune),
-//! * good generalization properties (making them good learners with limited data) and
-//! * overall good classification accuracy.
+//! # In One Sentence
 //!
-//! [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) is a relatively portable, general purpose
-//! SVM implementation written in C++ that includes tools for training, as well as tools and code
-//! for classification.
+//! You trained a SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want the highest possible performance during (real-time) classification, like games or VR.
 //!
-//! FFSVM is a library that can load such models trained by [libSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/)'s
-//! `svm-train` and offers a number of benefits:
 //!
-//! # Features
+//! # Highlights
 //!
-//! FFSVM
 //! * loads almost all [libSVM](https://github.com/cjlin1/libsvm) types (C-SVC, ν-SVC, ε-SVR,  ν-SVR) and kernels (linear, poly, RBF and sigmoid)
 //! * produces practically same classification results as libSVM
 //! * optimized for [SIMD](https://github.com/rust-lang/rfcs/pull/2366) and can be mixed seamlessly with [Rayon](https://github.com/rayon-rs/rayon)
-//! * written in 100% Rust, but can be loaded from any language (via FFI)
+//! * written in 100% Rust
 //! * allocation-free during classification for dense SVMs
 //! * **2.5x - 14x faster than libSVM for dense SVMs**
 //! * extremely low classification times for small models (e.g., 128 SV, 16 dense attributes, linear ~ 500ns)
 //! * successfully used in **Unity and VR** projects (Windows & Android)
-//! * free of `unsafe` code ;)
 //!
-//! FFSVM is not, however, a full libSVM replacement. Instead, it assumes you use `svm-train`
-//! *at home* (see [Usage](#usage) below), and ship a working model with your library or application.
+//!
+//! Note: Currently **requires Rust nightly** (March 2019 and later), because we depend on RFC 2366 (portable SIMD). Once that stabilizes we'll also go stable.
+//!
 //!
 //! # Usage
 //!
-//! ### If you have a libSVM model
+//! Train with [libSVM](https://github.com/cjlin1/libsvm) (e.g., using the tool `svm-train`), then classify with `ffsvm-rust`.
 //!
-//! In this example we assume you already have a libSVM that was trained with
-//! `svm-train`. If you haven't created a model yet, [check out the FAQ on how to get started](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/FAQ.md).
+//! From Rust:
 //!
 //! ```rust
-//! use ffsvm::*;
-//! use std::convert::TryFrom;
+//! # use std::convert::TryFrom;
+//! # use ffsvm::{DenseSVM, Predict, Problem, SAMPLE_MODEL, Solution};
+//! # fn main() -> Result<(), ffsvm::Error> {
+//! // Replace `SAMPLE_MODEL` with a `&str` to your model.
+//! let svm = DenseSVM::try_from(SAMPLE_MODEL)?;
 //!
-//! fn main() -> Result<(), Error> {
-//!     // Replace `SAMPLE_MODEL` with a `&str` to your model.
-//!     let svm = DenseSVM::try_from(SAMPLE_MODEL)?;
+//! let mut problem = Problem::from(&svm);
+//! let features = problem.features();
 //!
-//!     let mut problem = Problem::from(&svm);
-//!     let features = problem.features();
+//! features[0] = 0.55838;
+//! features[1] = -0.157895;
+//! features[2] = 0.581292;
+//! features[3] = -0.221184;
 //!
-//!     features[0] = 0.55838;
-//!     features[1] = -0.157895;
-//!     features[2] = 0.581292;
-//!     features[3] = -0.221184;
+//! svm.predict_value(&mut problem)?;
 //!
-//!     svm.predict_value(&mut problem)?;
+//! assert_eq!(problem.solution(), Solution::Label(42));
+//! # Ok(())
+//! # }
 //!
-//!     assert_eq!(problem.solution(), Solution::Label(42));
-//!
-//!     Ok(())
-//! }
 //! ```
 //!
-//! # Performance Tips
+//! # Status
+//! * **March 10, 2023**: Reactivated for latest Rust nightly.
+//! * **June 7, 2019**: Gave up on 'no `unsafe`', but gained runtime SIMD selection.
+//! * **March 10, 2019**: As soon as we can move away from nightly we'll go beta.
+//! * **Aug 5, 2018**: Still in alpha, but finally on crates.io.
+//! * **May 27, 2018**: We're in alpha. Successfully used internally on Windows, Mac, Android and Linux
+//! on various machines and devices. Once SIMD stabilizes and we can cross-compile to WASM
+//! we'll move to beta.
+//! * **December 16, 2017**: We're in pre-alpha. It will probably not even work on your machine.
 //!
-//! * For a ~50% performance boost consider compiling your application with more aggressive CPU flags (e.g., `export RUSTFLAGS="-C target-feature=+avx2"` in case you run on a modern x86 CPU).
-//! * For a further x-fold performance increase, create a number of [`Problem`] structures, and process them with [Rayon's](https://docs.rs/rayon/1.0.3/rayon/) `par_iter`.
+//!
+//! # Performance
+//!
+//! ![performance](https://raw.githubusercontent.com/ralfbiedert/ffsvm-rust/master/docs/performance_relative.v3.png)
+//!
+//! All performance numbers reported for the `DenseSVM`. We also have support for `SparseSVM`s, which are slower for "mostly dense" models, and faster for "mostly sparse" models (and generally on the performance level of libSVM).
+//!
+//! [See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/performance.md)
+//!
+//!
+//! ### Tips
+//!
+//! * For an x-fold performance increase, create a number of `Problem` structures, and process them with [Rayon's](https://docs.rs/rayon/1.0.3/rayon/) `par_iter`.
+//!
+//!
+//! # FAQ
+//!
+//! [See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/FAQ.md)
+//!
+//! [Latest Version]: https://img.shields.io/crates/v/ffsvm.svg
+//! [crates.io]: https://crates.io/crates/ffsvm
+//! [MIT]: https://img.shields.io/badge/license-MIT-blue.svg
+//! [docs]: https://docs.rs/ffsvm/badge.svg
+//! [docs.rs]: https://docs.rs/ffsvm/
+//! [deps]: https://deps.rs/repo/github/ralfbiedert/ffsvm-rust
+//! [deps.svg]: https://deps.rs/repo/github/ralfbiedert/ffsvm-rust/status.svg
 
 #![feature(portable_simd)]
 #![warn(clippy::all)] // Enable ALL the warnings ...
@@ -91,7 +112,9 @@ mod vectors;
 // (important to make sure we get max alignment of target_feature) when selecting
 // dynamically.
 #[allow(non_camel_case_types)]
+#[doc(hidden)]
 pub type f32s = simd_aligned::arch::x256::f32s;
+#[doc(hidden)]
 #[allow(non_camel_case_types)]
 pub type f64s = simd_aligned::arch::x256::f64s;
 
