@@ -121,6 +121,7 @@ impl DenseSVM {
 
     /// Based on kernel values, computes the decision values for this problem.
     pub(crate) fn compute_regression_values(&self, problem: &mut Problem<VectorD<f32s>>) {
+        use simd_aligned::SimdExt;
         let class = &self.classes[0];
         let coef = class.coefficients.row(0);
         let kvalues = problem.kernel_values.row(0);

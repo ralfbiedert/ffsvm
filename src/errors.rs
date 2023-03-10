@@ -1,6 +1,5 @@
 use std::{
     num::{ParseFloatError, ParseIntError},
-    option::NoneError,
 };
 
 /// Possible error types when classifying with one of the SVMs.
@@ -42,6 +41,9 @@ pub enum Error {
 
     /// Wrapper for internal parsing error when unifiying error handling.
     Parsing(String),
+
+    /// A required attribute was not found.
+    MissingRequiredAttribute,
 }
 
 // impl<'a, T> From<Error<'a, T>> for Error {
@@ -49,10 +51,6 @@ pub enum Error {
 //         Error::ParsingError
 //     }
 // }
-
-impl From<NoneError> for Error {
-    fn from(_: NoneError) -> Self { Error::Parsing("NoneError".to_owned()) }
-}
 
 impl From<ParseFloatError> for Error {
     fn from(_e: ParseFloatError) -> Self { Error::Parsing("ParseFloatError".to_owned()) }

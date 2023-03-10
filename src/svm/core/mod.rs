@@ -170,6 +170,8 @@ macro_rules! compute_multiclass_probabilities_impl {
 macro_rules! compute_classification_values_impl {
     ($self:tt, $problem:tt) => {{
         // Reset all votes
+        use simd_aligned::SimdExt;
+
         set_all(&mut $problem.vote, 0);
 
         // Since classification is symmetric, if we have N classes, we only need to go through

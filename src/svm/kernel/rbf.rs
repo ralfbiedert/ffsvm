@@ -18,6 +18,7 @@ pub struct Rbf {
 
 #[inline]
 fn compute_core(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) {
+    use simd_aligned::SimdExt;
     // According to Instruments, for realistic SVMs and problems, the VAST majority of our
     // CPU time is spent in this loop.
     for (i, sv) in vectors.row_iter().enumerate() {

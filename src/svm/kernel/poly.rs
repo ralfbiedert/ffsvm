@@ -20,6 +20,7 @@ pub struct Poly {
 
 impl KernelDense for Poly {
     fn compute(&self, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) {
+        use simd_aligned::SimdExt;
         for (i, sv) in vectors.row_iter().enumerate() {
             let mut sum = f32s::splat(0.0);
             let feature: &[f32s] = feature;

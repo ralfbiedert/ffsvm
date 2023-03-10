@@ -4,8 +4,6 @@
 [![docs]][docs.rs]
 ![MIT]
 
-> L4L - I am an SVM library who, after a recent breakup, is looking for a fresh start. You should be a packed SIMD library, have 8-16 lanes, and be open-minded about the platforms you support. Stable relationships only. You can contact me [here](https://github.com/ralfbiedert/ffsvm-rust/issues/8) (June 2022).
-
 
 # In One Sentence
 

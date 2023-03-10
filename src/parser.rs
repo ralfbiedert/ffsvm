@@ -192,13 +192,13 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
 
         Ok(ModelFile {
             header: Header {
-                svm_type: svm_type?,
-                kernel_type: kernel_type?,
+                svm_type: svm_type.ok_or(Error::MissingRequiredAttribute)?,
+                kernel_type: kernel_type.ok_or(Error::MissingRequiredAttribute)?,
                 gamma,
                 coef0,
                 degree,
-                nr_class: nr_class?,
-                total_sv: total_sv?,
+                nr_class: nr_class.ok_or(Error::MissingRequiredAttribute)?,
+                total_sv: total_sv.ok_or(Error::MissingRequiredAttribute)?,
                 rho,
                 label,
                 prob_a,
