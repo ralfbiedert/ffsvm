@@ -1,5 +1,4 @@
 use std::convert::{From, TryFrom};
-use std::arch;
 
 use super::{KernelDense, KernelSparse};
 use crate::{
@@ -67,7 +66,7 @@ fn compute(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, out
 #[cfg(target_arch = "aarch64")]
 #[inline]
 fn compute(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) {
-    if arch::is_aarch64_feature_detected!("neon") {
+    if std::arch::is_aarch64_feature_detected!("neon") {
         unsafe { compute_neon(rbf, vectors, feature, output) }
     } else {
         compute_core(rbf, vectors, feature, output)
