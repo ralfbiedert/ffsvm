@@ -15,7 +15,7 @@ pub use self::{linear::*, poly::*, rbf::*, sigmoid::*};
 #[doc(hidden)]
 pub trait KernelDense
 where
-    Self: Sync,
+    Self: Send + Sync,
 {
     fn compute(&self, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]);
 }
@@ -24,7 +24,7 @@ where
 #[doc(hidden)]
 pub trait KernelSparse
 where
-    Self: Sync,
+    Self: Send + Sync,
 {
     fn compute(&self, vectors: &SparseMatrix<f32>, feature: &SparseVector<f32>, output: &mut [f64]);
 }
