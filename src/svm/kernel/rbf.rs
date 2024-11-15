@@ -98,8 +98,14 @@ impl KernelSparse for Rbf {
                         a = a_iter.next();
                         b = b_iter.next();
                     }
-                    (Some((i_a, _)), Some((i_b, _))) if i_a < i_b => a = a_iter.next(),
-                    (Some((i_a, _)), Some((i_b, _))) if i_a > i_b => b = b_iter.next(),
+                    (Some((i_a, x)), Some((i_b, _))) if i_a < i_b => {
+                        sum += x*x;
+                        a = a_iter.next(); 
+                    },
+                    (Some((i_a, _)), Some((i_b, y))) if i_a > i_b => {
+                        sum += y*y;
+                        b = b_iter.next(); 
+                    },
                     _ => break f64::from((-self.gamma * sum).exp()),
                 }
             }
