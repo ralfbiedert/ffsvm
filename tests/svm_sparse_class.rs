@@ -65,7 +65,7 @@ mod svm_sparse_class {
     // CSVM
     test_model!(m_csvm_linear_prob, "m_csvm_linear_prob.libsvm", true, [0, 7], [1, 6]);
     test_model!(m_csvm_poly_prob, "m_csvm_poly_prob.libsvm", true, [0, 7], [0, 6]);
-    test_model!(m_csvm_rbf_prob, "m_csvm_rbf_prob.libsvm", true, [7, 7], [1, 0]);
+    test_model!(m_csvm_rbf_prob, "m_csvm_rbf_prob.libsvm", true, [0, 7], [7, 1]);
     test_model!(m_csvm_sigmoid_prob, "m_csvm_sigmoid_prob.libsvm", true, [0, 7], [7, 1]);
 
     // Temporarily disabled as they trigger ICE in Rust Nightly
