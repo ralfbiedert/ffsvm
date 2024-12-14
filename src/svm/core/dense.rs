@@ -119,7 +119,7 @@ impl DenseSVM {
 
     /// Based on kernel values, computes the decision values for this problem.
     pub(crate) fn compute_classification_values(&self, problem: &mut FeatureVector<VecSimd<f32x8>>) {
-        compute_classification_values_impl!(self, problem)
+        compute_classification_values_impl!(self, problem);
     }
 
     /// Based on kernel values, computes the decision values for this problem.
