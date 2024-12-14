@@ -68,15 +68,13 @@ mod svm_sparse_class {
     test_model!(m_csvm_linear, "m_csvm_linear.libsvm", false, [0, 7], [0, 0]);
     test_model!(m_csvm_poly, "m_csvm_poly.libsvm", false, [0, 7], [0, 0]);
     test_model!(m_csvm_rbf, "m_csvm_rbf.libsvm", false, [0, 7], [0, 0]);
-    // TODO: Why do these fail?
-    // test_model!(m_csvm_sigmoid, "m_csvm_sigmoid.libsvm", false, [0, 5], [0, 0]);
+    test_model!(m_csvm_sigmoid, "m_csvm_sigmoid.libsvm", false, [0, 7], [0, 0]);
 
-    // NUSVM
-    // TODO: Why do these fail?
-    // test_model!(m_nusvm_linear_prob, "m_nusvm_linear_prob.libsvm", true, [0, 7], [1, 6]);
-    // test_model!(m_nusvm_poly_prob, "m_nusvm_poly_prob.libsvm", true, [0, 7], [0, 7]);
-    // test_model!(m_nusvm_rbf_prob, "m_nusvm_rbf_prob.libsvm", true, [0, 7], [0, 7]);
-    // test_model!(m_nusvm_sigmoid_prob, "m_nusvm_sigmoid_prob.libsvm", true, [0, 7], [0, 7]);
+    // NUSVM - TODO: Why do these actually differ between sparse and dense even in libSVM?!
+    test_model!(m_nusvm_linear_prob, "m_nusvm_linear_prob.libsvm", true, [0, 7], [0, 6]);
+    test_model!(m_nusvm_poly_prob, "m_nusvm_poly_prob.libsvm", true, [0, 7], [0, 5]);
+    test_model!(m_nusvm_rbf_prob, "m_nusvm_rbf_prob.libsvm", true, [0, 7], [0, 6]);
+    test_model!(m_nusvm_sigmoid_prob, "m_nusvm_sigmoid_prob.libsvm", true, [0, 7], [0, 6]);
 
     // Temporarily disabled as they trigger ICE in Rust Nightly
     test_model!(m_nusvm_linear, "m_nusvm_linear.libsvm", false, [0, 7], [0, 0]);

@@ -43,7 +43,6 @@ mod svm_dense_class {
     test_model!(m_csvm_rbf_prob, "m_csvm_rbf_prob.libsvm", true, [0, 7], [2, 7]); // apparently `libSVM` gets this wrong
     test_model!(m_csvm_sigmoid_prob, "m_csvm_sigmoid_prob.libsvm", true, [0, 5], [0, 7]); // apparently `libSVM` gets this wrong
 
-    // Temporarily disabled as they trigger ICE in Rust Nightly
     test_model!(m_csvm_linear, "m_csvm_linear.libsvm", false, [0, 7], [0, 0]);
     test_model!(m_csvm_poly, "m_csvm_poly.libsvm", false, [0, 7], [0, 0]);
     test_model!(m_csvm_rbf, "m_csvm_rbf.libsvm", false, [0, 7], [0, 0]);
@@ -55,7 +54,6 @@ mod svm_dense_class {
     test_model!(m_nusvm_rbf_prob, "m_nusvm_rbf_prob.libsvm", true, [0, 7], [0, 7]);
     test_model!(m_nusvm_sigmoid_prob, "m_nusvm_sigmoid_prob.libsvm", true, [0, 7], [0, 7]);
 
-    // Temporarily disabled as they trigger ICE in Rust Nightly
     test_model!(m_nusvm_linear, "m_nusvm_linear.libsvm", false, [0, 7], [0, 0]);
     test_model!(m_nusvm_poly, "m_nusvm_poly.libsvm", false, [0, 7], [0, 0]);
     test_model!(m_nusvm_rbf, "m_nusvm_rbf.libsvm", false, [0, 7], [0, 0]);
