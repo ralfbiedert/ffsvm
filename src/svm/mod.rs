@@ -1,8 +1,8 @@
 pub(crate) mod class;
 pub(crate) mod core;
+pub(crate) mod features;
 pub(crate) mod kernel;
 pub(crate) mod predict;
-pub(crate) mod problem;
 
 use crate::vectors::Triangular;
 

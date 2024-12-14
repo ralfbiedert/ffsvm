@@ -6,23 +6,18 @@
 //!
 //! # In One Sentence
 //!
-//! You trained a SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want the highest possible performance during (real-time) classification, like games or VR.
-//!
+//! You trained an SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want the highest possible performance during (real-time) classification, like games or VR.
 //!
 //! # Highlights
 //!
 //! * loads almost all [libSVM](https://github.com/cjlin1/libsvm) types (C-SVC, ν-SVC, ε-SVR,  ν-SVR) and kernels (linear, poly, RBF and sigmoid)
 //! * produces practically same classification results as libSVM
 //! * optimized for [SIMD](https://github.com/rust-lang/rfcs/pull/2366) and can be mixed seamlessly with [Rayon](https://github.com/rayon-rs/rayon)
-//! * written in 100% Rust
+//! * written in 100% safe Rust
 //! * allocation-free during classification for dense SVMs
 //! * **2.5x - 14x faster than libSVM for dense SVMs**
 //! * extremely low classification times for small models (e.g., 128 SV, 16 dense attributes, linear ~ 500ns)
 //! * successfully used in **Unity and VR** projects (Windows & Android)
-//!
-//!
-//! Note: Currently **requires Rust nightly** (March 2019 and later), because we depend on RFC 2366 (portable SIMD). Once that stabilizes we'll also go stable.
-//!
 //!
 //! # Usage
 //!
@@ -32,35 +27,35 @@
 //!
 //! ```rust
 //! # use std::convert::TryFrom;
-//! # use ffsvm::{DenseSVM, Predict, Problem, SAMPLE_MODEL, Solution};
+//! # use ffsvm::{DenseSVM, Predict, FeatureVector, SAMPLE_MODEL, Label};
 //! # fn main() -> Result<(), ffsvm::Error> {
 //! // Replace `SAMPLE_MODEL` with a `&str` to your model.
 //! let svm = DenseSVM::try_from(SAMPLE_MODEL)?;
 //!
-//! let mut problem = Problem::from(&svm);
-//! let features = problem.features();
+//! let mut fv = FeatureVector::from(&svm);
+//! let features = fv.features();
 //!
 //! features[0] = 0.55838;
 //! features[1] = -0.157895;
 //! features[2] = 0.581292;
 //! features[3] = -0.221184;
 //!
-//! svm.predict_value(&mut problem)?;
+//! svm.predict_value(&mut fv)?;
 //!
-//! assert_eq!(problem.solution(), Solution::Label(42));
+//! assert_eq!(fv.label(), Label::Class(42));
 //! # Ok(())
 //! # }
-//!
 //! ```
 //!
 //! # Status
+//! * **December 14, 2024**: **After 7+ years, finally ported to stable**.<sup>🎉</sup><sup>🎉</sup><sup>🎉</sup>
 //! * **March 10, 2023**: Reactivated for latest Rust nightly.
 //! * **June 7, 2019**: Gave up on 'no `unsafe`', but gained runtime SIMD selection.
 //! * **March 10, 2019**: As soon as we can move away from nightly we'll go beta.
 //! * **Aug 5, 2018**: Still in alpha, but finally on crates.io.
 //! * **May 27, 2018**: We're in alpha. Successfully used internally on Windows, Mac, Android and Linux
-//! on various machines and devices. Once SIMD stabilizes and we can cross-compile to WASM
-//! we'll move to beta.
+//!   on various machines and devices. Once SIMD stabilizes and we can cross-compile to WASM
+//!   we'll move to beta.
 //! * **December 16, 2017**: We're in pre-alpha. It will probably not even work on your machine.
 //!
 //!
@@ -68,15 +63,18 @@
 //!
 //! ![performance](https://raw.githubusercontent.com/ralfbiedert/ffsvm-rust/master/docs/performance_relative.v3.png)
 //!
-//! All performance numbers reported for the `DenseSVM`. We also have support for `SparseSVM`s, which are slower for "mostly dense" models, and faster for "mostly sparse" models (and generally on the performance level of libSVM).
+//! All performance numbers reported for the `DenseSVM`. We also have support for `SparseSVM`s, which are slower
+//! for "mostly dense" models, and faster for "mostly sparse" models (and generally on the performance level of libSVM).
 //!
 //! [See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/performance.md)
 //!
 //!
 //! ### Tips
 //!
+//! * Compile your project with `target-cpu=native` for a massive speed boost (e.g., check our `.cargo/config.toml` how
+//!   you can easily do that for your project). Note, due to how Rust works, this is only used for application
+//!   (or dynamic FFI libraries), not library crates wrapping us.
 //! * For an x-fold performance increase, create a number of `Problem` structures, and process them with [Rayon's](https://docs.rs/rayon/1.0.3/rayon/) `par_iter`.
-//!
 //!
 //! # FAQ
 //!
@@ -89,8 +87,6 @@
 //! [docs.rs]: https://docs.rs/ffsvm/
 //! [deps]: https://deps.rs/repo/github/ralfbiedert/ffsvm-rust
 //! [deps.svg]: https://deps.rs/repo/github/ralfbiedert/ffsvm-rust/status.svg
-
-#![feature(portable_simd)]
 #![warn(clippy::all)] // Enable ALL the warnings ...
 #![warn(clippy::nursery)]
 #![warn(clippy::pedantic)]
@@ -108,16 +104,6 @@ mod svm;
 mod util;
 mod vectors;
 
-// Set float types to largest width we support instructions sets
-// (important to make sure we get max alignment of target_feature) when selecting
-// dynamically.
-#[allow(non_camel_case_types)]
-#[doc(hidden)]
-pub type f32s = simd_aligned::arch::x256::f32s;
-#[doc(hidden)]
-#[allow(non_camel_case_types)]
-pub type f64s = simd_aligned::arch::x256::f64s;
-
 #[doc(hidden)]
 pub static SAMPLE_MODEL: &str = include_str!("sample.model");
 
@@ -125,9 +111,9 @@ pub use crate::{
     errors::Error,
     parser::{Attribute, Header, ModelFile, SupportVector},
     svm::{
+        features::{DenseFeatures, FeatureVector, Label, SparseFeatures},
         kernel::{KernelDense, KernelSparse, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
-        problem::{DenseProblem, Problem, Solution, SparseProblem},
         DenseSVM, SVMType, SparseSVM,
     },
 };

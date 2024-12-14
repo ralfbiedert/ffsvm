@@ -1,19 +1,19 @@
-use crate::{errors::Error, svm::problem::Problem};
+use crate::{errors::Error, svm::features::FeatureVector};
 
-/// Implemented by [`DenseSVM`](crate::DenseSVM) and [`SparseSVM`](crate::SparseSVM) to predict a [`Problem`].
+/// Implemented by [`DenseSVM`](crate::DenseSVM) and [`SparseSVM`](crate::SparseSVM) to predict a [`FeatureVector`].
 ///
 /// # Predicting a label
 ///
-/// To predict a label, first make sure the [`Problem`](crate::Problem) has all features set. Then calling
+/// To predict a label, first make sure the [`FeatureVector`](crate::FeatureVector) has all features set. Then calling
 /// ```
-/// use ffsvm::*;
+/// use ffsvm::{DenseFeatures, DenseSVM, Predict};
 ///
-/// fn set_features(svm: &DenseSVM, problem: &mut DenseProblem) {
+/// fn set_features(svm: &DenseSVM, problem: &mut DenseFeatures) {
 ///     // Predicts the value.
 ///     svm.predict_value(problem);
 /// }
 /// ```
-/// will update the [`Problem::solution`] to correspond to the class label with the highest likelihood.
+/// will update the [`FeatureVector::label`] to correspond to the class label with the highest likelihood.
 ///
 /// # Predicting a label and obtaining probability estimates.
 ///
@@ -24,31 +24,31 @@ use crate::{errors::Error, svm::problem::Problem};
 /// Probabilities are estimated like this:
 ///
 /// ```
-/// use ffsvm::*;
+/// use ffsvm::{DenseFeatures, DenseSVM, Predict};
 ///
-/// fn set_features(svm: &DenseSVM, problem: &mut DenseProblem) {
+/// fn set_features(svm: &DenseSVM, features: &mut DenseFeatures) {
 ///     // Predicts the value.
-///     svm.predict_probability(problem);
+///     svm.predict_probability(features);
 /// }
 /// ```
 ///
-/// Predicting probabilities automatically predicts the best label. In addition [`Problem::probabilities`]
+/// Predicting probabilities automatically predicts the best label. In addition [`FeatureVector::probabilities`]
 /// will be updated accordingly. The class labels for each probablity entry can be obtained
 /// by the SVM's `class_label_for_index` and `class_index_for_label` methods.
-pub trait Predict<V32, V64>
+pub trait Predict<T>
 where
     Self: Sync,
 {
-    /// Predict a single value for a [`Problem`].
+    /// Predict a single value for a [`FeatureVector`].
     ///
     /// The problem needs to have all features set. Once this method returns,
-    /// the [`Problem::solution`] will be set.
-    fn predict_value(&self, problem: &mut Problem<V32>) -> Result<(), Error>;
+    /// the [`FeatureVector::label`] will be set.
+    fn predict_value(&self, problem: &mut FeatureVector<T>) -> Result<(), Error>;
 
     /// Predict a probability value for a problem.
     ///
     /// The problem needs to have all features set. Once this method returns,
-    /// both [`Problem::solution`] will be set, and all [`Problem::probabilities`] will
+    /// both [`FeatureVector::label`] will be set, and all [`FeatureVector::probabilities`] will
     /// be available accordingly.
-    fn predict_probability(&self, problem: &mut Problem<V32>) -> Result<(), Error>;
+    fn predict_probability(&self, problem: &mut FeatureVector<T>) -> Result<(), Error>;
 }

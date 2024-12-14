@@ -1,10 +1,8 @@
-#![feature(test)]
+use ffsvm::Label;
 
-use ffsvm::Solution;
-
-fn similar(a: Solution, b: Solution) -> bool {
+fn similar(a: Label, b: Label) -> bool {
     match (a, b) {
-        (Solution::Value(a), Solution::Value(b)) => (a - b).abs() < 0.001 * ((a + b) / 2.0),
+        (Label::Value(a), Label::Value(b)) => (a - b).abs() < 0.001 * ((a + b) / 2.0),
         _ => false,
     }
 }
@@ -16,26 +14,26 @@ macro_rules! test_model {
             let model = include_str!(concat!("data_dense/", $file));
             let svm = DenseSVM::try_from(model)?;
 
-            let mut problem_0 = Problem::from(&svm);
-            let features_0 = problem_0.features().as_slice_mut();
+            let mut problem_0 = FeatureVector::from(&svm);
+            let features_0 = problem_0.features();
             features_0.clone_from_slice(&[0.000_1, 0.000_1, 0.000_1, 0.000_1, 0.000_1, 0.000_1, 0.000_1, 0.000_1]);
 
-            let mut problem_7 = Problem::from(&svm);
-            let features_7 = problem_7.features().as_slice_mut();
+            let mut problem_7 = FeatureVector::from(&svm);
+            let features_7 = problem_7.features();
             features_7.clone_from_slice(&[1.287_784_9, 0.986_031_7, 1.486_247_2, 1.128_083, 0.891_030_55, 1.164_363_4, 0.928_599_1, 1.140_762_9]);
 
             svm.predict_value(&mut problem_0)?;
             svm.predict_value(&mut problem_7)?;
 
-            assert!(similar(problem_0.solution(), Solution::Value($libsvm[0])));
-            assert!(similar(problem_7.solution(), Solution::Value($libsvm[1])));
+            assert!(similar(problem_0.label(), Label::Value($libsvm[0])));
+            assert!(similar(problem_7.label(), Label::Value($libsvm[1])));
 
             if $prob {
                 svm.predict_probability(&mut problem_0)?;
                 svm.predict_probability(&mut problem_7)?;
 
-                assert!(similar(problem_0.solution(), Solution::Value($libsvm_prob[0])));
-                assert!(similar(problem_7.solution(), Solution::Value($libsvm_prob[1])));
+                assert!(similar(problem_0.label(), Label::Value($libsvm_prob[0])));
+                assert!(similar(problem_7.label(), Label::Value($libsvm_prob[1])));
             }
 
             Ok(())
@@ -46,7 +44,7 @@ macro_rules! test_model {
 #[cfg(test)]
 mod svm_dense_regression {
     use super::similar;
-    use ffsvm::{DenseSVM, Error, Predict, Problem, Solution};
+    use ffsvm::{DenseSVM, Error, FeatureVector, Label, Predict};
     use std::convert::TryFrom;
 
     // E-SVR
@@ -70,5 +68,4 @@ mod svm_dense_regression {
     test_model!(m_nu_svr_poly, "m_nu_svr_poly.libsvm", false, [2.18783, 6.55455], [0.0, 0.0]);
     test_model!(m_nu_svr_rbf, "m_nu_svr_rbf.libsvm", false, [0.653_419, 6.49803], [0.0, 0.0]);
     test_model!(m_nu_svr_sigmoid, "m_nu_svr_sigmoid.libsvm", false, [0.396_866, 5.52985], [0.0, 0.0]);
-
 }

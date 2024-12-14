@@ -3,12 +3,11 @@ use std::convert::{From, TryFrom};
 use super::{KernelDense, KernelSparse};
 use crate::{
     errors::Error,
-    f32s,
     parser::ModelFile,
     sparse::{SparseMatrix, SparseVector},
 };
 
-use simd_aligned::{MatrixD, Rows, VectorD};
+use simd_aligned::{f32x8, traits::Simd, MatD, Rows, VecD};
 
 #[derive(Copy, Clone, Debug, Default)]
 #[doc(hidden)]
@@ -17,13 +16,12 @@ pub struct Rbf {
 }
 
 #[inline]
-fn compute_core(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) {
-    use simd_aligned::SimdExt;
-    // According to Instruments, for realistic SVMs and problems, the VAST majority of our
+fn compute_core(rbf: Rbf, vectors: &MatD<f32x8, Rows>, feature: &VecD<f32x8>, output: &mut [f64]) {
+    // According to Instruments, for realistic SVMs and feature vectors, the VAST majority of our
     // CPU time is spent in this loop.
     for (i, sv) in vectors.row_iter().enumerate() {
-        let mut sum = f32s::splat(0.0);
-        let feature: &[f32s] = feature;
+        let mut sum = f32x8::splat(0.0);
+        let feature: &[f32x8] = feature;
 
         for (a, b) in sv.iter().zip(feature) {
             sum += (*a - *b) * (*a - *b);
@@ -39,21 +37,21 @@ fn compute_core(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>
 #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
 #[target_feature(enable = "avx")]
 #[inline]
-unsafe fn compute_avx(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) { compute_core(rbf, vectors, feature, output); }
+unsafe fn compute_avx(rbf: Rbf, vectors: &MatD<f32x8, Rows>, feature: &VecD<f32x8>, output: &mut [f64]) { compute_core(rbf, vectors, feature, output); }
 
 #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
 #[target_feature(enable = "avx2")]
 #[inline]
-unsafe fn compute_avx2(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) { compute_core(rbf, vectors, feature, output); }
+unsafe fn compute_avx2(rbf: Rbf, vectors: &MatD<f32x8, Rows>, feature: &VecD<f32x8>, output: &mut [f64]) { compute_core(rbf, vectors, feature, output); }
 
 #[cfg(target_arch = "aarch64")]
 #[target_feature(enable = "neon")]
 #[inline]
-unsafe fn compute_neon(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) { compute_core(rbf, vectors, feature, output); }
+unsafe fn compute_neon(rbf: Rbf, vectors: &MatD<f32x8, Rows>, feature: &VecD<f32x8>, output: &mut [f64]) { compute_core(rbf, vectors, feature, output); }
 
 #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
 #[inline]
-fn compute(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) {
+fn compute(rbf: Rbf, vectors: &MatD<f32x8, Rows>, feature: &VecD<f32x8>, output: &mut [f64]) {
     if is_x86_feature_detected!("avx2") {
         unsafe { compute_avx2(rbf, vectors, feature, output) }
     } else if is_x86_feature_detected!("avx") {
@@ -65,7 +63,7 @@ fn compute(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, out
 
 #[cfg(target_arch = "aarch64")]
 #[inline]
-fn compute(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) {
+fn compute(rbf: Rbf, vectors: &MatD<f32x8, Rows>, feature: &VecD<f32x8>, output: &mut [f64]) {
     if std::arch::is_aarch64_feature_detected!("neon") {
         unsafe { compute_neon(rbf, vectors, feature, output) }
     } else {
@@ -75,10 +73,10 @@ fn compute(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, out
 
 #[cfg(not(any(target_arch = "x86_64", target_arch = "x86", target_arch = "aarch64")))]
 #[inline]
-fn compute(rbf: Rbf, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) { compute_core(rbf, vectors, feature, output) }
+fn compute(rbf: Rbf, vectors: &MatD<f32x8, Rows>, feature: &VecD<f32x8>, output: &mut [f64]) { compute_core(rbf, vectors, feature, output) }
 
 impl KernelDense for Rbf {
-    fn compute(&self, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) { compute(*self, vectors, feature, output); }
+    fn compute(&self, vectors: &MatD<f32x8, Rows>, feature: &VecD<f32x8>, output: &mut [f64]) { compute(*self, vectors, feature, output); }
 }
 
 impl KernelSparse for Rbf {
@@ -99,13 +97,13 @@ impl KernelSparse for Rbf {
                         b = b_iter.next();
                     }
                     (Some((i_a, x)), Some((i_b, _))) if i_a < i_b => {
-                        sum += x*x;
-                        a = a_iter.next(); 
-                    },
+                        sum += x * x;
+                        a = a_iter.next();
+                    }
                     (Some((i_a, _)), Some((i_b, y))) if i_a > i_b => {
-                        sum += y*y;
-                        b = b_iter.next(); 
-                    },
+                        sum += y * y;
+                        b = b_iter.next();
+                    }
                     _ => break f64::from((-self.gamma * sum).exp()),
                 }
             }
@@ -117,7 +115,7 @@ impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for Rbf {
     type Error = Error;
 
     fn try_from(raw_model: &'a ModelFile<'b>) -> Result<Self, Error> {
-        let gamma = raw_model.header.gamma.ok_or(Error::NoGamma)?;
+        let gamma = raw_model.header().gamma.ok_or(Error::NoGamma)?;
 
         Ok(Self { gamma })
     }

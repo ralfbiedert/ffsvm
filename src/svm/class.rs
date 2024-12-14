@@ -1,5 +1,5 @@
-use crate::{f32s, f64s, sparse::SparseMatrix};
-use simd_aligned::{MatrixD, Rows};
+use crate::{sparse::SparseMatrix};
+use simd_aligned::{f32x8, f64x4, MatD, Rows};
 
 /// Represents one class of the SVM model.
 #[derive(Clone, Debug)]
@@ -12,19 +12,19 @@ pub(crate) struct Class<M32> {
     // pub(crate) num_support_vectors: usize,
 
     /// Coefficients between this class and n-1 other classes.
-    pub(crate) coefficients: MatrixD<f64s, Rows>,
+    pub(crate) coefficients: MatD<f64x4, Rows>,
 
     /// All support vectors in this class.
     pub(crate) support_vectors: M32,
 }
 
-impl Class<MatrixD<f32s, Rows>> {
+impl Class<MatD<f32x8, Rows>> {
     /// Creates a new class with the given parameters.
     pub fn with_parameters(classes: usize, support_vectors: usize, attributes: usize, label: i32) -> Self {
         Self {
             label,
-            coefficients: MatrixD::with_dimension(classes - 1, support_vectors),
-            support_vectors: MatrixD::with_dimension(support_vectors, attributes),
+            coefficients: MatD::with_dimension(classes - 1, support_vectors),
+            support_vectors: MatD::with_dimension(support_vectors, attributes),
         }
     }
 }
@@ -34,7 +34,7 @@ impl Class<SparseMatrix<f32>> {
     pub fn with_parameters(classes: usize, support_vectors: usize, _attributes: usize, label: i32) -> Self {
         Self {
             label,
-            coefficients: MatrixD::with_dimension(classes - 1, support_vectors),
+            coefficients: MatD::with_dimension(classes - 1, support_vectors),
             support_vectors: SparseMatrix::with(support_vectors),
         }
     }

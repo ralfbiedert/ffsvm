@@ -1,5 +1,6 @@
 use crate::sparse::{SparseMatrix, SparseVector};
 
+use simd_aligned::traits::Simd;
 use std::convert::TryFrom;
 
 use crate::{
@@ -7,25 +8,24 @@ use crate::{
     parser::ModelFile,
     svm::{
         class::Class,
+        features::{FeatureVector, Label},
         kernel::{KernelSparse, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
-        problem::{Problem, Solution},
         Probabilities, SVMType,
     },
     util::{find_max_index, set_all, sigmoid_predict},
     vectors::Triangular,
 };
 
-/// A SVM optimized for large models with many empty attributes.
+/// an SVM optimized for large models with many empty attributes.
 ///
-/// # Creating a SVM
+/// # Creating an SVM
 ///
-/// This SVM can be created by passing a [`ModelFile`](crate::ModelFile) into `try_from`, or a `&str`:
+/// This SVM can be created by passing a [`ModelFile`](crate::ModelFile) or [`&str`] into [`ModelFile::try_from`]:
 ///
 ///
 /// ```
-/// use ffsvm::*;
-/// use std::convert::TryFrom;
+/// use ffsvm::SparseSVM;
 ///
 /// let svm = SparseSVM::try_from("...");
 /// ```
@@ -56,13 +56,14 @@ impl SparseSVM {
     ///
     /// This method takes a `label` as defined in the libSVM training model
     /// and returns the internal `index` where this label resides. The index
-    /// equals [`Problem::probabilities`] index where that label's
+    /// equals [`FeatureVector::probabilities`] index where that label's
     /// probability can be found.
     ///
     /// # Returns
     ///
-    /// If the label was found its index returned in the [`Option`]. Otherwise `None`
+    /// If the label was found its index returned in the [`Option`], otherwise `None`
     /// is returned.
+    #[must_use]
     pub fn class_index_for_label(&self, label: i32) -> Option<usize> {
         for (i, class) in self.classes.iter().enumerate() {
             if class.label != label {
@@ -80,13 +81,14 @@ impl SparseSVM {
     /// # Description
     ///
     /// The inverse of [`SparseSVM::class_index_for_label`], this function returns the class label
-    /// associated with a certain internal index. The index equals the [`Problem::probabilities`]
+    /// associated with a certain internal index. The index equals the [`FeatureVector::probabilities`]
     /// index where a label's probability can be found.
     ///
     /// # Returns
     ///
-    /// If the index was found it is returned in the [`Option`]. Otherwise `None`
+    /// If the index was found it is returned in the [`Option`], otherwise `None`
     /// is returned.
+    #[must_use]
     pub fn class_label_for_index(&self, index: usize) -> Option<i32> {
         if index >= self.classes.len() {
             None
@@ -96,7 +98,7 @@ impl SparseSVM {
     }
 
     /// Computes the kernel values for this problem
-    pub(crate) fn compute_kernel_values(&self, problem: &mut Problem<SparseVector<f32>>) {
+    pub(crate) fn compute_kernel_values(&self, problem: &mut FeatureVector<SparseVector<f32>>) {
         // Get current problem and decision values array
         let features = &problem.features;
         let kernel_values = &mut problem.kernel_values;
@@ -105,7 +107,7 @@ impl SparseSVM {
         for (i, class) in self.classes.iter().enumerate() {
             let kvalues = kernel_values.row_as_flat_mut(i);
 
-            self.kernel.compute(&class.support_vectors, features.as_raw(), kvalues);
+            self.kernel.compute(&class.support_vectors, features, kvalues);
         }
     }
 
@@ -114,14 +116,15 @@ impl SparseSVM {
     // based on Method 2 from the paper "Probability Estimates for Multi-class
     // Classification by Pairwise Coupling", Journal of Machine Learning Research 5 (2004) 975-1005,
     // by Ting-Fan Wu, Chih-Jen Lin and Ruby C. Weng.
-    pub(crate) fn compute_multiclass_probabilities(&self, problem: &mut Problem<SparseVector<f32>>) -> Result<(), Error> { compute_multiclass_probabilities_impl!(self, problem) }
+    pub(crate) fn compute_multiclass_probabilities(&self, problem: &mut FeatureVector<SparseVector<f32>>) -> Result<(), Error> {
+        compute_multiclass_probabilities_impl!(self, problem)
+    }
 
     /// Based on kernel values, computes the decision values for this problem.
-    pub(crate) fn compute_classification_values(&self, problem: &mut Problem<SparseVector<f32>>) { compute_classification_values_impl!(self, problem) }
+    pub(crate) fn compute_classification_values(&self, problem: &mut FeatureVector<SparseVector<f32>>) { compute_classification_values_impl!(self, problem) }
 
     /// Based on kernel values, computes the decision values for this problem.
-    pub(crate) fn compute_regression_values(&self, problem: &mut Problem<SparseVector<f32>>) {
-        use simd_aligned::SimdExt;
+    pub(crate) fn compute_regression_values(&self, problem: &mut FeatureVector<SparseVector<f32>>) {
         let class = &self.classes[0];
         let coef = class.coefficients.row(0);
         let kvalues = problem.kernel_values.row(0);
@@ -130,21 +133,21 @@ impl SparseSVM {
 
         sum -= self.rho[0];
 
-        problem.result = Solution::Value(sum as f32);
+        problem.result = Label::Value(sum as f32);
     }
 
     /// Returns number of attributes, reflecting the libSVM model.
+    #[must_use]
     pub const fn attributes(&self) -> usize { self.num_attributes }
 
     /// Returns number of classes, reflecting the libSVM model.
+    #[must_use]
     pub fn classes(&self) -> usize { self.classes.len() }
 }
 
-impl Predict<SparseVector<f32>, SparseVector<f64>> for SparseSVM {
-    fn predict_probability(&self, problem: &mut Problem<SparseVector<f32>>) -> Result<(), Error> { predict_probability_impl!(self, problem) }
-
+impl Predict<SparseVector<f32>> for SparseSVM {
     // Predict the value for one problem.
-    fn predict_value(&self, problem: &mut Problem<SparseVector<f32>>) -> Result<(), Error> {
+    fn predict_value(&self, problem: &mut FeatureVector<SparseVector<f32>>) -> Result<(), Error> {
         match self.svm_type {
             SVMType::CSvc | SVMType::NuSvc => {
                 // Compute kernel, decision values and eventually the label
@@ -153,7 +156,7 @@ impl Predict<SparseVector<f32>, SparseVector<f64>> for SparseSVM {
 
                 // Compute highest vote
                 let highest_vote = find_max_index(&problem.vote);
-                problem.result = Solution::Label(self.classes[highest_vote].label);
+                problem.result = Label::Class(self.classes[highest_vote].label);
 
                 Ok(())
             }
@@ -164,6 +167,8 @@ impl Predict<SparseVector<f32>, SparseVector<f64>> for SparseSVM {
             }
         }
     }
+
+    fn predict_probability(&self, problem: &mut FeatureVector<SparseVector<f32>>) -> Result<(), Error> { predict_probability_impl!(self, problem) }
 }
 
 impl<'a, 'b> TryFrom<&'a str> for SparseSVM {
@@ -175,13 +180,13 @@ impl<'a, 'b> TryFrom<&'a str> for SparseSVM {
     }
 }
 
-impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for SparseSVM {
+impl<'a> TryFrom<&'a ModelFile<'_>> for SparseSVM {
     type Error = Error;
 
     fn try_from(raw_model: &'a ModelFile<'_>) -> Result<Self, Error> {
         let (mut svm, nr_sv) = prepare_svm!(raw_model, dyn KernelSparse, SparseMatrix<f32>, Self);
 
-        let vectors = &raw_model.vectors;
+        let vectors = &raw_model.vectors();
 
         // Things down here are a bit ugly as the file format is a bit ugly ...
         // Now read all vectors and decode stored information
@@ -211,6 +216,6 @@ impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for SparseSVM {
         }
 
         // Return what we have
-        Result::Ok(svm)
+        Ok(svm)
     }
 }

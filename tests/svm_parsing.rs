@@ -1,7 +1,3 @@
-#![feature(test)]
-
-extern crate test;
-
 #[cfg(test)]
 mod svm_performance {
     use ffsvm::{DenseSVM, Error};

@@ -4,10 +4,9 @@ mod rbf;
 mod sigmoid;
 
 use crate::{
-    f32s,
     sparse::{SparseMatrix, SparseVector},
 };
-use simd_aligned::{MatrixD, Rows, VectorD};
+use simd_aligned::{f32x8, MatD, Rows, VecD};
 
 pub use self::{linear::*, poly::*, rbf::*, sigmoid::*};
 
@@ -17,7 +16,7 @@ pub trait KernelDense
 where
     Self: Send + Sync,
 {
-    fn compute(&self, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]);
+    fn compute(&self, vectors: &MatD<f32x8, Rows>, feature: &VecD<f32x8>, output: &mut [f64]);
 }
 
 /// Base trait for kernels

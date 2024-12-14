@@ -3,14 +3,14 @@ macro_rules! prepare_svm {
         // To quickly check what broke again during parsing ...
         // println!("{:?}", raw_model);
         {
-            let header = &$raw_model.header;
-            let vectors = &$raw_model.vectors;
+            let header = &$raw_model.header();
+            let vectors = &$raw_model.vectors();
 
             // Get basic info
             let num_attributes = vectors[0].features.len();
             let num_total_sv = header.total_sv as usize;
 
-            let svm_type = match $raw_model.header.svm_type {
+            let svm_type = match $raw_model.header().svm_type {
                 "c_svc" => SVMType::CSvc,
                 "nu_svc" => SVMType::NuSvc,
                 "epsilon_svr" => SVMType::ESvr,
@@ -18,7 +18,7 @@ macro_rules! prepare_svm {
                 _ => unimplemented!(),
             };
 
-            let kernel: Box<$k> = match $raw_model.header.kernel_type {
+            let kernel: Box<$k> = match $raw_model.header().kernel_type {
                 "rbf" => Box::new(Rbf::try_from($raw_model)?),
                 "linear" => Box::new(Linear::from($raw_model)),
                 "polynomial" => Box::new(Poly::try_from($raw_model)?),
@@ -53,7 +53,7 @@ macro_rules! prepare_svm {
                 SVMType::ESvr | SVMType::NuSvr => vec![Class::<$m32>::with_parameters(2, num_total_sv, num_attributes, 0)],
             };
 
-            let probabilities = match (&$raw_model.header.prob_a, &$raw_model.header.prob_b) {
+            let probabilities = match (&$raw_model.header().prob_a, &$raw_model.header().prob_b) {
                 // Regular case for classification with probabilities
                 (&Some(ref a), &Some(ref b)) => Some(Probabilities {
                     a: Triangular::from(a),
@@ -169,9 +169,7 @@ macro_rules! compute_multiclass_probabilities_impl {
 
 macro_rules! compute_classification_values_impl {
     ($self:tt, $problem:tt) => {{
-        // Reset all votes
-        use simd_aligned::SimdExt;
-
+        use simd_aligned::traits::Simd;
         set_all(&mut $problem.vote, 0);
 
         // Since classification is symmetric, if we have N classes, we only need to go through
@@ -257,7 +255,7 @@ macro_rules! predict_probability_impl {
                 }
 
                 let max_index = find_max_index($problem.probabilities.flat());
-                $problem.result = Solution::Label($self.classes[max_index].label);
+                $problem.result = Label::Class($self.classes[max_index].label);
 
                 Ok(())
             }

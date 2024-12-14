@@ -1,7 +1,3 @@
-#![feature(test)]
-
-extern crate test;
-
 macro_rules! test_model {
     ($name:ident, $file:expr, $prob:expr, $libsvm:expr, $libsvm_prob:expr) => {
         #[test]
@@ -9,26 +5,26 @@ macro_rules! test_model {
             let model = include_str!(concat!("data_dense/", $file));
             let svm = DenseSVM::try_from(model)?;
 
-            let mut problem_0 = Problem::from(&svm);
-            let features_0 = problem_0.features().as_slice_mut();
+            let mut problem_0 = FeatureVector::from(&svm);
+            let features_0 = problem_0.features();
             features_0.clone_from_slice(&[0.000_1, 0.000_1, 0.000_1, 0.000_1, 0.000_1, 0.000_1, 0.000_1, 0.000_1]);
 
-            let mut problem_7 = Problem::from(&svm);
-            let features_7 = problem_7.features().as_slice_mut();
+            let mut problem_7 = FeatureVector::from(&svm);
+            let features_7 = problem_7.features();
             features_7.clone_from_slice(&[1.287_784_9, 0.986_031_7, 1.486_247_2, 1.128_083, 0.891_030_55, 1.164_363_4, 0.928_599_1, 1.140_762_9]);
 
             svm.predict_value(&mut problem_0)?;
             svm.predict_value(&mut problem_7)?;
 
-            assert_eq!(problem_0.solution(), Solution::Label($libsvm[0]), "predict_value(problem_0)");
-            assert_eq!(problem_7.solution(), Solution::Label($libsvm[1]), "predict_value(problem_7)");
+            assert_eq!(problem_0.label(), Label::Class($libsvm[0]), "predict_value(problem_0)");
+            assert_eq!(problem_7.label(), Label::Class($libsvm[1]), "predict_value(problem_7)");
 
             if $prob {
                 svm.predict_probability(&mut problem_0)?;
                 svm.predict_probability(&mut problem_7)?;
 
-                assert_eq!(problem_0.solution(), Solution::Label($libsvm_prob[0]), "predict_probability(problem_0)");
-                assert_eq!(problem_7.solution(), Solution::Label($libsvm_prob[1]), "predict_probability(problem_7)");
+                assert_eq!(problem_0.label(), Label::Class($libsvm_prob[0]), "predict_probability(problem_0)");
+                assert_eq!(problem_7.label(), Label::Class($libsvm_prob[1]), "predict_probability(problem_7)");
             }
 
             Ok(())
@@ -38,7 +34,7 @@ macro_rules! test_model {
 
 #[cfg(test)]
 mod svm_dense_class {
-    use ffsvm::{DenseSVM, Error, Predict, Problem, Solution};
+    use ffsvm::{DenseSVM, Error, FeatureVector, Label, Predict};
     use std::convert::TryFrom;
 
     // CSVM

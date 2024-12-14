@@ -3,28 +3,28 @@ use std::{convert::TryFrom, str};
 
 /// Parsing result of a model file used to instantiate a [`DenseSVM`](`crate::DenseSVM`) or [`SparseSVM`](`crate::SparseSVM`).
 ///
-/// # Obtaining a model
+/// # Obtaining Models
 /// A model file is produced by [libSVM](https://github.com/cjlin1/libsvm). For details
 /// how to produce a model see the top-level [FFSVM](index.html#creating-a-libsvm-model)
 /// documentation.
 ///
-/// # Loading a model
+/// # Loading Models
 ///
-/// Model are generally produced by parsing a `&str` using the `ModelFile::try_from` function:
+/// Models are generally produced by parsing a [`&str`] using the [`ModelFile::try_from`] function:
 ///
 /// ```rust
-/// use ffsvm::*;
-/// use std::convert::TryFrom;
+/// use ffsvm::ModelFile;
+/// # use ffsvm::SAMPLE_MODEL;
 ///
 /// let model_result = ModelFile::try_from(SAMPLE_MODEL);
 /// ```
 ///
 /// Should anything be wrong with the model format, an [`Error`] will be returned. Once you have
-/// your model, you can use it to create a SVM, for example by invoking `DenseSVM::try_from(model)`.
+/// your model, you can use it to create an SVM, for example by invoking `DenseSVM::try_from(model)`.
 ///
-/// # Model format
+/// # Model Format
 ///
-/// For FFSVM to load a model, it needs to approximately look like below. Note that you cannot
+/// For FFSVM to load a model, it needs to look approximately like below. Note that you cannot
 /// reasonably create this model by hand, it needs to come from [libSVM](https://github.com/cjlin1/libsvm).
 ///
 /// ```text
@@ -54,8 +54,22 @@ use std::{convert::TryFrom, str};
 /// `2:`, ... `n:` and not, say, `0:`, `1:`, `4:`, ... `n:`.
 #[derive(Clone, Debug, Default)]
 pub struct ModelFile<'a> {
-    pub header: Header<'a>,
-    pub vectors: Vec<SupportVector>,
+    header: Header<'a>,
+    vectors: Vec<SupportVector>,
+}
+
+impl<'a> ModelFile<'a> {
+    #[doc(hidden)]
+    #[must_use]
+    pub const fn new(header: Header<'a>, vectors: Vec<SupportVector>) -> Self { Self { header, vectors } }
+
+    #[doc(hidden)]
+    #[must_use]
+    pub const fn header(&self) -> &Header { &self.header }
+
+    #[doc(hidden)]
+    #[must_use]
+    pub fn vectors(&self) -> &[SupportVector] { self.vectors.as_slice() }
 }
 
 #[doc(hidden)]
@@ -92,7 +106,7 @@ pub struct SupportVector {
 impl<'a> TryFrom<&'a str> for ModelFile<'a> {
     type Error = Error;
 
-    /// Parses a string into a SVM model
+    /// Parses a string into an SVM model
     #[allow(clippy::similar_names)]
     fn try_from(input: &str) -> Result<ModelFile<'_>, Error> {
         let mut svm_type = Option::None;

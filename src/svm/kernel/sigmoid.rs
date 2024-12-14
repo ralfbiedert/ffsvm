@@ -3,12 +3,11 @@ use std::convert::{From, TryFrom};
 use super::{KernelDense, KernelSparse};
 use crate::{
     errors::Error,
-    f32s,
     parser::ModelFile,
     sparse::{SparseMatrix, SparseVector},
 };
 
-use simd_aligned::{MatrixD, Rows, VectorD};
+use simd_aligned::{f32x8, traits::Simd, MatD, Rows, VecD};
 
 #[derive(Copy, Clone, Debug, Default)]
 #[doc(hidden)]
@@ -18,11 +17,10 @@ pub struct Sigmoid {
 }
 
 impl KernelDense for Sigmoid {
-    fn compute(&self, vectors: &MatrixD<f32s, Rows>, feature: &VectorD<f32s>, output: &mut [f64]) {
-        use simd_aligned::SimdExt;
+    fn compute(&self, vectors: &MatD<f32x8, Rows>, feature: &VecD<f32x8>, output: &mut [f64]) {
         for (i, sv) in vectors.row_iter().enumerate() {
-            let mut sum = f32s::splat(0.0);
-            let feature: &[f32s] = feature;
+            let mut sum = f32x8::splat(0.0);
+            let feature: &[f32x8] = feature;
 
             for (a, b) in sv.iter().zip(feature) {
                 sum += *a * *b;
@@ -63,8 +61,8 @@ impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for Sigmoid {
     type Error = Error;
 
     fn try_from(raw_model: &'a ModelFile<'b>) -> Result<Self, Error> {
-        let gamma = raw_model.header.gamma.ok_or(Error::NoGamma)?;
-        let coef0 = raw_model.header.coef0.ok_or(Error::NoCoef0)?;
+        let gamma = raw_model.header().gamma.ok_or(Error::NoGamma)?;
+        let coef0 = raw_model.header().coef0.ok_or(Error::NoCoef0)?;
 
         Ok(Self { gamma, coef0 })
     }

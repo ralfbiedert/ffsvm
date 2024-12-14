@@ -1,7 +1,3 @@
-#![feature(test)]
-
-extern crate test;
-
 macro_rules! test_model {
     ($name:ident, $file:expr, $prob:expr, $libsvm:expr, $libsvm_prob:expr) => {
         #[test]
@@ -9,7 +5,7 @@ macro_rules! test_model {
             let model = include_str!(concat!("data_sparse/", $file));
             let svm = SparseSVM::try_from(model)?;
 
-            let mut problem_0 = Problem::from(&svm);
+            let mut problem_0 = FeatureVector::from(&svm);
             let features_0 = problem_0.features();
             features_0[3] = 0.000_1;
             features_0[4] = 0.000_1;
@@ -24,7 +20,7 @@ macro_rules! test_model {
             features_0[123] = 0.000_1;
             features_0[127] = 0.000_1;
 
-            let mut problem_7 = Problem::from(&svm);
+            let mut problem_7 = FeatureVector::from(&svm);
             let features_7 = problem_7.features();
             features_7[3] = 0.930_907_6;
             features_7[4] = 1.264_398_9;
@@ -41,15 +37,15 @@ macro_rules! test_model {
             svm.predict_value(&mut problem_0)?;
             svm.predict_value(&mut problem_7)?;
 
-            assert_eq!(problem_0.solution(), Solution::Label($libsvm[0]), "predict_value(problem_0)");
-            assert_eq!(problem_7.solution(), Solution::Label($libsvm[1]), "predict_value(problem_7)");
+            assert_eq!(problem_0.label(), Label::Class($libsvm[0]), "predict_value(problem_0)");
+            assert_eq!(problem_7.label(), Label::Class($libsvm[1]), "predict_value(problem_7)");
 
             if $prob {
                 svm.predict_probability(&mut problem_0)?;
                 svm.predict_probability(&mut problem_7)?;
 
-                assert_eq!(problem_0.solution(), Solution::Label($libsvm_prob[0]), "predict_probability(problem_0)");
-                assert_eq!(problem_7.solution(), Solution::Label($libsvm_prob[1]), "predict_probability(problem_7)");
+                assert_eq!(problem_0.label(), Label::Class($libsvm_prob[0]), "predict_probability(problem_0)");
+                assert_eq!(problem_7.label(), Label::Class($libsvm_prob[1]), "predict_probability(problem_7)");
             }
 
             Ok(())
@@ -59,7 +55,7 @@ macro_rules! test_model {
 
 #[cfg(test)]
 mod svm_sparse_class {
-    use ffsvm::{Error, Predict, Problem, Solution, SparseSVM};
+    use ffsvm::{Error, FeatureVector, Label, Predict, SparseSVM};
     use std::convert::TryFrom;
 
     // CSVM

@@ -1,14 +1,15 @@
 [package]
 name = "ffsvm"
-description="A libSVM compatible support vector machine, but up to 10x faster, for games or VR."
-version = "0.10.1"
+description = "A libSVM compatible support vector machine, but up to 10x faster, for games or VR."
+version = "0.11.0"
 repository = "https://github.com/ralfbiedert/ffsvm-rust"
 authors = ["Ralf Biedert <rb@xr.io>"]
 readme = "README.md"
 categories = ["science", "algorithms"]
 keywords = ["svm", "libsvm", "machine-learning"]
 license = "MIT"
-edition = "2018"
+edition = "2021"
+rust-version = "1.83"
 exclude = [
     "docs/*",
 ]
@@ -16,11 +17,11 @@ exclude = [
 [lib]
 name = "ffsvm"
 path = "src/lib.rs"
-crate-type = [ "rlib" ]
+crate-type = ["rlib"]
 
 [dependencies]
-simd_aligned = "0.4"
-#simd_aligned = { path = "../simd_aligned_rust" }
+#simd_aligned = "0.5"
+simd_aligned = { path = "../simd_aligned" }
 
 [dev-dependencies]
 rand = "0.8.5"

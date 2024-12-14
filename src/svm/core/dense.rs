@@ -1,31 +1,29 @@
-use simd_aligned::{MatrixD, Rows, VectorD};
+use simd_aligned::{f32x8, traits::Simd, MatD, Rows, VecD};
 use std::convert::TryFrom;
 
 use crate::{
     errors::Error,
-    f32s, f64s,
     parser::ModelFile,
     svm::{
         class::Class,
+        features::{FeatureVector, Label},
         kernel::{KernelDense, Linear, Poly, Rbf, Sigmoid},
         predict::Predict,
-        problem::{Problem, Solution},
         Probabilities, SVMType,
     },
     util::{find_max_index, set_all, sigmoid_predict},
     vectors::Triangular,
 };
 
-/// A SVM using [SIMD](https://en.wikipedia.org/wiki/SIMD) intrinsics optimized for speed.
+/// An SVM using [SIMD](https://en.wikipedia.org/wiki/SIMD) intrinsics optimized for speed.
 ///
 ///
-/// # Creating a SVM
+/// # Creating an SVM
 ///
-/// This SVM can be created by passing a [`ModelFile`](crate::ModelFile) into `try_from`, or a `&str`:
+/// This SVM can be created by passing a [`ModelFile`](crate::ModelFile) or [`&str`] into [`ModelFile::try_from`]:
 ///
 /// ```
-/// use ffsvm::*;
-/// use std::convert::TryFrom;
+/// use ffsvm::DenseSVM;
 ///
 /// let svm = DenseSVM::try_from("...");
 /// ```
@@ -46,7 +44,7 @@ pub struct DenseSVM {
     pub(crate) kernel: Box<dyn KernelDense>,
 
     /// All classes
-    pub(crate) classes: Vec<Class<MatrixD<f32s, Rows>>>,
+    pub(crate) classes: Vec<Class<MatD<f32x8, Rows>>>,
 }
 
 impl DenseSVM {
@@ -56,12 +54,12 @@ impl DenseSVM {
     ///
     /// This method takes a `label` as defined in the libSVM training model
     /// and returns the internal `index` where this label resides. The index
-    /// equals [`Problem::probabilities`] index where that label's
+    /// equals [`FeatureVector::probabilities`] index where that label's
     /// probability can be found.
     ///
     /// # Returns
     ///
-    /// If the label was found its index returned in the [`Option`]. Otherwise `None`
+    /// If the label was found its index returned in the [`Option`], otherwise `None`
     /// is returned.
     pub fn class_index_for_label(&self, label: i32) -> Option<usize> {
         for (i, class) in self.classes.iter().enumerate() {
@@ -80,12 +78,12 @@ impl DenseSVM {
     /// # Description
     ///
     /// The inverse of [`DenseSVM::class_index_for_label`], this function returns the class label
-    /// associated with a certain internal index. The index equals the [`Problem::probabilities`]
+    /// associated with a certain internal index. The index equals the [`FeatureVector::probabilities`]
     /// index where a label's probability can be found.
     ///
     /// # Returns
     ///
-    /// If the index was found it is returned in the [`Option`]. Otherwise `None`
+    /// If the index was found it is returned in the [`Option`], otherwise `None`
     /// is returned.
     pub fn class_label_for_index(&self, index: usize) -> Option<i32> {
         if index >= self.classes.len() {
@@ -96,7 +94,7 @@ impl DenseSVM {
     }
 
     /// Computes the kernel values for this problem
-    pub(crate) fn compute_kernel_values(&self, problem: &mut Problem<VectorD<f32s>>) {
+    pub(crate) fn compute_kernel_values(&self, problem: &mut FeatureVector<VecD<f32x8>>) {
         // Get current problem and decision values array
         let features = &problem.features;
         let kernel_values = &mut problem.kernel_values;
@@ -105,7 +103,7 @@ impl DenseSVM {
         for (i, class) in self.classes.iter().enumerate() {
             let kvalues = kernel_values.row_as_flat_mut(i);
 
-            self.kernel.compute(&class.support_vectors, features.as_raw(), kvalues);
+            self.kernel.compute(&class.support_vectors, features, kvalues);
         }
     }
 
@@ -114,14 +112,13 @@ impl DenseSVM {
     // based on Method 2 from the paper "Probability Estimates for Multi-class
     // Classification by Pairwise Coupling", Journal of Machine Learning Research 5 (2004) 975-1005,
     // by Ting-Fan Wu, Chih-Jen Lin and Ruby C. Weng.
-    pub(crate) fn compute_multiclass_probabilities(&self, problem: &mut Problem<VectorD<f32s>>) -> Result<(), Error> { compute_multiclass_probabilities_impl!(self, problem) }
+    pub(crate) fn compute_multiclass_probabilities(&self, problem: &mut FeatureVector<VecD<f32x8>>) -> Result<(), Error> { compute_multiclass_probabilities_impl!(self, problem) }
 
     /// Based on kernel values, computes the decision values for this problem.
-    pub(crate) fn compute_classification_values(&self, problem: &mut Problem<VectorD<f32s>>) { compute_classification_values_impl!(self, problem) }
+    pub(crate) fn compute_classification_values(&self, problem: &mut FeatureVector<VecD<f32x8>>) { compute_classification_values_impl!(self, problem) }
 
     /// Based on kernel values, computes the decision values for this problem.
-    pub(crate) fn compute_regression_values(&self, problem: &mut Problem<VectorD<f32s>>) {
-        use simd_aligned::SimdExt;
+    pub(crate) fn compute_regression_values(&self, problem: &mut FeatureVector<VecD<f32x8>>) {
         let class = &self.classes[0];
         let coef = class.coefficients.row(0);
         let kvalues = problem.kernel_values.row(0);
@@ -130,7 +127,7 @@ impl DenseSVM {
 
         sum -= self.rho[0];
 
-        problem.result = Solution::Value(sum as f32);
+        problem.result = Label::Value(sum as f32);
     }
 
     /// Returns number of attributes, reflecting the libSVM model.
@@ -140,33 +137,33 @@ impl DenseSVM {
     pub fn classes(&self) -> usize { self.classes.len() }
 }
 
-impl Predict<VectorD<f32s>, VectorD<f64s>> for DenseSVM {
-    fn predict_probability(&self, problem: &mut Problem<VectorD<f32s>>) -> Result<(), Error> { predict_probability_impl!(self, problem) }
-
+impl Predict<VecD<f32x8>> for DenseSVM {
     // Predict the value for one problem.
-    fn predict_value(&self, problem: &mut Problem<VectorD<f32s>>) -> Result<(), Error> {
+    fn predict_value(&self, fv: &mut FeatureVector<VecD<f32x8>>) -> Result<(), Error> {
         match self.svm_type {
             SVMType::CSvc | SVMType::NuSvc => {
                 // Compute kernel, decision values and eventually the label
-                self.compute_kernel_values(problem);
-                self.compute_classification_values(problem);
+                self.compute_kernel_values(fv);
+                self.compute_classification_values(fv);
 
-                // Compute highest vote
-                let highest_vote = find_max_index(&problem.vote);
-                problem.result = Solution::Label(self.classes[highest_vote].label);
+                // Compute the highest vote
+                let highest_vote = find_max_index(&fv.vote);
+                fv.result = Label::Class(self.classes[highest_vote].label);
 
                 Ok(())
             }
             SVMType::ESvr | SVMType::NuSvr => {
-                self.compute_kernel_values(problem);
-                self.compute_regression_values(problem);
+                self.compute_kernel_values(fv);
+                self.compute_regression_values(fv);
                 Ok(())
             }
         }
     }
+
+    fn predict_probability(&self, problem: &mut FeatureVector<VecD<f32x8>>) -> Result<(), Error> { predict_probability_impl!(self, problem) }
 }
 
-impl<'a, 'b> TryFrom<&'a str> for DenseSVM {
+impl<'a> TryFrom<&'a str> for DenseSVM {
     type Error = Error;
 
     fn try_from(input: &'a str) -> Result<Self, Error> {
@@ -179,9 +176,9 @@ impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for DenseSVM {
     type Error = Error;
 
     fn try_from(raw_model: &'a ModelFile<'_>) -> Result<Self, Error> {
-        let (mut svm, nr_sv) = prepare_svm!(raw_model, dyn KernelDense, MatrixD<f32s, Rows>, Self);
+        let (mut svm, nr_sv) = prepare_svm!(raw_model, dyn KernelDense, MatD<f32x8, Rows>, Self);
 
-        let vectors = &raw_model.vectors;
+        let vectors = &raw_model.vectors();
 
         // Things down here are a bit ugly as the file format is a bit ugly ...
         // Now read all vectors and decode stored information
@@ -227,7 +224,7 @@ impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for DenseSVM {
         }
 
         // Return what we have
-        Result::Ok(svm)
+        Ok(svm)
     }
 }
 
@@ -245,5 +242,4 @@ mod tests {
 
         Ok(())
     }
-
 }
