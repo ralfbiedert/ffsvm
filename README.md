@@ -1,57 +1,49 @@
-[![Latest Version]][crates.io]
-[![Rust](https://github.com/ralfbiedert/ffsvm-rust/actions/workflows/rust.yml/badge.svg?branch=master)](https://github.com/ralfbiedert/ffsvm-rust/actions/workflows/rust.yml)
-[![deps.svg]][deps]
-[![docs]][docs.rs]
-![MIT]
+[![crates.io-badge]][crates.io-url]
+[![docs.rs-badge]][docs.rs-url]
+![license-badge]
+[![rust-version-badge]][rust-version-url]
+[![rust-build-badge]][rust-build-url]
 
 ## In One Sentence
 
-You trained an SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want the highest possible performance
-during (real-time) classification, like games or VR.
+You trained an SVM using [libSVM](https://github.com/cjlin1/libsvm), now you want the highest possible performance during (real-time) classification, like games or VR.
 
 ## Highlights
 
-* loads almost all [libSVM](https://github.com/cjlin1/libsvm) types (C-SVC, ν-SVC, ε-SVR, ν-SVR) and kernels (linear,
-  poly, RBF and sigmoid)
+* loads almost all [libSVM](https://github.com/cjlin1/libsvm) types (C-SVC, ν-SVC, ε-SVR,  ν-SVR) and kernels (linear, poly, RBF and sigmoid)
 * produces practically same classification results as libSVM
-* optimized for [SIMD](https://github.com/rust-lang/rfcs/pull/2366) and can be mixed seamlessly
-  with [Rayon](https://github.com/rayon-rs/rayon)
-* written in 100% Rust
+* optimized for [SIMD](https://github.com/rust-lang/rfcs/pull/2366) and can be mixed seamlessly with [Rayon](https://github.com/rayon-rs/rayon)
+* written in 100% safe Rust
 * allocation-free during classification for dense SVMs
 * **2.5x - 14x faster than libSVM for dense SVMs**
 * extremely low classification times for small models (e.g., 128 SV, 16 dense attributes, linear ~ 500ns)
 * successfully used in **Unity and VR** projects (Windows & Android)
 
-Note: Currently **requires Rust nightly** (March 2019 and later), because we depend on RFC 2366 (portable SIMD). Once
-that stabilizes we'll also go stable.
-
 ## Usage
 
-Train with [libSVM](https://github.com/cjlin1/libsvm) (e.g., using the tool `svm-train`), then classify with
-`ffsvm-rust`.
+Train with [libSVM](https://github.com/cjlin1/libsvm) (e.g., using the tool `svm-train`), then classify with `ffsvm-rust`.
 
 From Rust:
 
 ```rust
 // Replace `SAMPLE_MODEL` with a `&str` to your model.
-let svm = DenseSVM::try_from(SAMPLE_MODEL) ?;
+let svm = DenseSVM::try_from(SAMPLE_MODEL)?;
 
-let mut problem = Problem::from( & svm);
-let features = problem.features();
+let mut fv = FeatureVector::from(&svm);
+let features = fv.features();
 
 features[0] = 0.55838;
-features[1] = - 0.157895;
+features[1] = -0.157895;
 features[2] = 0.581292;
-features[3] = - 0.221184;
+features[3] = -0.221184;
 
-svm.predict_value( & mut problem) ?;
+svm.predict_value(&mut fv)?;
 
-assert_eq!(problem.solution(), Solution::Label(42));
-
+assert_eq!(fv.label(), Label::Class(42));
 ```
 
 ## Status
-
+* **December 14, 2024**: **After 7+ years, finally ported to stable**.<sup>🎉</sup><sup>🎉</sup><sup>🎉</sup>
 * **March 10, 2023**: Reactivated for latest Rust nightly.
 * **June 7, 2019**: Gave up on 'no `unsafe`', but gained runtime SIMD selection.
 * **March 10, 2019**: As soon as we can move away from nightly we'll go beta.
@@ -61,34 +53,34 @@ assert_eq!(problem.solution(), Solution::Label(42));
   we'll move to beta.
 * **December 16, 2017**: We're in pre-alpha. It will probably not even work on your machine.
 
+
 ## Performance
 
 ![performance](https://raw.githubusercontent.com/ralfbiedert/ffsvm-rust/master/docs/performance_relative.v3.png)
 
-All performance numbers reported for the `DenseSVM`. We also have support for `SparseSVM`s, which are slower for "mostly
-dense" models, and faster for "mostly sparse" models (and generally on the performance level of libSVM).
+All performance numbers reported for the `DenseSVM`. We also have support for `SparseSVM`s, which are slower
+for "mostly dense" models, and faster for "mostly sparse" models (and generally on the performance level of libSVM).
 
 [See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/performance.md)
 
+
 #### Tips
 
-* For an x-fold performance increase, create a number of `Problem` structures, and process them
-  with [Rayon's](https://docs.rs/rayon/1.0.3/rayon/) `par_iter`.
+* Compile your project with `target-cpu=native` for a massive speed boost (e.g., check our `.cargo/config.toml` how
+  you can easily do that for your project). Note, due to how Rust works, this is only used for application
+  (or dynamic FFI libraries), not library crates wrapping us.
+* For an x-fold performance increase, create a number of `Problem` structures, and process them with [Rayon's](https://docs.rs/rayon/1.0.3/rayon/) `par_iter`.
 
 ## FAQ
 
 [See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/FAQ.md)
 
-[Latest Version]: https://img.shields.io/crates/v/ffsvm.svg
-
-[crates.io]: https://crates.io/crates/ffsvm
-
-[MIT]: https://img.shields.io/badge/license-MIT-blue.svg
-
-[docs]: https://docs.rs/ffsvm/badge.svg
-
-[docs.rs]: https://docs.rs/ffsvm/
-
-[deps]: https://deps.rs/repo/github/ralfbiedert/ffsvm-rust
-
-[deps.svg]: https://deps.rs/repo/github/ralfbiedert/ffsvm-rust/status.svg
+[crates.io-badge]: https://img.shields.io/crates/v/ffsvm.svg
+[crates.io-url]: https://crates.io/crates/ffsvm
+[license-badge]: https://img.shields.io/badge/license-BSD2-blue.svg
+[docs.rs-badge]: https://docs.rs/ffsvm/badge.svg
+[docs.rs-url]: https://docs.rs/ffsvm/
+[rust-version-badge]: https://img.shields.io/badge/rust-1.83%2B-blue.svg?maxAge=3600
+[rust-version-url]: https://github.com/ralfbiedert/ffsvm
+[rust-build-badge]: https://github.com/ralfbiedert/ffsvm/actions/workflows/rust.yml/badge.svg
+[rust-build-url]: https://github.com/ralfbiedert/ffsvm/actions/workflows/rust.yml
