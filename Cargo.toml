@@ -20,8 +20,8 @@ path = "src/lib.rs"
 crate-type = ["rlib"]
 
 [dependencies]
-#simd_aligned = "0.5"
-simd_aligned = { path = "../simd_aligned" }
+simd_aligned = "0.6.1"
+#simd_aligned = { path = "../simd_aligned" }
 
 [dev-dependencies]
 rand = "0.8.5"

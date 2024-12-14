@@ -2,18 +2,50 @@ name: Rust
 
 on:
   push:
-    branches: [ master ]
+    branches: [ '**' ]
   pull_request:
-    branches: [ master ]
+    branches: [ '**' ]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   test:
-    name: Test
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-apple-darwin
+        include:
+          - target: x86_64-unknown-linux-gnu
+            runs-on: ubuntu-latest
+            style: true
+            test: true
+          - target: aarch64-apple-darwin
+            runs-on: macos-latest
+            test: true
+    runs-on: ${{ matrix.runs-on }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly
-      - run: cargo test
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Rust - Install
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt,clippy
+          targets: ${{ matrix.target }}
+      - name: Rust - Version
+        run: rustc -Vv
+      - name: Rust - Build
+        run: cargo build --verbose --target=${{ matrix.target }} --tests --all-features
+      - name: Rust - Style
+        if: matrix.style == true
+        run: cargo fmt --check
+      - name: Rust - Clippy
+        if: matrix.style == true
+        run: cargo clippy -- -D warnings
+      - name: Rust - Test
+        if: matrix.test == true
+        run: cargo test --verbose --target=${{ matrix.target }} --all-features -- --test-threads=1 --nocapture

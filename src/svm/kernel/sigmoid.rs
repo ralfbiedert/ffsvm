@@ -7,7 +7,7 @@ use crate::{
     sparse::{SparseMatrix, SparseVector},
 };
 
-use simd_aligned::{f32x8, traits::Simd, MatD, Rows, VecD};
+use simd_aligned::{arch::f32x8, traits::Simd, MatSimd, Rows, VecSimd};
 
 #[derive(Copy, Clone, Debug, Default)]
 #[doc(hidden)]
@@ -17,7 +17,7 @@ pub struct Sigmoid {
 }
 
 impl KernelDense for Sigmoid {
-    fn compute(&self, vectors: &MatD<f32x8, Rows>, feature: &VecD<f32x8>, output: &mut [f64]) {
+    fn compute(&self, vectors: &MatSimd<f32x8, Rows>, feature: &VecSimd<f32x8>, output: &mut [f64]) {
         for (i, sv) in vectors.row_iter().enumerate() {
             let mut sum = f32x8::splat(0.0);
             let feature: &[f32x8] = feature;

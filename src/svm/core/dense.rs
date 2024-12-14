@@ -1,6 +1,3 @@
-use simd_aligned::{f32x8, traits::Simd, MatD, Rows, VecD};
-use std::convert::TryFrom;
-
 use crate::{
     errors::Error,
     parser::ModelFile,
@@ -14,6 +11,8 @@ use crate::{
     util::{find_max_index, set_all, sigmoid_predict},
     vectors::Triangular,
 };
+use simd_aligned::{arch::f32x8, traits::Simd, MatSimd, Rows, VecSimd};
+use std::convert::TryFrom;
 
 /// An SVM using [SIMD](https://en.wikipedia.org/wiki/SIMD) intrinsics optimized for speed.
 ///
@@ -44,7 +43,7 @@ pub struct DenseSVM {
     pub(crate) kernel: Box<dyn KernelDense>,
 
     /// All classes
-    pub(crate) classes: Vec<Class<MatD<f32x8, Rows>>>,
+    pub(crate) classes: Vec<Class<MatSimd<f32x8, Rows>>>,
 }
 
 impl DenseSVM {
@@ -94,7 +93,7 @@ impl DenseSVM {
     }
 
     /// Computes the kernel values for this problem
-    pub(crate) fn compute_kernel_values(&self, problem: &mut FeatureVector<VecD<f32x8>>) {
+    pub(crate) fn compute_kernel_values(&self, problem: &mut FeatureVector<VecSimd<f32x8>>) {
         // Get current problem and decision values array
         let features = &problem.features;
         let kernel_values = &mut problem.kernel_values;
@@ -112,13 +111,15 @@ impl DenseSVM {
     // based on Method 2 from the paper "Probability Estimates for Multi-class
     // Classification by Pairwise Coupling", Journal of Machine Learning Research 5 (2004) 975-1005,
     // by Ting-Fan Wu, Chih-Jen Lin and Ruby C. Weng.
-    pub(crate) fn compute_multiclass_probabilities(&self, problem: &mut FeatureVector<VecD<f32x8>>) -> Result<(), Error> { compute_multiclass_probabilities_impl!(self, problem) }
+    pub(crate) fn compute_multiclass_probabilities(&self, problem: &mut FeatureVector<VecSimd<f32x8>>) -> Result<(), Error> {
+        compute_multiclass_probabilities_impl!(self, problem)
+    }
 
     /// Based on kernel values, computes the decision values for this problem.
-    pub(crate) fn compute_classification_values(&self, problem: &mut FeatureVector<VecD<f32x8>>) { compute_classification_values_impl!(self, problem) }
+    pub(crate) fn compute_classification_values(&self, problem: &mut FeatureVector<VecSimd<f32x8>>) { compute_classification_values_impl!(self, problem) }
 
     /// Based on kernel values, computes the decision values for this problem.
-    pub(crate) fn compute_regression_values(&self, problem: &mut FeatureVector<VecD<f32x8>>) {
+    pub(crate) fn compute_regression_values(&self, problem: &mut FeatureVector<VecSimd<f32x8>>) {
         let class = &self.classes[0];
         let coef = class.coefficients.row(0);
         let kvalues = problem.kernel_values.row(0);
@@ -137,9 +138,9 @@ impl DenseSVM {
     pub fn classes(&self) -> usize { self.classes.len() }
 }
 
-impl Predict<VecD<f32x8>> for DenseSVM {
+impl Predict<VecSimd<f32x8>> for DenseSVM {
     // Predict the value for one problem.
-    fn predict_value(&self, fv: &mut FeatureVector<VecD<f32x8>>) -> Result<(), Error> {
+    fn predict_value(&self, fv: &mut FeatureVector<VecSimd<f32x8>>) -> Result<(), Error> {
         match self.svm_type {
             SVMType::CSvc | SVMType::NuSvc => {
                 // Compute kernel, decision values and eventually the label
@@ -160,7 +161,7 @@ impl Predict<VecD<f32x8>> for DenseSVM {
         }
     }
 
-    fn predict_probability(&self, problem: &mut FeatureVector<VecD<f32x8>>) -> Result<(), Error> { predict_probability_impl!(self, problem) }
+    fn predict_probability(&self, problem: &mut FeatureVector<VecSimd<f32x8>>) -> Result<(), Error> { predict_probability_impl!(self, problem) }
 }
 
 impl<'a> TryFrom<&'a str> for DenseSVM {
@@ -176,7 +177,7 @@ impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for DenseSVM {
     type Error = Error;
 
     fn try_from(raw_model: &'a ModelFile<'_>) -> Result<Self, Error> {
-        let (mut svm, nr_sv) = prepare_svm!(raw_model, dyn KernelDense, MatD<f32x8, Rows>, Self);
+        let (mut svm, nr_sv) = prepare_svm!(raw_model, dyn KernelDense, MatSimd<f32x8, Rows>, Self);
 
         let vectors = &raw_model.vectors();
 

@@ -4,12 +4,15 @@ use crate::{
     vectors::Triangular,
 };
 
-use simd_aligned::{f32x8, f64x4, MatD, Rows, VecD};
+use simd_aligned::{
+    arch::{f32x8, f64x4},
+    MatSimd, Rows, VecSimd,
+};
 
 /// Feature vectors produced for [`DenseSVM`]s.
 ///
 /// Also see [`FeatureVector`] for more methods for this type.
-pub type DenseFeatures = FeatureVector<VecD<f32x8>>;
+pub type DenseFeatures = FeatureVector<VecSimd<f32x8>>;
 
 /// Feature vectors produced for [`SparseSVM`]s.
 ///
@@ -69,7 +72,7 @@ pub struct FeatureVector<T> {
     pub(crate) features: T,
 
     /// KernelDense values. A vector for each class.
-    pub(crate) kernel_values: MatD<f64x4, Rows>,
+    pub(crate) kernel_values: MatSimd<f64x4, Rows>,
 
     /// All votes for a given class label.
     pub(crate) vote: Vec<u32>,
@@ -78,17 +81,17 @@ pub struct FeatureVector<T> {
     pub(crate) decision_values: Triangular<f64>,
 
     /// Pairwise probabilities
-    pub(crate) pairwise: MatD<f64x4, Rows>,
+    pub(crate) pairwise: MatSimd<f64x4, Rows>,
 
     /// Needed for multi-class probability estimates replicating libSVM.
-    pub(crate) q: MatD<f64x4, Rows>,
+    pub(crate) q: MatSimd<f64x4, Rows>,
 
     /// Needed for multi-class probability estimates replicating libSVM.
     pub(crate) qp: Vec<f64>,
 
     /// Probability estimates that will be updated after this problem was processed
     /// by `predict_probability`.
-    pub(crate) probabilities: VecD<f64x4>,
+    pub(crate) probabilities: VecSimd<f64x4>,
 
     /// Computed label that will be updated after this problem was processed.
     pub(crate) result: Label,
@@ -102,7 +105,7 @@ impl<T> FeatureVector<T> {
     pub fn probabilities(&self) -> &[f64] { self.probabilities.flat() }
 }
 
-impl FeatureVector<VecD<f32x8>> {
+impl FeatureVector<VecSimd<f32x8>> {
     /// Returns the features. You must set them first and classify the problem before you can get a solution.
     pub fn features(&mut self) -> &mut [f32] { self.features.flat_mut() }
 }
@@ -116,14 +119,14 @@ impl DenseFeatures {
     /// Creates a new problem with the given parameters.
     pub(crate) fn with_dimension(total_sv: usize, num_classes: usize, num_attributes: usize) -> Self {
         Self {
-            features: VecD::with(0.0, num_attributes),
-            kernel_values: MatD::with_dimension(num_classes, total_sv),
-            pairwise: MatD::with_dimension(num_classes, num_classes),
-            q: MatD::with_dimension(num_classes, num_classes),
+            features: VecSimd::with(0.0, num_attributes),
+            kernel_values: MatSimd::with_dimension(num_classes, total_sv),
+            pairwise: MatSimd::with_dimension(num_classes, num_classes),
+            q: MatSimd::with_dimension(num_classes, num_classes),
             qp: vec![Default::default(); num_classes],
             decision_values: Triangular::with_dimension(num_classes, Default::default()),
             vote: vec![Default::default(); num_classes],
-            probabilities: VecD::with(0.0, num_classes),
+            probabilities: VecSimd::with(0.0, num_classes),
             result: Label::None,
         }
     }
@@ -137,13 +140,13 @@ impl SparseFeatures {
     pub(crate) fn with_dimension(total_sv: usize, num_classes: usize, _num_attributes: usize) -> Self {
         Self {
             features: SparseVector::new(),
-            kernel_values: MatD::with_dimension(num_classes, total_sv),
-            pairwise: MatD::with_dimension(num_classes, num_classes),
-            q: MatD::with_dimension(num_classes, num_classes),
+            kernel_values: MatSimd::with_dimension(num_classes, total_sv),
+            pairwise: MatSimd::with_dimension(num_classes, num_classes),
+            q: MatSimd::with_dimension(num_classes, num_classes),
             qp: vec![Default::default(); num_classes],
             decision_values: Triangular::with_dimension(num_classes, Default::default()),
             vote: vec![Default::default(); num_classes],
-            probabilities: VecD::with(0.0, num_classes),
+            probabilities: VecSimd::with(0.0, num_classes),
             result: Label::None,
         }
     }

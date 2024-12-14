@@ -1,8 +1,8 @@
-//! [![Latest Version]][crates.io]
-//! [![Rust](https://github.com/ralfbiedert/ffsvm-rust/actions/workflows/rust.yml/badge.svg?branch=master)](https://github.com/ralfbiedert/ffsvm-rust/actions/workflows/rust.yml)
-//! [![deps.svg]][deps]
-//! [![docs]][docs.rs]
-//! ![MIT]
+//! [![crates.io-badge]][crates.io-url]
+//! [![docs.rs-badge]][docs.rs-url]
+//! ![license-badge]
+//! [![rust-version-badge]][rust-version-url]
+//! [![rust-build-badge]][rust-build-url]
 //!
 //! # In One Sentence
 //!
@@ -80,13 +80,15 @@
 //!
 //! [See here for details.](https://github.com/ralfbiedert/ffsvm-rust/blob/master/docs/FAQ.md)
 //!
-//! [Latest Version]: https://img.shields.io/crates/v/ffsvm.svg
-//! [crates.io]: https://crates.io/crates/ffsvm
-//! [MIT]: https://img.shields.io/badge/license-MIT-blue.svg
-//! [docs]: https://docs.rs/ffsvm/badge.svg
-//! [docs.rs]: https://docs.rs/ffsvm/
-//! [deps]: https://deps.rs/repo/github/ralfbiedert/ffsvm-rust
-//! [deps.svg]: https://deps.rs/repo/github/ralfbiedert/ffsvm-rust/status.svg
+//! [crates.io-badge]: https://img.shields.io/crates/v/ffsvm.svg
+//! [crates.io-url]: https://crates.io/crates/ffsvm
+//! [license-badge]: https://img.shields.io/badge/license-BSD2-blue.svg
+//! [docs.rs-badge]: https://docs.rs/ffsvm/badge.svg
+//! [docs.rs-url]: https://docs.rs/ffsvm/
+//! [rust-version-badge]: https://img.shields.io/badge/rust-1.83%2B-blue.svg?maxAge=3600
+//! [rust-version-url]: https://github.com/ralfbiedert/ffsvm
+//! [rust-build-badge]: https://github.com/ralfbiedert/ffsvm/actions/workflows/rust.yml/badge.svg
+//! [rust-build-url]: https://github.com/ralfbiedert/ffsvm/actions/workflows/rust.yml
 #![warn(clippy::all)] // Enable ALL the warnings ...
 #![warn(clippy::nursery)]
 #![warn(clippy::pedantic)]
