@@ -7,7 +7,7 @@ use simd_aligned::{
 /// Represents one class of the SVM model.
 #[derive(Clone, Debug)]
 #[doc(hidden)]
-pub(crate) struct Class<M32> {
+pub struct Class<M32> {
     /// The label of this class
     pub(crate) label: i32,
 

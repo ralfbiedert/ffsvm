@@ -27,7 +27,7 @@ impl KernelDense for Poly {
                 sum += *a * *b;
             }
 
-            output[i] = crate::util::powi(f64::from(self.gamma * sum.sum() + self.coef0), self.degree);
+            output[i] = crate::util::powi(f64::from(self.gamma.mul_add(sum.sum(), self.coef0)), self.degree);
         }
     }
 }
@@ -51,7 +51,7 @@ impl KernelSparse for Poly {
                     }
                     (Some((i_a, _)), Some((i_b, _))) if i_a < i_b => a = a_iter.next(),
                     (Some((i_a, _)), Some((i_b, _))) if i_a > i_b => b = b_iter.next(),
-                    _ => break crate::util::powi(f64::from(self.gamma * sum + self.coef0), self.degree),
+                    _ => break crate::util::powi(f64::from(self.gamma.mul_add(sum, self.coef0)), self.degree),
                 }
             }
         }
@@ -66,6 +66,6 @@ impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for Poly {
         let coef0 = raw_model.header().coef0.ok_or(Error::NoCoef0)?;
         let degree = raw_model.header().degree.ok_or(Error::NoDegree)?;
 
-        Ok(Self { gamma, coef0, degree })
+        Ok(Self { degree, gamma, coef0 })
     }
 }

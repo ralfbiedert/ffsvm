@@ -26,7 +26,7 @@ impl KernelDense for Sigmoid {
                 sum += *a * *b;
             }
 
-            output[i] = (f64::from(self.gamma * sum.sum() + self.coef0)).tanh();
+            output[i] = (f64::from(self.gamma.mul_add(sum.sum(), self.coef0))).tanh();
         }
     }
 }
@@ -50,7 +50,7 @@ impl KernelSparse for Sigmoid {
                     }
                     (Some((i_a, _)), Some((i_b, _))) if i_a < i_b => a = a_iter.next(),
                     (Some((i_a, _)), Some((i_b, _))) if i_a > i_b => b = b_iter.next(),
-                    _ => break (f64::from(self.gamma * sum + self.coef0)).tanh(),
+                    _ => break (f64::from(self.gamma.mul_add(sum, self.coef0))).tanh(),
                 }
             }
         }

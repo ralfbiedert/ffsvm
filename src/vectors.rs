@@ -89,7 +89,7 @@ where
     }
 }
 
-impl<'a, T> From<&'a Vec<T>> for Triangular<T>
+impl<T> From<&Vec<T>> for Triangular<T>
 where
     T: Copy + Sized,
 {

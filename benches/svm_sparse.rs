@@ -24,7 +24,7 @@ mod svm_sparse {
             problem_mut[i as usize] = i as f32;
         }
 
-        move || (&svm).predict_value(&mut problem).expect("This should work")
+        move || svm.predict_value(&mut problem).expect("This should work")
     }
 
     // RBF

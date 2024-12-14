@@ -57,7 +57,7 @@ fn compute(rbf: Rbf, vectors: &MatSimd<f32x8, Rows>, feature: &VecSimd<f32x8>, o
     } else if is_x86_feature_detected!("avx") {
         unsafe { compute_avx(rbf, vectors, feature, output) }
     } else {
-        compute_core(rbf, vectors, feature, output)
+        compute_core(rbf, vectors, feature, output);
     }
 }
 

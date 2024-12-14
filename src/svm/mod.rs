@@ -1,13 +1,13 @@
-pub(crate) mod class;
-pub(crate) mod core;
-pub(crate) mod features;
-pub(crate) mod kernel;
-pub(crate) mod predict;
+pub mod class;
+pub mod core;
+pub mod features;
+pub mod kernel;
+pub mod predict;
 
 use crate::vectors::Triangular;
 
 #[derive(Clone, Debug, Default)]
-pub(crate) struct Probabilities {
+pub struct Probabilities {
     pub(crate) a: Triangular<f64>,
 
     pub(crate) b: Triangular<f64>,

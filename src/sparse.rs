@@ -21,11 +21,11 @@ impl<T> SparseVector<T>
 where
     T: Clone + Copy + Default,
 {
-    pub fn new() -> Self { Self { entries: Vec::new() } }
+    pub const fn new() -> Self { Self { entries: Vec::new() } }
 
     pub fn clear(&mut self) { self.entries.clear(); }
 
-    pub fn iter(&self) -> SparseVectorIter<'_, T> { SparseVectorIter { vector: self, index: 0 } }
+    pub const fn iter(&self) -> SparseVectorIter<'_, T> { SparseVectorIter { vector: self, index: 0 } }
 }
 
 /// Basic iterator struct to go over matrix
@@ -41,7 +41,7 @@ where
     pub(crate) index: usize,
 }
 
-impl<'a, T> Iterator for SparseVectorIter<'a, T>
+impl<T> Iterator for SparseVectorIter<'_, T>
 where
     T: Clone + Copy + Default,
 {
@@ -86,10 +86,7 @@ where
     fn index_mut(&mut self, index: usize) -> &mut T {
         // TODO: Beautify me
 
-        let highest_so_far: i32 = match self.entries.last() {
-            None => -1,
-            Some(x) => x.index as i32,
-        };
+        let highest_so_far: i32 = self.entries.last().map_or(-1, |x| x.index as i32);
 
         if index as i32 <= highest_so_far {
             unimplemented!("We still need to implement unsorted insertion. As of today, you need to insert element in strictly ascending order.");
@@ -126,7 +123,7 @@ where
     pub fn row(&self, row: usize) -> &SparseVector<T> { &self.vectors[row] }
 
     #[inline]
-    pub fn row_iter(&self) -> SparseMatrixIter<'_, T> { SparseMatrixIter { matrix: self, index: 0 } }
+    pub const fn row_iter(&self) -> SparseMatrixIter<'_, T> { SparseMatrixIter { matrix: self, index: 0 } }
 }
 
 impl<T> Index<(usize, usize)> for SparseMatrix<T>

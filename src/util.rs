@@ -28,7 +28,7 @@ where
 
 /// As implemented in `libsvm`.
 pub fn sigmoid_predict(decision_value: f64, a: f64, b: f64) -> f64 {
-    let fapb = decision_value * a + b;
+    let fapb = decision_value.mul_add(a, b);
 
     // Citing from the original libSVM implementation:
     // "1-p used later; avoid catastrophic cancellation"
@@ -47,7 +47,7 @@ pub fn powi(base: f64, times: u32) -> f64 {
 
     while t > 0 {
         if t % 2 == 1 {
-            ret *= tmp
+            ret *= tmp;
         };
 
         tmp = tmp * tmp;

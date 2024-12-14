@@ -171,7 +171,7 @@ impl Predict<SparseVector<f32>> for SparseSVM {
     fn predict_probability(&self, problem: &mut FeatureVector<SparseVector<f32>>) -> Result<(), Error> { predict_probability_impl!(self, problem) }
 }
 
-impl<'a, 'b> TryFrom<&'a str> for SparseSVM {
+impl<'a> TryFrom<&'a str> for SparseSVM {
     type Error = Error;
 
     fn try_from(input: &'a str) -> Result<Self, Error> {

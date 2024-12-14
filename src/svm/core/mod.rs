@@ -154,10 +154,10 @@ macro_rules! compute_multiclass_probabilities_impl {
                 let diff = (-qp[t] + pqp) / q[(t, t)];
 
                 probabilities[t] += diff;
-                pqp = (pqp + diff * (diff * q[(t, t)] + 2.0 * qp[t])) / (1.0 + diff) / (1.0 + diff);
+                pqp = diff.mul_add(diff.mul_add(q[(t, t)], 2.0 * qp[t]), pqp) / (1.0 + diff) / (1.0 + diff);
 
                 for j in 0 .. num_classes {
-                    qp[j] = (qp[j] + diff * q[(t, j)]) / (1.0 + diff);
+                    qp[j] = diff.mul_add(q[(t, j)], qp[j]) / (1.0 + diff);
                     probabilities[j] /= 1.0 + diff;
                 }
             }

@@ -60,7 +60,7 @@ impl DenseSVM {
     ///
     /// If the label was found its index returned in the [`Option`], otherwise `None`
     /// is returned.
-    pub fn class_index_for_label(&self, label: i32) -> Option<usize> {
+    #[must_use] pub fn class_index_for_label(&self, label: i32) -> Option<usize> {
         for (i, class) in self.classes.iter().enumerate() {
             if class.label != label {
                 continue;
@@ -84,7 +84,7 @@ impl DenseSVM {
     ///
     /// If the index was found it is returned in the [`Option`], otherwise `None`
     /// is returned.
-    pub fn class_label_for_index(&self, index: usize) -> Option<i32> {
+    #[must_use] pub fn class_label_for_index(&self, index: usize) -> Option<i32> {
         if index >= self.classes.len() {
             None
         } else {
@@ -132,10 +132,10 @@ impl DenseSVM {
     }
 
     /// Returns number of attributes, reflecting the libSVM model.
-    pub const fn attributes(&self) -> usize { self.num_attributes }
+    #[must_use] pub const fn attributes(&self) -> usize { self.num_attributes }
 
     /// Returns number of classes, reflecting the libSVM model.
-    pub fn classes(&self) -> usize { self.classes.len() }
+    #[must_use] pub fn classes(&self) -> usize { self.classes.len() }
 }
 
 impl Predict<VecSimd<f32x8>> for DenseSVM {
@@ -173,7 +173,7 @@ impl<'a> TryFrom<&'a str> for DenseSVM {
     }
 }
 
-impl<'a, 'b> TryFrom<&'a ModelFile<'b>> for DenseSVM {
+impl<'a> TryFrom<&'a ModelFile<'_>> for DenseSVM {
     type Error = Error;
 
     fn try_from(raw_model: &'a ModelFile<'_>) -> Result<Self, Error> {

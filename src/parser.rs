@@ -127,7 +127,7 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
         for line in input.lines() {
             let tokens = line.split_whitespace().collect::<Vec<_>>();
 
-            match tokens.get(0) {
+            match tokens.first() {
                 // Single value headers
                 //
                 // svm_type c_svc
@@ -190,7 +190,7 @@ impl<'a> TryFrom<&'a str> for ModelFile<'a> {
                             let split = x.split(':').collect::<Vec<&str>>();
 
                             Some(Attribute {
-                                index: split.get(0)?.parse::<u32>().ok()?,
+                                index: split.first()?.parse::<u32>().ok()?,
                                 value: split.get(1)?.parse::<f32>().ok()?,
                             })
                         })

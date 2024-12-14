@@ -14,11 +14,6 @@ exclude = [
     "docs/*",
 ]
 
-[lib]
-name = "ffsvm"
-path = "src/lib.rs"
-crate-type = ["rlib"]
-
 [dependencies]
 simd_aligned = "0.6.1"
 #simd_aligned = { path = "../simd_aligned" }
@@ -26,6 +21,3 @@ simd_aligned = "0.6.1"
 [dev-dependencies]
 rand = "0.8.5"
 
-[profile.release]
-opt-level = 3
-lto = true

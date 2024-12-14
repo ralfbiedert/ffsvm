@@ -51,9 +51,9 @@ pub enum Error {
 // }
 
 impl From<ParseFloatError> for Error {
-    fn from(_e: ParseFloatError) -> Self { Error::Parsing("ParseFloatError".to_owned()) }
+    fn from(_e: ParseFloatError) -> Self { Self::Parsing("ParseFloatError".to_owned()) }
 }
 
 impl From<ParseIntError> for Error {
-    fn from(_: ParseIntError) -> Self { Error::Parsing("ParseIntError".to_owned()) }
+    fn from(_: ParseIntError) -> Self { Self::Parsing("ParseIntError".to_owned()) }
 }
