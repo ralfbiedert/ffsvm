@@ -37,17 +37,23 @@ fn compute_core(rbf: Rbf, vectors: &MatSimd<f32x8, Rows>, feature: &VecSimd<f32x
 #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
 #[target_feature(enable = "avx")]
 #[inline]
-unsafe fn compute_avx(rbf: Rbf, vectors: &MatSimd<f32x8, Rows>, feature: &VecSimd<f32x8>, output: &mut [f64]) { compute_core(rbf, vectors, feature, output); }
+unsafe fn compute_avx(rbf: Rbf, vectors: &MatSimd<f32x8, Rows>, feature: &VecSimd<f32x8>, output: &mut [f64]) {
+    compute_core(rbf, vectors, feature, output);
+}
 
 #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
 #[target_feature(enable = "avx2")]
 #[inline]
-unsafe fn compute_avx2(rbf: Rbf, vectors: &MatSimd<f32x8, Rows>, feature: &VecSimd<f32x8>, output: &mut [f64]) { compute_core(rbf, vectors, feature, output); }
+unsafe fn compute_avx2(rbf: Rbf, vectors: &MatSimd<f32x8, Rows>, feature: &VecSimd<f32x8>, output: &mut [f64]) {
+    compute_core(rbf, vectors, feature, output);
+}
 
 #[cfg(target_arch = "aarch64")]
 #[target_feature(enable = "neon")]
 #[inline]
-unsafe fn compute_neon(rbf: Rbf, vectors: &MatSimd<f32x8, Rows>, feature: &VecSimd<f32x8>, output: &mut [f64]) { compute_core(rbf, vectors, feature, output); }
+unsafe fn compute_neon(rbf: Rbf, vectors: &MatSimd<f32x8, Rows>, feature: &VecSimd<f32x8>, output: &mut [f64]) {
+    compute_core(rbf, vectors, feature, output);
+}
 
 #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
 #[inline]
@@ -73,10 +79,14 @@ fn compute(rbf: Rbf, vectors: &MatSimd<f32x8, Rows>, feature: &VecSimd<f32x8>, o
 
 #[cfg(not(any(target_arch = "x86_64", target_arch = "x86", target_arch = "aarch64")))]
 #[inline]
-fn compute(rbf: Rbf, vectors: &MatSimd<f32x8, Rows>, feature: &VecSimd<f32x8>, output: &mut [f64]) { compute_core(rbf, vectors, feature, output) }
+fn compute(rbf: Rbf, vectors: &MatSimd<f32x8, Rows>, feature: &VecSimd<f32x8>, output: &mut [f64]) {
+    compute_core(rbf, vectors, feature, output)
+}
 
 impl KernelDense for Rbf {
-    fn compute(&self, vectors: &MatSimd<f32x8, Rows>, feature: &VecSimd<f32x8>, output: &mut [f64]) { compute(*self, vectors, feature, output); }
+    fn compute(&self, vectors: &MatSimd<f32x8, Rows>, feature: &VecSimd<f32x8>, output: &mut [f64]) {
+        compute(*self, vectors, feature, output);
+    }
 }
 
 impl KernelSparse for Rbf {

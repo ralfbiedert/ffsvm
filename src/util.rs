@@ -17,7 +17,7 @@ where
 {
     let mut vote_max_idx = 0;
 
-    for i in 1 .. array.len() {
+    for i in 1..array.len() {
         if array[i] > array[vote_max_idx] {
             vote_max_idx = i;
         }

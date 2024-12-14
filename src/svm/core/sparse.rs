@@ -121,7 +121,9 @@ impl SparseSVM {
     }
 
     /// Based on kernel values, computes the decision values for this problem.
-    pub(crate) fn compute_classification_values(&self, problem: &mut FeatureVector<SparseVector<f32>>) { compute_classification_values_impl!(self, problem) }
+    pub(crate) fn compute_classification_values(&self, problem: &mut FeatureVector<SparseVector<f32>>) {
+        compute_classification_values_impl!(self, problem)
+    }
 
     /// Based on kernel values, computes the decision values for this problem.
     pub(crate) fn compute_regression_values(&self, problem: &mut FeatureVector<SparseVector<f32>>) {
@@ -138,11 +140,15 @@ impl SparseSVM {
 
     /// Returns number of attributes, reflecting the libSVM model.
     #[must_use]
-    pub const fn attributes(&self) -> usize { self.num_attributes }
+    pub const fn attributes(&self) -> usize {
+        self.num_attributes
+    }
 
     /// Returns number of classes, reflecting the libSVM model.
     #[must_use]
-    pub fn classes(&self) -> usize { self.classes.len() }
+    pub fn classes(&self) -> usize {
+        self.classes.len()
+    }
 }
 
 impl Predict<SparseVector<f32>> for SparseSVM {
@@ -168,7 +174,9 @@ impl Predict<SparseVector<f32>> for SparseSVM {
         }
     }
 
-    fn predict_probability(&self, problem: &mut FeatureVector<SparseVector<f32>>) -> Result<(), Error> { predict_probability_impl!(self, problem) }
+    fn predict_probability(&self, problem: &mut FeatureVector<SparseVector<f32>>) -> Result<(), Error> {
+        predict_probability_impl!(self, problem)
+    }
 }
 
 impl<'a> TryFrom<&'a str> for SparseSVM {
@@ -197,7 +205,7 @@ impl<'a> TryFrom<&'a ModelFile<'_>> for SparseSVM {
             let stop_offset = start_offset + *num_sv_per_class as usize;
 
             // Set support vector and coefficients
-            for (i_vector, vector) in vectors[start_offset .. stop_offset].iter().enumerate() {
+            for (i_vector, vector) in vectors[start_offset..stop_offset].iter().enumerate() {
                 // Set support vectors
                 for attribute in &vector.features {
                     let support_vectors = &mut svm.classes[i].support_vectors;

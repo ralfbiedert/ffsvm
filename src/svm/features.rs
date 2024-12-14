@@ -99,20 +99,28 @@ pub struct FeatureVector<T> {
 
 impl<T> FeatureVector<T> {
     /// After a [`Problem`](crate::FeatureVector) has been classified, this will hold the SVMs solution label.
-    pub const fn label(&self) -> Label { self.result }
+    pub const fn label(&self) -> Label {
+        self.result
+    }
 
     /// Returns the probability estimates. Only really useful if the model was trained with probability estimates and you classified with them.
-    pub fn probabilities(&self) -> &[f64] { self.probabilities.flat() }
+    pub fn probabilities(&self) -> &[f64] {
+        self.probabilities.flat()
+    }
 }
 
 impl FeatureVector<VecSimd<f32x8>> {
     /// Returns the features. You must set them first and classify the problem before you can get a solution.
-    pub fn features(&mut self) -> &mut [f32] { self.features.flat_mut() }
+    pub fn features(&mut self) -> &mut [f32] {
+        self.features.flat_mut()
+    }
 }
 
 impl FeatureVector<SparseVector<f32>> {
     /// Returns the features. You must set them first and classify the problem before you can get a solution.
-    pub fn features(&mut self) -> &mut SparseVector<f32> { &mut self.features }
+    pub fn features(&mut self) -> &mut SparseVector<f32> {
+        &mut self.features
+    }
 }
 
 impl DenseFeatures {
@@ -134,7 +142,9 @@ impl DenseFeatures {
 
 impl SparseFeatures {
     /// Clears the [FeatureVector] when reusing it between calls. Only needed for [SparseSVM] problems.
-    pub fn clear(&mut self) { self.features.clear(); }
+    pub fn clear(&mut self) {
+        self.features.clear();
+    }
 
     /// Creates a new problem with the given parameters.
     pub(crate) fn with_dimension(total_sv: usize, num_classes: usize, _num_attributes: usize) -> Self {
@@ -153,9 +163,13 @@ impl SparseFeatures {
 }
 
 impl From<&DenseSVM> for DenseFeatures {
-    fn from(svm: &DenseSVM) -> Self { Self::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes) }
+    fn from(svm: &DenseSVM) -> Self {
+        Self::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes)
+    }
 }
 
 impl From<&SparseSVM> for SparseFeatures {
-    fn from(svm: &SparseSVM) -> Self { Self::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes) }
+    fn from(svm: &SparseSVM) -> Self {
+        Self::with_dimension(svm.num_total_sv, svm.classes.len(), svm.num_attributes)
+    }
 }

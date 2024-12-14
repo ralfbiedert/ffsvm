@@ -43,7 +43,7 @@ macro_rules! prepare_svm {
             // Construct vector of classes
             let classes = match svm_type {
                 // TODO: CLEAN THIS UP ... We can probably unify the logic
-                SVMType::CSvc | SVMType::NuSvc => (0 .. num_classes)
+                SVMType::CSvc | SVMType::NuSvc => (0..num_classes)
                     .map(|c| {
                         let label = header.label[c];
                         let num_sv = nr_sv[c] as usize;
@@ -97,30 +97,30 @@ macro_rules! compute_multiclass_probabilities_impl {
 
         // We first build up matrix Q as defined in (14) in the paper above. Q should have
         // the property of being a transition matrix for a Markov Chain.
-        for t in 0 .. num_classes {
+        for t in 0..num_classes {
             probabilities[t] = 1.0 / num_classes as f64;
 
             q[(t, t)] = 0.0;
 
-            for j in 0 .. t {
+            for j in 0..t {
                 q[(t, t)] += pairwise[(j, t)] * pairwise[(j, t)];
                 q[(t, j)] = q[(j, t)];
             }
 
-            for j in t + 1 .. num_classes {
+            for j in t + 1..num_classes {
                 q[(t, t)] += pairwise[(j, t)] * pairwise[(j, t)];
                 q[(t, j)] = -pairwise[(j, t)] * pairwise[(t, j)];
             }
         }
 
         // We now try to satisfy (21), (23) and (24) in the paper above.
-        for i in 0 ..= max_iter {
+        for i in 0..=max_iter {
             let mut pqp = 0.0;
 
-            for t in 0 .. num_classes {
+            for t in 0..num_classes {
                 qp[t] = 0.0;
 
-                for j in 0 .. num_classes {
+                for j in 0..num_classes {
                     qp[t] += q[(t, j)] * probabilities[j];
                 }
 
@@ -150,13 +150,13 @@ macro_rules! compute_multiclass_probabilities_impl {
             }
 
             // This seems to be the main function performing (23) and (24).
-            for t in 0 .. num_classes {
+            for t in 0..num_classes {
                 let diff = (-qp[t] + pqp) / q[(t, t)];
 
                 probabilities[t] += diff;
                 pqp = diff.mul_add(diff.mul_add(q[(t, t)], 2.0 * qp[t]), pqp) / (1.0 + diff) / (1.0 + diff);
 
-                for j in 0 .. num_classes {
+                for j in 0..num_classes {
                     qp[j] = diff.mul_add(q[(t, j)], qp[j]) / (1.0 + diff);
                     probabilities[j] /= 1.0 + diff;
                 }
@@ -191,8 +191,8 @@ macro_rules! compute_classification_values_impl {
         // Both a) and b) are multiplied with the computed kernel values and summed,
         // and eventually used to compute on which side we are.
 
-        for i in 0 .. $self.classes.len() {
-            for j in (i + 1) .. $self.classes.len() {
+        for i in 0..$self.classes.len() {
+            for j in (i + 1)..$self.classes.len() {
                 let sv_coef0 = $self.classes[i].coefficients.row(j - 1);
                 let sv_coef1 = $self.classes[j].coefficients.row(i);
 
@@ -232,8 +232,8 @@ macro_rules! predict_probability_impl {
                 let mut pairwise = $problem.pairwise.flat_mut();
 
                 // Now compute probability values
-                for i in 0 .. num_classes {
-                    for j in i + 1 .. num_classes {
+                for i in 0..num_classes {
+                    for j in i + 1..num_classes {
                         let decision_value = $problem.decision_values[(i, j)];
                         let a = probabilities.a[(i, j)];
                         let b = probabilities.b[(i, j)];

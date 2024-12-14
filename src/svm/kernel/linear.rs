@@ -54,5 +54,7 @@ impl KernelSparse for Linear {
 }
 
 impl<'a> From<&'a ModelFile<'a>> for Linear {
-    fn from(_model: &'a ModelFile<'a>) -> Self { Self {} }
+    fn from(_model: &'a ModelFile<'a>) -> Self {
+        Self {}
+    }
 }

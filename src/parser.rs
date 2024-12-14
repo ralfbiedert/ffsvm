@@ -61,15 +61,21 @@ pub struct ModelFile<'a> {
 impl<'a> ModelFile<'a> {
     #[doc(hidden)]
     #[must_use]
-    pub const fn new(header: Header<'a>, vectors: Vec<SupportVector>) -> Self { Self { header, vectors } }
+    pub const fn new(header: Header<'a>, vectors: Vec<SupportVector>) -> Self {
+        Self { header, vectors }
+    }
 
     #[doc(hidden)]
     #[must_use]
-    pub const fn header(&self) -> &Header { &self.header }
+    pub const fn header(&self) -> &Header {
+        &self.header
+    }
 
     #[doc(hidden)]
     #[must_use]
-    pub fn vectors(&self) -> &[SupportVector] { self.vectors.as_slice() }
+    pub fn vectors(&self) -> &[SupportVector] {
+        self.vectors.as_slice()
+    }
 }
 
 #[doc(hidden)]

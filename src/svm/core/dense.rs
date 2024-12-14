@@ -60,7 +60,8 @@ impl DenseSVM {
     ///
     /// If the label was found its index returned in the [`Option`], otherwise `None`
     /// is returned.
-    #[must_use] pub fn class_index_for_label(&self, label: i32) -> Option<usize> {
+    #[must_use]
+    pub fn class_index_for_label(&self, label: i32) -> Option<usize> {
         for (i, class) in self.classes.iter().enumerate() {
             if class.label != label {
                 continue;
@@ -84,7 +85,8 @@ impl DenseSVM {
     ///
     /// If the index was found it is returned in the [`Option`], otherwise `None`
     /// is returned.
-    #[must_use] pub fn class_label_for_index(&self, index: usize) -> Option<i32> {
+    #[must_use]
+    pub fn class_label_for_index(&self, index: usize) -> Option<i32> {
         if index >= self.classes.len() {
             None
         } else {
@@ -116,7 +118,9 @@ impl DenseSVM {
     }
 
     /// Based on kernel values, computes the decision values for this problem.
-    pub(crate) fn compute_classification_values(&self, problem: &mut FeatureVector<VecSimd<f32x8>>) { compute_classification_values_impl!(self, problem) }
+    pub(crate) fn compute_classification_values(&self, problem: &mut FeatureVector<VecSimd<f32x8>>) {
+        compute_classification_values_impl!(self, problem)
+    }
 
     /// Based on kernel values, computes the decision values for this problem.
     pub(crate) fn compute_regression_values(&self, problem: &mut FeatureVector<VecSimd<f32x8>>) {
@@ -132,10 +136,16 @@ impl DenseSVM {
     }
 
     /// Returns number of attributes, reflecting the libSVM model.
-    #[must_use] pub const fn attributes(&self) -> usize { self.num_attributes }
+    #[must_use]
+    pub const fn attributes(&self) -> usize {
+        self.num_attributes
+    }
 
     /// Returns number of classes, reflecting the libSVM model.
-    #[must_use] pub fn classes(&self) -> usize { self.classes.len() }
+    #[must_use]
+    pub fn classes(&self) -> usize {
+        self.classes.len()
+    }
 }
 
 impl Predict<VecSimd<f32x8>> for DenseSVM {
@@ -161,7 +171,9 @@ impl Predict<VecSimd<f32x8>> for DenseSVM {
         }
     }
 
-    fn predict_probability(&self, problem: &mut FeatureVector<VecSimd<f32x8>>) -> Result<(), Error> { predict_probability_impl!(self, problem) }
+    fn predict_probability(&self, problem: &mut FeatureVector<VecSimd<f32x8>>) -> Result<(), Error> {
+        predict_probability_impl!(self, problem)
+    }
 }
 
 impl<'a> TryFrom<&'a str> for DenseSVM {
@@ -190,7 +202,7 @@ impl<'a> TryFrom<&'a ModelFile<'_>> for DenseSVM {
             let stop_offset = start_offset + *num_sv_per_class as usize;
 
             // Set support vector and coefficients
-            for (i_vector, vector) in vectors[start_offset .. stop_offset].iter().enumerate() {
+            for (i_vector, vector) in vectors[start_offset..stop_offset].iter().enumerate() {
                 let mut last_attribute = None;
 
                 // Set support vectors

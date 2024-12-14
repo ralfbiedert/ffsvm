@@ -126,7 +126,9 @@ where
 {
     type Output = T;
 
-    fn index(&self, index: usize) -> &T { &self.data[index] }
+    fn index(&self, index: usize) -> &T {
+        &self.data[index]
+    }
 }
 
 impl<T> IndexMut<(usize, usize)> for Triangular<T>
@@ -143,7 +145,9 @@ impl<T> fmt::Debug for Triangular<T>
 where
     T: Copy + Sized,
 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "(Triangular {}, [data])", self.dimension) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "(Triangular {}, [data])", self.dimension)
+    }
 }
 
 #[cfg(test)]
@@ -174,5 +178,4 @@ mod tests {
 
         assert_eq!(matrix.data[7], 667);
     }
-
 }
